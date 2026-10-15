@@ -1,0 +1,5 @@
+{
+  "noServerSecretNames": true,
+  "noApiKeyPattern": true,
+  "noSqlInClient": true
+}

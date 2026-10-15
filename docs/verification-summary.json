@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-15",
+  "timezone": "Asia/Seoul",
+  "typecheck": "passed",
+  "lint": "passed",
+  "unitApiSdk": {
+    "passed": 72,
+    "total": 72
+  },
+  "localPostgres": {
+    "passed": 15,
+    "total": 15
+  },
+  "playwright": {
+    "passed": 13,
+    "total": 13
+  },
+  "syntheticSoftwareInvariants": {
+    "passed": 60,
+    "total": 60,
+    "legalAccuracy": false
+  },
+  "build": "passed",
+  "format": "passed",
+  "actualAiCalls": 0,
+  "remoteDbApplied": false,
+  "humanThreeSecondTest": "not run",
+  "tossSdkInstalled": false,
+  "tossReleased": false,
+  "hostedDemoLocal": {
+    "passed": 3,
+    "total": 3,
+    "dataRequests": 0,
+    "persistentBrowserStorage": false
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "name": "banglog-plus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"tsx watch server/index.ts\" \"vite --host 127.0.0.1\"",
+    "build": "tsc --noEmit && vite build && tsc -p tsconfig.server.json",
+    "start": "node dist-server/server/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:test": "tsx scripts/db-test.ts",
+    "db:cleanup": "tsx scripts/cleanup.ts",
+    "evaluate": "tsx scripts/evaluate.ts",
+    "db:local": "tsx scripts/local-db.ts",
+    "db:stop": "tsx scripts/local-db.ts --stop",
+    "dev:db": "tsx scripts/dev-db.ts",
+    "format:check": "prettier --check src server shared scripts tests *.ts *.json eslint.config.js index.html",
+    "build:demo": "tsc --noEmit && vite build --mode hosted",
+    "test:hosted": "playwright test --config playwright.hosted.config.ts"
+  },
+  "dependencies": {
+    "dotenv": "18.0.8",
+    "fastify": "5.12.7",
+    "openai": "7.34.0",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "26.6.5",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "concurrently": "10.0.6",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "prettier": "3.9.10",
+    "supabase": "2.121.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  }
+}

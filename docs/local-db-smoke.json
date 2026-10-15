@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-15T12:29:55.751Z",
+  "path": "browser → Vite proxy → Fastify → dedicated PostgreSQL login → result → clipboard → feedback → cascade delete",
+  "ai": "mock",
+  "database": "local PostgreSQL",
+  "beforeDelete": {
+    "analyses": 1,
+    "results": 1
+  },
+  "feedbackStored": 1,
+  "afterDelete": {
+    "guests": 0,
+    "results": 0,
+    "feedback": 0
+  },
+  "passed": true
+}

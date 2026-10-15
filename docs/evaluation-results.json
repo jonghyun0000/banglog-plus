@@ -1,0 +1,310 @@
+{
+  "evaluatedAt": "2026-10-15T12:27:39.755Z",
+  "mode": "mock",
+  "fixtureSha256": "788623c33878e00159bff286b2ca7374f64493ebe69366da29aca76524fd9bad",
+  "scope": "Software invariants only; not legal accuracy; holdout not used to tune",
+  "count": 60,
+  "passed": 60,
+  "results": [
+    {
+      "id": "mold-01",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-02",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-03",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-04",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-05",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-06",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-07",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-08",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-09",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-10",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-11",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-12",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-13",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-14",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "mold-15",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "mold-16",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "mold-17",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "mold-18",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "mold-19",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "mold-20",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-01",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-02",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-03",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-04",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-05",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-06",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-07",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-08",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-09",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-10",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-11",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-12",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-13",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "leak-14",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-15",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-16",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-17",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-18",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-19",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "leak-20",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-01",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-02",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-03",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-04",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-05",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-06",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-07",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-08",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-09",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-10",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-11",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-12",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-13",
+      "split": "development",
+      "passed": true
+    },
+    {
+      "id": "boiler-14",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-15",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-16",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-17",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-18",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-19",
+      "split": "holdout",
+      "passed": true
+    },
+    {
+      "id": "boiler-20",
+      "split": "holdout",
+      "passed": true
+    }
+  ]
+}
