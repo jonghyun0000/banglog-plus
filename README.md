@@ -6,6 +6,10 @@
 
 ## Vercel 체험판
 
+- [배포 사이트](https://banglog-plus.vercel.app)
+- [GitHub 비공개 저장소](https://github.com/jonghyun0000/banglog-plus)
+- `main` 브랜치 push 시 Vercel 자동 배포.
+
 배포 빌드: `npm run build:demo`. `vercel.json`이 이 명령과 `dist`를 사용합니다.
 브라우저 메모리에서 규칙 기반 가상 결과를 생성하며 입력·결과·피드백을 API나 외부 AI로 전송하지 않습니다. 피드백은 운영자에게 전달되지 않습니다. 새로고침·페이지 닫기·기록 삭제 시 사라집니다. 사이트 파일을 요청하는 일반 호스팅 접속 기록과는 구분됩니다.
 

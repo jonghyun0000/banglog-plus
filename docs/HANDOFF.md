@@ -41,3 +41,5 @@
 `build:demo`는 브라우저 메모리 전용 mock을 선택한다. 서버 API, 실제 AI, 원격 DB를 호출하지 않는다. 저장/삭제/선택 피드백 고지가 이 동작과 일치한다. 공통 순수 규칙은 `shared/analysis.ts`에 두고 서버도 같은 함수를 사용한다. 서버 실행과 원격 DB 준비 상태는 기존과 동일하다. 배포 결과는 `DEPLOYMENT.md`를 참조한다.
 
 배포 작업에서는 브라우저 검증을 위해 로컬 개발 서버를 종료했다. 다시 실행하려면 `npm run dev:db`를 사용한다.
+
+GitHub 비공개 저장소와 Vercel 배포 완료: https://github.com/jonghyun0000/banglog-plus / https://banglog-plus.vercel.app. 실제 주소의 세 문제 전체 흐름을 Playwright로 검증했다. main push 자동 배포 연결.

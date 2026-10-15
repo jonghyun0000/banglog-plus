@@ -35,3 +35,7 @@
 - 공개 배포·정리 scheduler 가용성·공급자/백업 삭제: 미배포.
 
 네트워크 로딩/오류 캡처는 테스트에서 응답을 지연·실패시켜 만든 검증 상태다. 제품은 가짜 진행률이나 분석 정확도를 표시하지 않는다.
+
+## 2026-10-15 GitHub / Vercel 배포 추가 검증
+
+단위/API/SDK/브라우저 메모리 72개, 실제 PostgreSQL 15개, 기존 Playwright 13개, 로컬 정적 체험판 Playwright 3개, 실제 Vercel 주소 Playwright 3개 모두 통과. 타입·린트·format·기본 웹/서버 빌드 및 hosted 빌드 통과. 배포 대상·한계·실행 결과는 DEPLOYMENT.md 참조. 실제 AI 호출과 원격 DB 적용은 여전히 0건.

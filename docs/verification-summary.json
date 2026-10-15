@@ -32,5 +32,14 @@
     "total": 3,
     "dataRequests": 0,
     "persistentBrowserStorage": false
+  },
+  "hostedDemoRemote": {
+    "url": "https://banglog-plus.vercel.app",
+    "passed": 3,
+    "total": 3,
+    "dataRequests": 0,
+    "pageErrors": 0,
+    "accessibilityViolations": 0,
+    "testedCodeCommit": "572b2cd7e6c79d39b2deacd94f8809e5f0a9935e"
   }
 }

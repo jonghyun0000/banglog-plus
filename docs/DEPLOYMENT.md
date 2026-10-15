@@ -11,6 +11,24 @@
 
 ## 로컬 검증
 
-타입 검사·린트 통과, 단위/API/AI 어댑터/브라우저 메모리 테스트 72개 통과, 실제 PostgreSQL 검사 15개 통과, 기존 서버·웹 빌드 성공. 브라우저 검사와 실제 배포 결과는 완료 후 아래 기록.
+타입 검사·린트 통과, 단위/API/AI 어댑터/브라우저 메모리 테스트 72개 통과, 실제 PostgreSQL 검사 15개 통과, 기존 서버·웹 빌드 성공. 브라우저 검사와 실제 배포 결과는 아래 기록.
 
 기존 Playwright 13개와 정적 체험판 Playwright 3개 통과. 세 문제의 결과·복사·피드백·삭제·새로고침·접근성 검사 통과. 체험판에서 fetch/XHR/POST 요청 0개, localStorage/sessionStorage 0개, 페이지 오류 0개 확인. format 검사 통과.
+
+## 실제 배포 및 검증 완료
+
+- GitHub: https://github.com/jonghyun0000/banglog-plus (private, 기본 브랜치 main)
+- 사이트: https://banglog-plus.vercel.app
+- Vercel 관리: https://vercel.com/jonghyun0000s-projects/banglog-plus
+- 프로젝트 ID: prj_D2NW7h6HvebQhycmlVmLxc9LpcsD
+- GitHub 연동 완료. main push로 production 배포가 자동 실행되는 것을 확인했다.
+- 최초 검증 배포: dpl_AWnbduw8EQSvQgAhBnorLtUB6kZf / 코드 커밋 572b2cd7e6c79d39b2deacd94f8809e5f0a9935e. 2026-10-15 21:48 KST Ready. 이후 문서 정리 커밋도 같은 코드로 자동 배포된다.
+- Vercel 빌드 로그에서 Node 22.x, npm ci 성공, 취약점 감사 0건, build:demo 성공 확인. 실제 Vercel 프로젝트 기본 Node 설정은 24.x이나 package.json의 >=22.12.0 <23 범위가 우선하여 22.x를 사용한다.
+- 공개 주소 HTTP 200, noindex/nofollow·nosniff·Referrer-Policy 헤더 확인.
+- 실제 공개 주소에서 Playwright 3개 모두 통과: 곰팡이·누수·보일러 질문 → 결과 → 실제 클립보드 복사 → 체험용 피드백 → 삭제 → 새로고침. 접근성 위반 0개, 페이지 오류 0개, fetch/XHR/POST 0개, localStorage/sessionStorage 0개.
+- 배포 JS에 browser-demo-rules 표시 존재. 서버 API 경로, OPENAI_API_KEY, DATABASE_URL 이름은 포함되지 않음.
+- MCP는 팀 범위 권한 오류가 있어 동일한 사용자 팀의 기존 인증된 Vercel CLI 64.2.0으로 연결·검증했다. 토큰을 읽거나 출력하지 않았다.
+
+## 유지보수
+
+`git push origin main` → Vercel 자동 빌드 → Ready 확인. 기능 변경 시 `npm run test:hosted`와 실제 사이트에 대한 `HOSTED_URL=https://banglog-plus.vercel.app npm run test:hosted`를 실행한다. 기존 서버 모드 검증은 AGENTS.md의 명령을 따른다. 서버 API와 DB를 실제 배포하는 작업은 현재 체험판과 구분해서 진행해야 한다.
