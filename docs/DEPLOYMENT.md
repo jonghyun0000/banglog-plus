@@ -35,4 +35,11 @@
 
 ## 2026년 10월 21일 업그레이드
 
-동일한 `banglog-plus` 프로젝트에 6종 문제와 판례 참고 화면을 배포한다. Vercel은 기존 browser-only 빌드를 유지한다. 로컬 검증 결과와 미검증 범위는 TEST_RESULTS.md, 팀 의견 반영과 발표 초안은 TEAM_FEEDBACK.md, 출처별 상태는 RESEARCH.md에 기록했다. 원격 DB migration이나 유료 자원을 추가하지 않았다.
+동일한 `banglog-plus` 프로젝트에 6종 문제와 판례 참고 화면을 배포했다. Vercel은 기존 browser-only 빌드를 유지한다. 로컬 검증 결과와 미검증 범위는 TEST_RESULTS.md, 팀 의견 반영과 발표 초안은 TEAM_FEEDBACK.md, 출처별 상태는 RESEARCH.md에 기록했다. 원격 DB migration이나 유료 자원을 추가하지 않았다.
+
+- 기능 커밋: `d0bc89bedf75e9fed14ceb3991e1246133829963`.
+- 검증한 Production 배포: `dpl_27Hohu2g9A3DkDuaLwLWkLsg6f14`, READY, 빌드·준비 약 24초.
+- 실제 주소: https://banglog-plus.vercel.app
+- Vercel 빌드 로그와 GitHub Vercel status에서 위 커밋의 배포 성공 확인. Node 22.x, npm ci, build:demo 성공.
+- 공개 주소에서 hosted Playwright 8/8 통과: 여섯 유형 전 과정, 참고 판례, 직접 소유 제품의 수리업체 경로. 검사한 화면의 axe 위반 0건. 여섯 전 과정에서 pageerror·fetch/XHR·비GET 데이터 요청·지속 저장 0건.
+- 이후 문서만 정리하는 커밋은 기능 코드가 동일하며 기존 main 자동 배포를 따른다.
