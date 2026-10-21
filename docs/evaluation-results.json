@@ -1,5 +1,5 @@
 {
-  "evaluatedAt": "2026-10-15T12:27:39.755Z",
+  "evaluatedAt": "2026-10-21T02:27:58.595Z",
   "mode": "mock",
   "fixtureSha256": "788623c33878e00159bff286b2ca7374f64493ebe69366da29aca76524fd9bad",
   "scope": "Software invariants only; not legal accuracy; holdout not used to tune",

@@ -156,7 +156,7 @@ test("long text, 200% text zoom, focus, browser back", async ({ page }) => {
   ).toBeFocused();
   await page.goBack();
   await expect(
-    page.getByRole("heading", { name: "어떤 상황인가요?" }),
+    page.getByRole("heading", { name: "지금 보이는 증상은 무엇인가요?" }),
   ).toBeVisible();
   await review(page);
   await analyze(page);

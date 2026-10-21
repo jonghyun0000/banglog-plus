@@ -1,10 +1,20 @@
 import { z } from "zod";
-export const issueSchema = z.enum(["mold", "leak", "boiler"]);
+export const issueSchema = z.enum([
+  "mold",
+  "leak",
+  "boiler",
+  "surface",
+  "drain",
+  "fixture",
+]);
 export type Issue = z.infer<typeof issueSchema>;
 export const issueNames: Record<Issue, string> = {
   mold: "곰팡이·결로",
   leak: "누수",
   boiler: "보일러 고장",
+  surface: "벽지·장판 손상",
+  drain: "배수 문제",
+  fixture: "옵션 제품 고장",
 };
 export const intakeSchema = z
   .object({
@@ -23,16 +33,33 @@ export const intakeSchema = z
         "hotwater",
         "heating",
         "power",
+        "wall-tear",
+        "wall-dent",
+        "floor-tear",
+        "floor-dent",
+        "poor-drain",
+        "slow-drain",
+        "backflow",
+        "blocked-drain",
+        "aircon",
+        "option-boiler",
+        "washer",
+        "fridge",
+        "stove",
+        "cabinet",
+        "bed",
+        "other-fixture",
       ])
       .default("unknown"),
     safety: z.enum(["none", "gas", "fire", "electric", "unknown"]),
     discovered: z.enum(["today", "week", "long", "unknown"]),
     preexisting: z.enum(["yes", "no", "unknown", "na"]),
     installed: z.enum(["original", "own", "unknown", "na"]),
-    cause: z.enum(["unknown", "aging", "damage", "mixed", "third"]),
+    cause: z.enum(["unknown", "aging", "damage", "mixed", "third", "wear"]),
     causeSource: z.enum(["self", "landlord", "technician", "unknown"]),
     otherClaim: z.enum([
       "none",
+      "wear",
       "aging",
       "damage",
       "mixed",
@@ -48,6 +75,31 @@ export const intakeSchema = z
       mold: ["unknown", "wall", "condensation", "furniture"],
       leak: ["unknown", "ceiling", "pipe", "rain"],
       boiler: ["unknown", "hotwater", "heating", "power"],
+      surface: [
+        "unknown",
+        "wall-tear",
+        "wall-dent",
+        "floor-tear",
+        "floor-dent",
+      ],
+      drain: [
+        "unknown",
+        "poor-drain",
+        "slow-drain",
+        "backflow",
+        "blocked-drain",
+      ],
+      fixture: [
+        "unknown",
+        "aircon",
+        "option-boiler",
+        "washer",
+        "fridge",
+        "stove",
+        "cabinet",
+        "bed",
+        "other-fixture",
+      ],
     };
     if (!allowed[i.issue].includes(i.observation))
       ctx.addIssue({
@@ -128,7 +180,7 @@ export const analysisSchema = z.object({
   unknownFacts: z.array(z.string()),
   conflictingFacts: z.array(z.string()),
   repairRequest: z.object({
-    recipient: z.enum(["landlord", "manager", "emergency"]),
+    recipient: z.enum(["landlord", "manager", "service", "emergency"]),
     reason: z.string(),
     immediateAction: z.string(),
   }),

@@ -12,7 +12,7 @@ export function hasDanger(
   );
 }
 export function outOfScope(text: string) {
-  return /보증금\s*반환|전세\s*사기|소송|상가|매매|해외\s*(주택|임대)/u.test(
+  return /시공사.{0,12}(하자보수|청구)|하자\s*보증금|절도|형사\s*책임|보증금\s*반환|전세\s*사기|소송|상가|매매|해외\s*(주택|임대)/u.test(
     text,
   );
 }

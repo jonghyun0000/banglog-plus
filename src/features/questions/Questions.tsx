@@ -5,6 +5,7 @@ import {
   titles,
   descriptionHints,
   observations,
+  issueGuidance,
 } from "../../../shared/questions";
 import {
   hasDanger,
@@ -73,7 +74,9 @@ export function Questions({
         title={
           step === 3 && input.issue === "mold"
             ? "어느 부분에 생겼나요?"
-            : titles[step]
+            : step === 3 && input.issue === "fixture"
+              ? "누가 제공한 제품인가요?"
+              : titles[step]
         }
       >
         <p>
@@ -109,6 +112,7 @@ export function Questions({
               ))}
             </div>
           </fieldset>
+          <p className="small field-help">{issueGuidance[input.issue].note}</p>
           <label className="field-label" htmlFor="description">
             상황 설명 <span>선택</span>
           </label>
@@ -152,6 +156,12 @@ export function Questions({
             <p className="small">
               벽·천장·창문은 ‘원래 있던 시설’, 직접 가져온 가구는 ‘제가 설치한
               시설’을 선택해 주세요.
+            </p>
+          )}
+          {input.issue === "fixture" && (
+            <p className="small">
+              계약서의 옵션 목록을 확인해 주세요. 직접 가져온 가전·가구는 ‘제가
+              설치한 시설’을 선택해요.
             </p>
           )}
           {choices("installed", "문제가 있는 부분")}

@@ -32,3 +32,7 @@
 ## 유지보수
 
 `git push origin main` → Vercel 자동 빌드 → Ready 확인. 기능 변경 시 `npm run test:hosted`와 실제 사이트에 대한 `HOSTED_URL=https://banglog-plus.vercel.app npm run test:hosted`를 실행한다. 기존 서버 모드 검증은 AGENTS.md의 명령을 따른다. 서버 API와 DB를 실제 배포하는 작업은 현재 체험판과 구분해서 진행해야 한다.
+
+## 2026년 10월 21일 업그레이드
+
+동일한 `banglog-plus` 프로젝트에 6종 문제와 판례 참고 화면을 배포한다. Vercel은 기존 browser-only 빌드를 유지한다. 로컬 검증 결과와 미검증 범위는 TEST_RESULTS.md, 팀 의견 반영과 발표 초안은 TEAM_FEEDBACK.md, 출처별 상태는 RESEARCH.md에 기록했다. 원격 DB migration이나 유료 자원을 추가하지 않았다.

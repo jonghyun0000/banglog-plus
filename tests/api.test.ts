@@ -427,3 +427,47 @@ it("live mode missing configuration cannot silently return a demo", async () => 
     ).statusCode,
   ).toBe(503);
 });
+
+it("accepts the new repair categories and rejects cross-category symptoms", async () => {
+  const { app } = setup();
+  const headers = await session(app);
+  for (const [index, [issue, observation]] of (
+    [
+      ["surface", "wall-tear"],
+      ["drain", "slow-drain"],
+      ["fixture", "washer"],
+    ] as const
+  ).entries()) {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/analyses",
+      headers,
+      payload: {
+        intake: {
+          ...defaultIntake,
+          inputVersion: index + 1,
+          issue,
+          observation,
+        },
+        idempotencyKey: randomUUID(),
+      },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().costResponsibility.direction).toBe("undetermined");
+  }
+  const invalid = await app.inject({
+    method: "POST",
+    url: "/api/analyses",
+    headers,
+    payload: {
+      intake: {
+        ...defaultIntake,
+        issue: "drain",
+        observation: "fridge",
+        inputVersion: 4,
+      },
+      idempotencyKey: randomUUID(),
+    },
+  });
+  expect(invalid.statusCode).toBe(400);
+});

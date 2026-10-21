@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-10-15T12:45:02.964Z",
+  "testedAt": "2026-10-21T02:27:59.787Z",
   "engine": "pg_ctl (PostgreSQL) 17.10 (Homebrew)",
   "remoteApplied": false,
   "passed": [
@@ -17,6 +17,7 @@
     "expiry authentication and cascade cleanup",
     "migration source catalog matches runtime catalog",
     "validated source versions persist with result",
+    "expanded repair categories persist and delete under existing ownership rules",
     "Fastify API through PostgreSQL: create, analyze, delete"
   ]
 }

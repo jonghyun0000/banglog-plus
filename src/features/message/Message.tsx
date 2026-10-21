@@ -51,7 +51,9 @@ export function Message({
       <label className="field-label" htmlFor="message-draft">
         {result.repairRequest.recipient === "manager"
           ? "관리 담당자에게"
-          : "집주인에게"}{" "}
+          : result.repairRequest.recipient === "service"
+            ? "제조사·수리업체에"
+            : "집주인에게"}{" "}
         보낼 문구
       </label>
       <textarea

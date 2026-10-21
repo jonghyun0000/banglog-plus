@@ -196,7 +196,7 @@ try {
   assert.equal(Number(rows.rows[0].n), 0);
   pass("expiry authentication and cascade cleanup");
   const catalog = await admin.query(
-    "select metadata from banglog_plus.legal_source_versions",
+    "select distinct on (source_id) metadata from banglog_plus.legal_source_versions order by source_id, checked_at desc",
   );
   assert.deepEqual(
     catalog.rows
@@ -232,6 +232,31 @@ try {
   assert.equal(citations.rows[0].n, 1);
   await repo.deleteGuest(cGuest.id);
   pass("validated source versions persist with result");
+  for (const [index, issue] of (
+    ["surface", "drain", "fixture"] as const
+  ).entries()) {
+    const guest = await repo.createGuest(String(index + 4).repeat(64), "test");
+    const input = { ...defaultIntake, issue };
+    const added = await repo.createAnalysis(
+      guest.id,
+      randomUUID(),
+      "new-category",
+      input,
+    );
+    await repo.finish(
+      guest.id,
+      added.record.id,
+      makeAnalysis(input, added.record.id, "mock", "demo"),
+    );
+    assert.equal(
+      (await repo.getAnalysis(guest.id, added.record.id))?.input.issue,
+      issue,
+    );
+    await repo.deleteGuest(guest.id);
+  }
+  pass(
+    "expanded repair categories persist and delete under existing ownership rules",
+  );
   const apiRepo = new PostgresRepository(url, false);
   const { app } = createApp({
     config: loadConfig({

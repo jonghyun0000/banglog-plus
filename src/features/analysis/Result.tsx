@@ -1,14 +1,17 @@
-import type { Analysis } from "../../../shared/schema";
+import { ReferenceCards } from "../references/References";
+import type { Analysis, Issue } from "../../../shared/schema";
 import { directionNames } from "../../../shared/schema";
 import { Button, SectionTitle } from "../../components/ui/Elements";
 import { SafetyNotice } from "../questions/Questions";
 export function Result({
   result,
+  issue,
   onMessage,
   onEdit,
   onFeedback,
 }: {
   result: Analysis;
+  issue: Issue;
   onMessage: () => void;
   onEdit: () => void;
   onFeedback: () => void;
@@ -35,7 +38,7 @@ export function Result({
           {emergency
             ? "비용보다 안전이 우선이에요."
             : outside
-              ? "곰팡이·누수·보일러 문제를 선택해 주세요."
+              ? "주택의 수리 문제를 선택해 주세요."
               : "수리 요청과 비용 부담은 따로 살펴봐요."}
         </p>
       </SectionTitle>
@@ -45,11 +48,13 @@ export function Result({
         <h2>
           {emergency
             ? "안전한 곳에서 119에"
-            : result.repairRequest.recipient === "manager"
-              ? "관리 담당자에게 먼저"
-              : outside
-                ? "지원 범위를 다시 확인해요"
-                : "집주인에게 점검을 요청해요"}
+            : outside
+              ? "지원 범위를 다시 확인해요"
+              : result.repairRequest.recipient === "manager"
+                ? "관리 담당자에게 먼저"
+                : result.repairRequest.recipient === "service"
+                  ? "제조사·수리업체에 문의해요"
+                  : "집주인에게 점검을 요청해요"}
         </h2>
         <p>{result.repairRequest.reason}</p>
       </section>
@@ -77,11 +82,23 @@ export function Result({
           ))}
         </ol>
       </section>
+      {!emergency && !outside && (
+        <details className="result-section">
+          <summary>상황별 확인 목록 더 보기</summary>
+          <ul>
+            {result.additionalChecks.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+        </details>
+      )}
       {result.messageDraft && (
         <Button onClick={onMessage}>
           {result.repairRequest.recipient === "manager"
             ? "관리 담당자에게 보낼 문구 보기"
-            : "집주인에게 보낼 문구 보기"}
+            : result.repairRequest.recipient === "service"
+              ? "수리업체에 보낼 문구 보기"
+              : "집주인에게 보낼 문구 보기"}
         </Button>
       )}
       <div className="details-group">
@@ -146,6 +163,12 @@ export function Result({
           </button>
         </details>
       </div>
+      {!emergency && !outside && (
+        <details className="result-section">
+          <summary>관련 판례 원문과 적용 한계</summary>
+          <ReferenceCards issue={issue} />
+        </details>
+      )}
       <div className="cautions">
         {result.cautions.map((c) => (
           <p className="small" key={c}>

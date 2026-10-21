@@ -1,11 +1,14 @@
+import { issueChoices } from "../../../shared/questions";
 import type { Issue } from "../../../shared/schema";
 import { Button, ArrowIcon, SectionTitle } from "../../components/ui/Elements";
 export function Home({
   onStart,
   onPrivacy,
+  onReferences,
 }: {
   onStart: () => void;
   onPrivacy: () => void;
+  onReferences: () => void;
 }) {
   return (
     <div className="home">
@@ -19,10 +22,12 @@ export function Home({
         <p className="home-description">
           집주인에게 요청할지,
           <br />
-          내가 비용을 부담할지 확인해요.
+          비용 협의에 필요한 내용을 정리해요.
         </p>
         <p className="scope">
-          곰팡이 <span>·</span> 누수 <span>·</span> 보일러
+          곰팡이 · 누수 · 보일러
+          <br />
+          벽지·장판 · 배수 · 옵션 제품
         </p>
       </div>
       <div className="home-action">
@@ -32,6 +37,9 @@ export function Home({
         <p className="small disclaimer">
           AI 안내이며, 법적 판단을 확정하지 않아요.
         </p>
+        <button className="text-button" onClick={onReferences}>
+          수리 전 참고 판례 보기
+        </button>
         <button className="text-button muted" onClick={onPrivacy}>
           개인정보·이용 안내
         </button>
@@ -72,6 +80,18 @@ function IssueIcon({ issue }: { issue: Issue }) {
             strokeLinecap="round"
           />
         </>
+      ) : issue === "surface" ? (
+        <path
+          d="M5 5h22v22H5ZM18 5l-5 9 6 4-5 9M5 22h8"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        />
+      ) : issue === "drain" ? (
+        <path
+          d="M5 6v8a6 6 0 0 0 6 6h4v7h7V13H12V6M9 25l-4 4M25 5l3 3-3 3"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        />
       ) : (
         <>
           <rect
@@ -107,7 +127,7 @@ export function IssuePicker({ onPick }: { onPick: (issue: Issue) => void }) {
         <p>가장 먼저 확인하고 싶은 문제를 골라주세요.</p>
       </SectionTitle>
       <div className="issue-list">
-        {(["mold", "leak", "boiler"] as const).map((issue, i) => (
+        {issueChoices.map(({ issue, title, detail }) => (
           <button
             className="issue-option"
             key={issue}
@@ -117,18 +137,8 @@ export function IssuePicker({ onPick }: { onPick: (issue: Issue) => void }) {
               <IssueIcon issue={issue} />
             </span>
             <span>
-              <strong>
-                {["곰팡이가 생겼어요", "물이 새요", "보일러가 고장 났어요"][i]}
-              </strong>
-              <small>
-                {
-                  [
-                    "벽·천장의 곰팡이, 창문의 결로",
-                    "천장·벽·배관 주변의 물 샘",
-                    "난방·온수·작동 문제",
-                  ][i]
-                }
-              </small>
+              <strong>{title}</strong>
+              <small>{detail}</small>
             </span>
             <ArrowIcon />
           </button>

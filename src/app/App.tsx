@@ -3,6 +3,7 @@ import type { Analysis, AppConfig, Intake, Issue } from "../../shared/schema";
 import { defaultIntake } from "../../shared/schema";
 import { sanitizeIntake } from "../../shared/safety";
 import { api } from "./api";
+import { References } from "../features/references/References";
 import { Home, IssuePicker } from "../features/intake/Start";
 import { Questions } from "../features/questions/Questions";
 import { Review } from "../features/questions/Review";
@@ -19,7 +20,8 @@ type Screen =
   | "result"
   | "message"
   | "feedback"
-  | "privacy";
+  | "privacy"
+  | "references";
 type Location = { screen: Screen; step: number };
 export default function App() {
   const [location, setLocation] = useState<Location>({
@@ -222,7 +224,7 @@ export default function App() {
               ← <span>이전</span>
             </button>
           )}
-          {!["home", "privacy", "issue"].includes(screen) && (
+          {!["home", "privacy", "issue", "references"].includes(screen) && (
             <p className="flow-indicator">
               <span className={screen === "questions" ? "current" : ""}>
                 상황 확인
@@ -262,8 +264,13 @@ export default function App() {
           </p>
         )}
         {screen === "home" && (
-          <Home onStart={() => go("issue")} onPrivacy={() => go("privacy")} />
+          <Home
+            onStart={() => go("issue")}
+            onPrivacy={() => go("privacy")}
+            onReferences={() => go("references")}
+          />
         )}
+        {screen === "references" && <References onStart={() => go("issue")} />}
         {screen === "issue" && <IssuePicker onPick={pick} />}
         {screen === "questions" && (
           <>
@@ -323,6 +330,7 @@ export default function App() {
         {showResult && screen === "result" && (
           <Result
             result={result!}
+            issue={input.issue}
             onMessage={() => go("message")}
             onEdit={() => {
               setResult(null);
