@@ -1,3 +1,11 @@
+# 현재 작업 기준 · 2026-11-10
+
+현재 서비스는 v1.3, Fastify API + PostgreSQL 근거 검색 + 실제 GPT 및 선택 사진 분석 + 회원 기록 구조입니다. 브라우저 데모는 별도 `build:demo`입니다. 아래 초기 기록을 현재 운영 상태로 해석하지 마세요.
+
+최신 인계: [HANDOFF_CLAUDE.md](HANDOFF_CLAUDE.md). 통합 검토: [PR1_INTEGRATION.md](docs/PR1_INTEGRATION.md). 이번 통합 브랜치는 미병합·미배포입니다.
+
+---
+
 # 방로그 Plus · 배포 1 (v1.0.0)
 
 - 사이트: https://banglog-plus.vercel.app/

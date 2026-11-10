@@ -68,7 +68,12 @@ for (const issue of [
       .getByRole("button", { name: "집주인에게 보낼 문구 보기" })
       .click();
     if (selected)
-      await expect(page.getByRole("textbox")).toHaveValue(new RegExp(selected));
+      await expect(
+        page.getByRole("textbox", {
+          name: "집주인에게 보낼 문구",
+          exact: true,
+        }),
+      ).toHaveValue(new RegExp(selected));
     await page.getByRole("button", { name: "문구 복사하기" }).click();
     await expect(page.getByText("복사됐어요.", { exact: false })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
@@ -125,9 +130,7 @@ test("reference library keeps court scopes separate from the demo result", async
     path: "docs/screenshots/references-390x844.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
-    .click();
+  await page.getByRole("button", { name: "내 상황 확인하기" }).click();
   await expect(
     page.getByRole("heading", { name: "어떤 문제가 생겼나요?" }),
   ).toBeVisible();
