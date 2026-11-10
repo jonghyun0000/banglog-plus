@@ -189,6 +189,9 @@ export const analysisSchema = z.object({
     conditions: z.array(z.string()),
     uncertainty: z.string(),
   }),
+  decisionPaths: z
+    .array(z.object({ outcome: directionSchema, needs: z.array(z.string()) }))
+    .default([]),
   citedClaims: z.array(
     z.object({
       claim: z.string(),
@@ -229,7 +232,7 @@ export type Feedback = z.infer<typeof feedbackSchema>;
 export const analyzeRequestSchema = z
   .object({ intake: intakeSchema, idempotencyKey: z.string().uuid() })
   .strict();
-export const consentVersion = "2026-10-15.v1";
+export const consentVersion = "2026-11-10.v2";
 export const eventSchema = z.enum([
   "start",
   "questions_complete",

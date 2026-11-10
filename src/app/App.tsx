@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Analysis, AppConfig, Intake, Issue } from "../../shared/schema";
-import { defaultIntake } from "../../shared/schema";
+import { consentVersion, defaultIntake } from "../../shared/schema";
 import { sanitizeIntake } from "../../shared/safety";
 import { api } from "./api";
+import { clearDraft, loadDraft, saveDraft } from "./draft";
 import { References } from "../features/references/References";
 import { Home, IssuePicker } from "../features/intake/Start";
 import { Questions } from "../features/questions/Questions";
@@ -24,12 +25,17 @@ type Screen =
   | "references";
 type Location = { screen: Screen; step: number };
 export default function App() {
-  const [location, setLocation] = useState<Location>({
-    screen: "home",
-    step: 0,
-  });
+  const [draft] = useState(loadDraft);
+  const [location, setLocation] = useState<Location>(
+    draft
+      ? { screen: draft.screen, step: draft.step }
+      : { screen: "home", step: 0 },
+  );
   const { screen, step } = location;
-  const [input, setInput] = useState<Intake>({ ...defaultIntake });
+  const [input, setInput] = useState<Intake>(
+    draft ? draft.input : { ...defaultIntake },
+  );
+  const [restored, setRestored] = useState(!!draft);
   const [result, setResult] = useState<Analysis | null>(null);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [accepted, setAccepted] = useState(false);
@@ -43,13 +49,14 @@ export default function App() {
     null,
   );
   const busy = useRef(false);
-  const version = useRef(1);
+  const version = useRef(draft ? draft.input.inputVersion : 1);
   const go = useCallback((next: Screen, nextStep = 0, replace = false) => {
     const value = { screen: next, step: nextStep };
     window.history[replace ? "replaceState" : "pushState"](value, "");
     setLocation(value);
     setError("");
     setNotice("");
+    setRestored(false);
   }, []);
   useEffect(() => {
     let alive = true;
@@ -69,7 +76,12 @@ export default function App() {
     };
   }, [configAttempt]);
   useEffect(() => {
-    window.history.replaceState({ screen: "home", step: 0 }, "");
+    window.history.replaceState(
+      draft
+        ? { screen: draft.screen, step: draft.step }
+        : { screen: "home", step: 0 },
+      "",
+    );
     const onPop = (event: PopStateEvent) => {
       const p = pending.current;
       if (p) {
@@ -89,7 +101,28 @@ export default function App() {
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, []);
+  }, [draft]);
+  useEffect(() => {
+    // 새로고침·앱 전환으로 페이지가 다시 열려도 작성 중인 입력을 잃지 않게 한다.
+    if (screen === "questions") {
+      saveDraft({ input, screen, step });
+    } else if (
+      ["review", "loading", "result", "message", "feedback"].includes(screen)
+    ) {
+      saveDraft({ input, screen: "review", step: 0 });
+    } else if (screen === "home" && input.inputVersion === 1) {
+      clearDraft();
+    }
+  }, [input, screen, step]);
+  function discardDraft() {
+    clearDraft();
+    setResult(null);
+    setInput({ ...defaultIntake });
+    version.current = 1;
+    setAccepted(false);
+    go("home", 0, true);
+    setNotice("이 탭에 보관하던 입력을 지웠어요.");
+  }
   useEffect(() => {
     window.scrollTo(0, 0);
     document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
@@ -171,6 +204,7 @@ export default function App() {
       await api.remove();
       pending.current?.controller.abort();
       pending.current = null;
+      clearDraft();
       setResult(null);
       setInput({ ...defaultIntake });
       version.current = 1;
@@ -261,6 +295,14 @@ export default function App() {
         {notice && (
           <p className="notice" role="status">
             {notice}
+          </p>
+        )}
+        {restored && (
+          <p className="notice" role="status">
+            이 탭에서 작성하던 입력을 불러왔어요. 결과는 다시 확인해야 해요.{" "}
+            <button className="text-button" onClick={discardDraft}>
+              입력 지우고 처음부터
+            </button>
           </p>
         )}
         {screen === "home" && (
@@ -378,9 +420,11 @@ export default function App() {
                 <>
                   <h2>이 브라우저에서만 체험해요</h2>
                   <p>
-                    입력·결과·피드백은 현재 페이지의 메모리에만 있어요. 서버나
-                    외부 AI로 전송하지 않아요. 새로고침하거나 페이지를 닫으면
-                    사라지고, 기록 삭제 버튼으로 직접 지울 수 있어요.
+                    입력·결과·피드백은 이 브라우저에만 있어요. 서버나 외부 AI로
+                    전송하지 않아요. 작성 중인 입력은 이 탭의 임시 저장소에 두어
+                    새로고침해도 이어서 쓸 수 있고, 탭을 닫으면 사라져요. 결과와
+                    피드백은 새로고침하면 사라져요. 입력 지우기와 기록 삭제
+                    버튼으로 직접 지울 수 있어요.
                   </p>
                   <p>
                     피드백도 체험용이며 운영자에게 전달되지 않아요. 사이트
@@ -398,9 +442,14 @@ export default function App() {
                     대상이에요.
                   </p>
                   <p>
-                    접근 토큰은 브라우저 메모리에만 있어요. 새로고침하면 기록을
+                    접근 토큰은 브라우저 메모리에만 있어요. 새로고침하면 결과를
                     다시 볼 수 없지만, 서버 기록은 만료·정리 때까지 남을 수
                     있어요. 장기 보관·재접근 기능은 제공하지 않아요.
+                  </p>
+                  <p>
+                    작성 중인 입력은 이 탭의 임시 저장소에도 두어 새로고침해도
+                    이어서 쓸 수 있어요. 탭을 닫거나 입력 지우기·기록 삭제를
+                    누르면 사라져요.
                   </p>
                 </>
               )}
@@ -423,7 +472,7 @@ export default function App() {
                 데모는 가상 결과예요. 실제 AI도 입력과 근거에 따른 조건부
                 안내이며 사람의 법률 검토·공개 출시 승인 전 단계예요.
               </p>
-              <p className="small">안내 버전 2026-10-15.v1</p>
+              <p className="small">안내 버전 {consentVersion}</p>
             </div>
             <Button secondary onClick={() => go("home")}>
               홈으로 돌아가기
@@ -463,8 +512,18 @@ export default function App() {
           )}
           <p className="small">
             {config?.storage === "browser"
-              ? "브라우저 임시 보관 · 새로고침하면 삭제"
+              ? "브라우저 임시 보관 · 결과는 새로고침하면 삭제"
               : `${config?.storage === "database" ? "서버 DB" : "서버 메모리"} 임시 보관 · 최대 24시간`}
+          </p>
+        </footer>
+      )}
+      {!api.hasSession() && ["questions", "review"].includes(screen) && (
+        <footer className="session-footer">
+          <button className="text-button muted" onClick={discardDraft}>
+            입력한 내용 지우기
+          </button>
+          <p className="small">
+            작성 중인 입력은 이 탭에만 임시 보관 · 탭을 닫으면 삭제
           </p>
         </footer>
       )}

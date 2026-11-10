@@ -25,6 +25,6 @@
 기술 조회 상태 verified, 사람의 법률 검토 pending, 내부 범위 internal. 찾기쉬운 생활법령정보의 [저작권정책](https://www.easylaw.go.kr/CSP/AboutCopyright.laf?topMenu=introUl3)을 실제 조회했다. 일반 활용 허용과 출처 표기, 제3자 저작물의 별도 조건을 확인했으며 자료 제공 기관은 법제처다. 국가법령정보센터의 별도 사이트 이용정책은 홈페이지에서 읽을 수 없어 추가 확인 대상으로 남겼다. 원문 전체·이미지·제3자 자료를 복제하지 않고 최소 메타데이터와 자체 요약만 보관한다. 실제 공개 재사용 범위에 대한 사람 검토는 별개다. 공식 임대차분쟁조정 개별 사례집은 이번에 수집·검토하지 않았다.
 
 ## 안전 안내
-[소방청 소방안전교육 플랫폼](https://119metaverse.nfa.go.kr/occasion/kids-quiz/quiz-test)에서 안전한 곳으로 대피 후 119 신고, 가스 의심 시 전기 스위치·점화원 주의를 확인했다. 자가 수리·원인 진단 절차는 생성하지 않는다. 전기기기 접촉 회피는 보수적 일반 안전 안내이며 실기기 진단이 아니다.
+[국민안전24 국민행동요령 · 전기·가스 사고](https://www.safekorea.go.kr/safekorea-kor/acts/nacts/action-guide.do?category=electircGasAccident&actsHeaderTitle=%EC%A0%84%EA%B8%B0%C2%B7%EA%B0%80%EC%8A%A4%20%EC%82%AC%EA%B3%A0&menuSn=4)에서 2026-11-10에 가스 냄새로 누출 확인, 누출 시 전기기구 조작 금지(스파크 점화 위험), 환자 발생 시 안전한 곳으로 옮긴 뒤 119 신고, 젖은 손으로 플러그·스위치를 잡지 않기를 확인했다. 이전에 연결했던 소방청 소방안전교육 플랫폼 주소는 어린이 퀴즈 연습 문제 화면이어서 교체했다. 자가 수리·원인 진단 절차는 생성하지 않는다. 전기기기 접촉 회피는 보수적 일반 안전 안내이며 실기기 진단이 아니다.
 
 정확한 의존성 버전은 `package-lock.json` 및 [INSTALLED_VERSIONS](INSTALLED_VERSIONS.md)에 기록했다. 실제 조직 설정·모델 접근 권한·Supabase 프로젝트·토스 콘솔·사람 검토 상태를 공식 웹 문서만으로 확인했다고 주장하지 않는다.

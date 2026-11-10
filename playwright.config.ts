@@ -13,10 +13,10 @@ export default defineConfig({
     launchOptions: { args: ["--disable-dev-shm-usage"] },
   },
   webServer: {
-    command: "npm run dev",
+    command: "npm run dev:e2e",
     url: "http://127.0.0.1:5173",
     reuseExistingServer: false,
     timeout: 60000,
-    env: { AI_MODE: "mock", REPOSITORY: "memory" },
+    env: { AI_MODE: "mock", REPOSITORY: "memory", E2E_NO_WATCH: "1" },
   },
 });

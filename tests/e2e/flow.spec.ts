@@ -301,3 +301,48 @@ test("keyboard-sized viewport keeps editable text and controls reachable", async
     page.getByRole("button", { name: "다음", exact: true }),
   ).toBeVisible();
 });
+test("reload keeps the draft in this tab until the user clears it", async ({
+  page,
+}) => {
+  await pick(page);
+  await page
+    .getByLabel("상황 설명")
+    .fill("보일러 전원은 켜지는데 온수가 나오지 않아요.");
+  await page.getByRole("button", { name: "다음", exact: true }).click();
+  await page.getByText("일주일 안에 발견했어요").click();
+  await page.getByRole("button", { name: "다음", exact: true }).click();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "입주 때도 문제가 있었나요?" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("이 탭에서 작성하던 입력을 불러왔어요.", { exact: false }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "뒤로가기" }).click();
+  await page.getByRole("button", { name: "뒤로가기" }).click();
+  await expect(page.getByLabel("상황 설명")).toHaveValue(
+    "보일러 전원은 켜지는데 온수가 나오지 않아요.",
+  );
+  await review(page);
+  await page.reload();
+  await expect(page.getByRole("checkbox")).not.toBeChecked();
+  await expect(
+    page.getByText("일주일 안에 발견했어요", { exact: false }),
+  ).toBeVisible();
+  const stored = await page.evaluate(() =>
+    Object.keys(sessionStorage).map((k) => sessionStorage.getItem(k) ?? ""),
+  );
+  expect(stored).toHaveLength(1);
+  expect(stored[0]).not.toMatch(/token|result|analysisId/i);
+  await page.getByRole("button", { name: "입력한 내용 지우기" }).click();
+  await expect(
+    page.getByRole("heading", { name: "이거, 누가 고쳐야 하지?" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => [localStorage.length, sessionStorage.length]),
+  ).toEqual([0, 0]);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "이거, 누가 고쳐야 하지?" }),
+  ).toBeVisible();
+});

@@ -15,7 +15,7 @@ flowchart TD
 ```
 
 ## 클라이언트
-`src/app/App.tsx`는 화면·입력 버전·요청 상태를 관리한다. 토큰은 `api.ts`의 메모리에만 존재하고 history에는 화면과 질문 번호만 넣는다. localStorage·URL·쿠키에 토큰을 저장하지 않는다. 질문 수정은 결과를 무효화하고 새로운 입력 버전을 만든다. HTML을 그대로 삽입하지 않는다.
+`src/app/App.tsx`는 화면·입력 버전·요청 상태를 관리한다. 토큰은 `api.ts`의 메모리에만 존재하고 history에는 화면과 질문 번호만 넣는다. localStorage·sessionStorage·URL·쿠키에 토큰을 저장하지 않는다. `src/app/draft.ts`는 작성 중인 입력과 화면 위치만 해당 탭의 sessionStorage에 두어 새로고침·앱 전환 후 복원하며, 결과·동의 여부는 저장하지 않고 복원 시 스키마로 다시 검증한다. 질문 수정은 결과를 무효화하고 새로운 입력 버전을 만든다. HTML을 그대로 삽입하지 않는다.
 
 `src/platform/`는 copy/openSource/back 인터페이스와 브라우저 구현을 제공한다. 토스는 검증된 bridge를 주입하는 경계만 있고 SDK 연동으로 표시하지 않는다. 실제 브라우저 뒤로가기는 popstate로 처리하며 로딩 중이면 취소를 요청한다.
 

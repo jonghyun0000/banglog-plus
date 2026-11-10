@@ -21,7 +21,7 @@ export function SafetyNotice() {
       <p>{safetyText}</p>
       <a href="tel:119">119에 전화하기</a>
       <a href={safetyUrl} target="_blank" rel="noreferrer">
-        소방청 안전 안내 ↗
+        국민안전24 전기·가스 사고 행동요령 ↗
       </a>
       <p className="small">
         위험이 계속되면 질문을 중단하세요. 이 화면은 위험 여부를 진단하지

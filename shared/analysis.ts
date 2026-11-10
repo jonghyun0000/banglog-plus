@@ -7,7 +7,7 @@ import {
   issueGuidance,
 } from "./questions.js";
 import { hasDanger, outOfScope, safetyText } from "./safety.js";
-export const ruleVersion = "rules-1.1";
+export const ruleVersion = "rules-1.2";
 export function directionFor(i: Intake): Direction {
   if (
     hasDanger(i) ||
@@ -23,7 +23,10 @@ export function directionFor(i: Intake): Direction {
     return "undetermined";
   if (i.causeSource !== "technician") return "undetermined";
   if (i.cause === "mixed") return "mixed";
-  if (i.cause === "damage") return "tenant";
+  // 집주인 부담이 '원래 있던 시설'의 명시를 요구하듯, 세입자 부담도
+  // '입주 후 생긴 문제'라는 명시가 있어야 검토한다.
+  if (i.cause === "damage")
+    return i.preexisting === "no" ? "tenant" : "undetermined";
   if (i.cause === "aging" && i.installed === "original") return "landlord";
   return "undetermined";
 }
@@ -36,6 +39,95 @@ export function conflictFor(i: Intake) {
         "전달된 원인 설명이 서로 달라요. 점검 결과와 각 설명의 근거를 대조해야 해요.",
       ]
     : [];
+}
+type DecisionPath = { outcome: Direction; needs: string[] };
+const surfaceLike = (i: Intake) =>
+  ["surface", "drain", "fixture"].includes(i.issue);
+const pathTargets = {
+  landlord: {
+    cause: "aging",
+    record: "점검 기사가 원인을 ‘노후·시설 또는 건물 문제’로 확인한 기록",
+  },
+  tenant: {
+    cause: "damage",
+    record: "점검 기사가 원인을 ‘사용 중 파손·관리 문제’로 확인한 기록",
+  },
+  mixed: {
+    cause: "mixed",
+    record: "점검 기사가 여러 원인이 함께 있다고 확인한 기록",
+  },
+} as const;
+// 보류 결과에서 "무엇이 더 확인되면 어느 방향을 검토하는지"를 보여준다.
+// 각 경로의 patch를 입력에 적용하면 directionFor가 그 방향을 반환해야 한다.
+export function decisionPathPatches(
+  i: Intake,
+): { outcome: Direction; patch: Partial<Intake>; needs: string[] }[] {
+  if (
+    directionFor(i) !== "undetermined" ||
+    hasDanger(i) ||
+    outOfScope(i.description) ||
+    i.cause === "third" ||
+    i.otherClaim === "third" ||
+    i.installed === "own" ||
+    (surfaceLike(i) && i.preexisting === "yes")
+  )
+    return [];
+  const relayed =
+    i.causeSource === "technician" &&
+    (["aging", "damage", "mixed"] as string[]).includes(i.cause);
+  const outcomes = (
+    relayed
+      ? [
+          i.cause === "aging"
+            ? "landlord"
+            : i.cause === "damage"
+              ? "tenant"
+              : "mixed",
+        ]
+      : ["landlord", "tenant"]
+  ) as (keyof typeof pathTargets)[];
+  return outcomes.map((outcome) => {
+    const target = pathTargets[outcome];
+    const patch: Partial<Intake> = {};
+    const needs: string[] = [];
+    if (i.cause !== target.cause || i.causeSource !== "technician") {
+      patch.cause = target.cause;
+      patch.causeSource = "technician";
+      needs.push(target.record);
+    }
+    if (
+      (outcome === "landlord" && i.installed !== "original") ||
+      (surfaceLike(i) && i.installed === "na")
+    ) {
+      patch.installed = "original";
+      needs.push(
+        "집에 원래 있던 시설이라는 확인 (계약서의 옵션 목록·입주 기록)",
+      );
+    }
+    if (outcome === "tenant" && i.preexisting !== "no") {
+      patch.preexisting = "no";
+      needs.push("입주 후에 생긴 문제라는 확인 (입주 당시 사진·점검표)");
+    }
+    if (
+      i.otherClaim !== "none" &&
+      i.otherClaim !== "unknown" &&
+      i.otherClaim !== target.cause
+    ) {
+      patch.otherClaim = "none";
+      needs.push("집주인의 다른 원인 설명과 점검 결과를 대조한 결론");
+    }
+    if (i.contract.trim()) {
+      patch.contract = "";
+      needs.push("입력한 계약 문장이 이 수리에 적용되는지에 대한 확인");
+    }
+    return { outcome, patch, needs };
+  });
+}
+export function decisionPathsFor(i: Intake): DecisionPath[] {
+  return decisionPathPatches(i).map(({ outcome, needs }) => ({
+    outcome,
+    needs,
+  }));
 }
 export function makeAnalysis(
   i: Intake,
@@ -55,7 +147,7 @@ export function makeAnalysis(
       "집에 원래 있던 시설의 노후·결함으로 필요한 수리라는 점이 점검으로 확인되고, 다른 원인이나 유효한 비용 약정이 없는 경우를 전제로 해요.",
     ],
     tenant: [
-      "사용 중 파손·관리와 고장의 인과관계가 확인되는 경우 세입자 부담을 검토해요. 단순한 집주인 주장만으로 확정하지 않아요.",
+      "입주 후 생긴 문제이고 사용 중 파손·관리와 고장의 인과관계가 점검으로 확인되는 경우 세입자 부담을 검토해요. 단순한 집주인 주장만으로 확정하지 않아요.",
     ],
     mixed: [
       "시설 문제와 사용·관리 요인이 함께 확인되는 경우 각 원인과 수리 범위를 구분해요. 복합 원인이 비용 50:50을 뜻하지 않아요.",
@@ -204,6 +296,7 @@ export function makeAnalysis(
       ],
       uncertainty: uncertain,
     },
+    decisionPaths: decisionPathsFor(i),
     citedClaims: [],
     sources: [],
     additionalChecks: checks,

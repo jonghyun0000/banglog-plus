@@ -41,7 +41,7 @@ for (const issue of [
       await page.getByRole("button", { name: "다음", exact: true }).click();
     await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
     await expect(
-      page.getByText("입력·결과·피드백은 현재 페이지의 메모리에만", {
+      page.getByText("입력·결과·피드백은 이 브라우저에만 보관하며", {
         exact: false,
       }),
     ).toBeVisible();

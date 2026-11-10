@@ -21,7 +21,7 @@ const variants: {
   },
   {
     name: "damage-relayed",
-    patch: { cause: "damage", causeSource: "technician" },
+    patch: { cause: "damage", causeSource: "technician", preexisting: "no" },
     direction: "tenant",
     status: "complete",
   },
@@ -115,6 +115,7 @@ const variants: {
     patch: {
       cause: "damage",
       causeSource: "technician",
+      preexisting: "no",
       description: "억울하고 화가 나요. 집주인에게 다 내라고 하고 싶어요.",
     },
     direction: "tenant",
@@ -125,6 +126,7 @@ const variants: {
     patch: {
       cause: "damage",
       causeSource: "technician",
+      preexisting: "no",
       description: "집주인 관점에서 설명해 달라고 들었어요.",
     },
     direction: "tenant",

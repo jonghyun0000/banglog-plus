@@ -1,7 +1,7 @@
 {
-  "evaluatedAt": "2026-10-21T02:27:58.595Z",
+  "evaluatedAt": "2026-11-10T12:34:21.114Z",
   "mode": "mock",
-  "fixtureSha256": "788623c33878e00159bff286b2ca7374f64493ebe69366da29aca76524fd9bad",
+  "fixtureSha256": "8a737d6afa4b86d6afde9753dd75485f28522240f16175f0e8a3abca0eec0f80",
   "scope": "Software invariants only; not legal accuracy; holdout not used to tune",
   "count": 60,
   "passed": 60,

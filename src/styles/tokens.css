@@ -530,6 +530,24 @@ fieldset {
 .result-section {
   margin-bottom: 32px;
 }
+.decision-paths {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid currentColor;
+  border-top-color: color-mix(in srgb, currentColor 16%, transparent);
+}
+.decision-paths h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+.decision-paths > div > p {
+  margin: 12px 0 4px;
+}
+.decision-paths ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
 .next-actions {
   padding: 0;
   list-style: none;

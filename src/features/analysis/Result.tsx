@@ -64,6 +64,25 @@ export function Result({
         {result.costResponsibility.conditions.map((c) => (
           <p key={c}>{c}</p>
         ))}
+        {result.decisionPaths.length > 0 && (
+          <div className="decision-paths">
+            <h3>무엇이 확인되면 달라지나요?</h3>
+            {result.decisionPaths.map((path) => (
+              <div key={path.outcome}>
+                <p>
+                  아래가 확인되면{" "}
+                  <strong>{directionNames[path.outcome]}</strong>
+                  {path.outcome === "mixed" ? "으로" : "로"} 안내해요.
+                </p>
+                <ul>
+                  {path.needs.map((need) => (
+                    <li key={need}>{need}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
         <p className="small">{result.costResponsibility.uncertainty}</p>
         {result.conflictingFacts.map((c) => (
           <p className="notice" key={c}>

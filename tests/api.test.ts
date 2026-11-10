@@ -245,7 +245,10 @@ it("safety and scope bypass provider", async () => {
   const spy = vi.spyOn(provider, "analyze");
   const { app } = setup({ provider });
   const headers = await session(app);
-  for (const [index, description] of ["가스 냄새", "보증금 반환"].entries())
+  for (const [index, description] of [
+    "가스 냄새",
+    "보증금 반환을 어떻게 청구하나요?",
+  ].entries())
     expect(
       (
         await app.inject({
