@@ -5,9 +5,13 @@ import { OpenAIAnalysisProvider } from "../server/ai/provider.js";
 import { loadConfig } from "../server/config.js";
 import { sources } from "../server/sources/catalog.js";
 import { defaultIntake } from "../shared/schema.js";
+import { tailoredPlan, fixtureRetriever } from "./helpers/knowledge.js";
 const config = loadConfig({ OPENAI_MODEL: "explicit-test-model" });
 const plan = {
+  tailoredResponse: tailoredPlan(),
   direction: "undetermined",
+  explanation:
+    "현재 입력만으로 원인이나 비용 부담을 확정할 수 없어요. 입주 당시 상태와 점검 기록을 함께 확인해 주세요.",
   claimIds: ["maintenance"],
   sourceVersions: [{ sourceId: sources[0].id, version: sources[0].version }],
 };
@@ -46,7 +50,7 @@ it("official SDK structured parse sends store:false, explicit model and no tools
       });
     },
   });
-  const p = new OpenAIAnalysisProvider(config, client);
+  const p = new OpenAIAnalysisProvider(config, client, fixtureRetriever);
   const r = await p.analyze(
     defaultIntake,
     randomUUID(),
@@ -56,6 +60,7 @@ it("official SDK structured parse sends store:false, explicit model and no tools
   expect(body.model).toBe("explicit-test-model");
   expect(body.tools).toBeUndefined();
   expect(r.result.mode).toBe("live");
+  expect(r.result.aiExplanation).toBe(plan.explanation);
   expect(r.result.citedClaims).toHaveLength(1);
   expect(r.inputTokens).toBe(30);
 });
@@ -69,7 +74,7 @@ it("official SDK malformed JSON is rejected", async () => {
       }),
   });
   await expect(
-    new OpenAIAnalysisProvider(config, client).analyze(
+    new OpenAIAnalysisProvider(config, client, fixtureRetriever).analyze(
       defaultIntake,
       randomUUID(),
       new AbortController().signal,
@@ -86,7 +91,7 @@ it("official SDK refusal is distinct", async () => {
       }),
   });
   await expect(
-    new OpenAIAnalysisProvider(config, client).analyze(
+    new OpenAIAnalysisProvider(config, client, fixtureRetriever).analyze(
       defaultIntake,
       randomUUID(),
       new AbortController().signal,
@@ -107,11 +112,30 @@ it("official SDK 429 is distinct and no retries", async () => {
     },
   });
   await expect(
-    new OpenAIAnalysisProvider(config, client).analyze(
+    new OpenAIAnalysisProvider(config, client, fixtureRetriever).analyze(
       defaultIntake,
       randomUUID(),
       new AbortController().signal,
     ),
   ).rejects.toMatchObject({ code: "PROVIDER_RATE_LIMIT" });
   expect(calls).toBe(1);
+});
+it("new live responses without tailored actions fail closed", async () => {
+  const { tailoredResponse: _removed, ...oldPlan } = plan;
+  void _removed;
+  const client = new OpenAI({
+    apiKey: "test-only",
+    maxRetries: 0,
+    fetch: async () =>
+      new Response(JSON.stringify(envelope(JSON.stringify(oldPlan))), {
+        headers: { "content-type": "application/json" },
+      }),
+  });
+  await expect(
+    new OpenAIAnalysisProvider(config, client, fixtureRetriever).analyze(
+      defaultIntake,
+      randomUUID(),
+      new AbortController().signal,
+    ),
+  ).rejects.toMatchObject({ code: "PROVIDER_OUTPUT" });
 });

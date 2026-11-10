@@ -7,6 +7,22 @@ export class AppError extends Error {
   }
 }
 export const messages: Record<string, string> = {
+  ADMIN_NOT_READY: "관리자 연결 설정을 확인해 주세요.",
+  ADMIN_UNAUTHORIZED: "관리자 로그인이 필요하거나 비밀번호가 일치하지 않아요.",
+  MEMBER_BLOCKED: "방로그 Plus의 회원 기록 이용이 제한되어 있어요.",
+  ACCOUNT_NOT_READY:
+    "로그인과 내 기록 연결을 준비하고 있어요. 비회원으로 계속 이용할 수 있어요.",
+  MEMBER_UNAUTHORIZED: "로그인이 만료됐어요. 다시 로그인해 주세요.",
+  AUTH_UNAVAILABLE:
+    "로그인 확인 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.",
+  HISTORY_LIMIT:
+    "최대 100개의 기록을 보관할 수 있어요. 이전 기록을 삭제한 뒤 저장해 주세요.",
+  KNOWLEDGE_NOT_READY:
+    "근거 자료 데이터베이스가 연결되지 않았어요. 운영자에게 확인을 요청해 주세요.",
+  KNOWLEDGE_NOT_FOUND:
+    "이 상황에 사용할 수 있는 검증된 근거 자료가 부족해요. AI 답변을 생성하지 않았어요.",
+  KNOWLEDGE_INVALID:
+    "검색한 근거 자료를 검증하지 못했어요. AI 답변을 생성하지 않았어요.",
   INVALID_INPUT:
     "입력을 확인해 주세요. 필수 선택 또는 글자 수가 올바르지 않아요.",
   UNAUTHORIZED: "이용 세션이 없거나 만료됐어요. 처음부터 다시 시작해 주세요.",

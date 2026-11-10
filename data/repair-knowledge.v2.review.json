@@ -1,0 +1,62 @@
+{
+  "checkedAt": "2026-11-03",
+  "datasetVersion": "repair-kb-2026-11-03.v2",
+  "project": "HYUNDO Master",
+  "projectId": "bwsmdazxwvvowagkvcgw",
+  "schema": "banglog_plus",
+  "newCases": [
+    "94da34692",
+    "2010da89876",
+    "2014na13609"
+  ],
+  "existingCasesCrossChecked": [
+    "2023da249661",
+    "2018da291347"
+  ],
+  "criteria": [
+    "국가법령정보센터 판결 전문 확인",
+    "다른 제공처의 판결 전문 또는 공식 판례 요지 대조",
+    "사건번호·법원·선고일·쟁점·판결 취지·사건 배경 대조",
+    "주택 직접 사건과 유사 법리 참고 사건 구분",
+    "불확실한 결론·배상 비율을 추가하지 않음"
+  ],
+  "verificationLimitations": [
+    "동일 판결의 재수록본 대조는 독립된 사실조사가 아님",
+    "비공식 사이트의 AI 요약은 근거에서 제외",
+    "변호사 검토 및 후속 판례 전수조사 미실시",
+    "뉴스와 상담 글은 판결 원문을 대체하지 않음"
+  ],
+  "excluded": [
+    {
+      "case": "수원지방법원 2018나72789",
+      "url": "https://bigcase.ai/cases/수원지방법원/2018나72789",
+      "reason": "페이지 접근 403. 공식 판결 전문과 두 번째 자료 대조를 완료하지 못해 미수록. 사건이 허위라는 뜻은 아님."
+    },
+    {
+      "case": "팀원 제공 뉴스·로톡 상담 사례",
+      "reason": "이번 판례 묶음에는 사건번호와 판결 원문을 대조한 판례만 포함. 상담·뉴스 자체는 판례로 저장하지 않음."
+    }
+  ],
+  "result": {
+    "remoteApplied": true,
+    "sources": 7,
+    "crossCheckedCases": 5,
+    "activeChunks": 7,
+    "preservedV1Chunks": 4,
+    "remoteSourceMismatches": 0,
+    "remoteChunkMismatches": 0,
+    "humanLegalReview": "pending",
+    "use": "internal",
+    "localRetrievalVerified": true,
+    "productionBackendConnected": false
+  },
+  "tests": {
+    "unitApi": 113,
+    "postgres": 23,
+    "browser": 21,
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "format": "passed"
+  }
+}

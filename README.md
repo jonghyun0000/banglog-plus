@@ -1,4 +1,36 @@
+# 현재 작업 기준 · 2026-11-10
+
+현재 서비스는 v1.3, Fastify API + PostgreSQL 근거 검색 + 실제 GPT 및 선택 사진 분석 + 회원 기록 구조입니다. 브라우저 데모는 별도 `build:demo`입니다. 아래 초기 기록을 현재 운영 상태로 해석하지 마세요.
+
+최신 인계: [HANDOFF_CLAUDE.md](HANDOFF_CLAUDE.md). 통합 검토: [PR1_INTEGRATION.md](docs/PR1_INTEGRATION.md). 이번 통합 브랜치는 미병합·미배포입니다.
+
+---
+
+# 방로그 Plus · 배포 1 (v1.0.0)
+
+- 사이트: https://banglog-plus.vercel.app/
+- 관리자: https://banglog-plus.vercel.app/admin
+- 현도 마스터 Plus 전용 DB → 정제 법률 자료 검색 → GPT-6.1 Sol 응답을 연결한다. GPT 오류에는 기본 안내로 전환한다.
+- 현도컴퍼니 이메일 계정을 재사용한다. 신규 가입과 인증 메일 재발송을 지원하며 비회원 이용도 가능하다.
+- 관리자에서 이용 통계·선택 답변·판례·회원 제한/기록 삭제·연결 점검·관리 이력을 확인한다.
+- 최신 운영 구성은 [계정과 데이터](docs/ACCOUNTS_AND_DATA.md), 실제 배포 확인은 [검증 결과](docs/release-verification.json)를 따른다.
+
+아래는 이전 개발 단계 기록이다. 현재 운영 상태와 다른 설정 설명은 위 최신 문서를 우선한다.
+
+---
+
 # 방로그 Plus
+
+
+## 2026-11-03 계정·데이터 관리 추가
+
+사용자 승인으로 HYUNDO Master에 `banglog_plus` 전용 스키마와 15개 RLS 테이블을 생성했습니다. 법률 출처 4개·검색 문단 4개는 내부 검토용입니다. 기존 `banglog` 서비스는 변경하지 않았습니다.
+
+구글·카카오 로그인, 본인 기록 저장/조회/삭제, 식별자 없는 일일 결과·선택 답변 집계를 구현했습니다. **실제 두 OAuth 제공자는 아직 비활성화이고, 공개 웹의 운영 API 연결과 실제 GPT 호출은 미설정입니다.** 회원 기록은 사용자가 명시적으로 저장하며 90일/100개까지 보관합니다. 비회원 임시 기록은 24시간입니다.
+
+설정·권한·검증·원격 마이그레이션 대응표: [ACCOUNTS_AND_DATA.md](docs/ACCOUNTS_AND_DATA.md). 집계 조회: [USAGE_REPORT.sql](docs/USAGE_REPORT.sql).
+
+기존 로컬 DB에는 `npm run members:setup`으로 새 테이블을 준비한 뒤 `npm run dev:db`를 사용합니다. 새 로컬 DB는 전체 마이그레이션이 적용됩니다.
 
 전·월세 세입자를 위한 AI 수리 가이드. **곰팡이·결로, 누수, 보일러 고장**의 상황 입력 → 7단계 질문 → 확인·수정 → 조건부 결과 → 문구 편집·복사 → 선택 피드백을 연결한 독립 MVP입니다.
 
@@ -23,6 +55,12 @@
 
 [팀 피드백 반영 및 발표용 기획안](docs/TEAM_FEEDBACK.md) · [자료 검증 및 경쟁 서비스 조사](docs/RESEARCH.md)
 
+## 2026-11-03 DB 근거 기반 AI 연결
+
+공식 자료 4건·요약 문단 4개를 담은 [초기 데이터셋](data/repair-knowledge.v1.json)과 PostgreSQL 검색 경로를 추가했습니다. 내부 실제 AI 모드는 DB 검색을 먼저 실행하고 검색된 설명·출처 버전만 AI에 전달합니다. 근거 없음·검색 실패 시 AI 호출을 중단하며, 인용과 검색 문단 이력을 결과에 저장합니다. 초기 검색은 문제 유형·증상·키워드 방식입니다.
+
+로컬 DB 시작 후 `npm run knowledge:setup`으로 자료를 준비하고 `npm run dev:db`로 실행합니다. 기본 AI는 여전히 `mock`이며 공개 Vercel 데모·유료 AI 실호출은 변경하지 않았습니다. 원격 DB 초기 구조와 자료는 승인 후 HYUNDO Master에 반영했습니다. [구조·자료·실행·검증 범위](docs/KNOWLEDGE_PIPELINE.md)를 확인하세요.
+
 ## 바로 실행
 
 Node **22.12 이상** 필요. 구현 검증 환경은 Node 22.18.0, npm 10.9.3입니다.
@@ -37,7 +75,7 @@ npm run dev
 
 ## 구현한 기능
 
-- 회원가입·역할 선택 없는 한국어 모바일 폼. 유형별 증상, 발견 시점, 기존 상태, 설치 주체, 원인 설명의 출처, 상충 주장, 계약 문장, 연락 여부.
+- 가입을 강제하지 않는 한국어 모바일 폼과 선택적인 구글·카카오 로그인. 유형별 증상, 발견 시점, 기존 상태, 설치 주체, 원인 설명의 출처, 상충 주장, 계약 문장, 연락 여부.
 - 위험 표현을 입력 중 즉시 안내. 지원 범위 밖 입력은 별도 상태. 원문 속 명령문은 지시로 사용하지 않음.
 - 점검 요청 상대와 비용 방향 분리. 집주인/세입자 부담 검토, 복합 원인, 판단 보류. 제3자·공용부분은 관리 담당자 경로.
 - 수정 시 입력 버전 갱신, 이전 결과 무효화. 원인 불명·기사 소견 전달·집주인 주장을 구분.
@@ -78,19 +116,19 @@ npm run build
 
 `.env.example`을 참고해 서버 `.env`를 작성합니다. 비밀키를 `VITE_` 변수에 넣지 마세요.
 
-| 변수 | 용도 |
-| --- | --- |
-| `AI_MODE=live` | 실제 공급자 선택. 기본 mock |
-| `OPENAI_API_KEY`, `OPENAI_MODEL` | 서버 키와 운영자가 확인한 명시적 모델. 기본 모델 없음 |
-| `REPOSITORY=database`, `DATABASE_URL` | 서버 전용 직접 PostgreSQL 연결 |
-| `DATABASE_SSL=require` | 원격 TLS 검증. disable은 loopback에만 허용 |
-| `INTERNAL_LIVE_ENABLED=true` | 내부 검증용 실제 모드 |
-| `PROVIDER_RETENTION_ACK=true` | 운영자가 공급자 보관 조건 확인 |
-| `MAX_DAILY_CALLS`, `MAX_DAILY_TOKENS`, `MAX_CONCURRENT`, `MAX_OUTPUT_TOKENS` | 호출·토큰·동시성 제한 |
-| `INPUT_USD_PER_MILLION`, `OUTPUT_USD_PER_MILLION`, `DAILY_BUDGET_USD` | 셋 모두 있을 때 보수적 비용 예약. 미설정 시 비용 미산정 |
-| `ALLOWED_ORIGINS`, `HOST`, `PORT` | API 호스트·포트·명시적 Origin 목록 |
-| `VITE_API_BASE_URL` | 별도 배포 API의 공개 주소. 기본 같은 Origin `/api` |
-| `PUBLIC_LAUNCH_ENABLED` | 기본 false. 현재 true로 바꿔도 공개 운영 차단 |
+| 변수                                                                         | 용도                                                    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `AI_MODE=live`                                                               | 실제 공급자 선택. 기본 mock                             |
+| `OPENAI_API_KEY`, `OPENAI_MODEL`                                             | 서버 키와 운영자가 확인한 명시적 모델. 기본 모델 없음   |
+| `REPOSITORY=database`, `DATABASE_URL`                                        | 서버 전용 직접 PostgreSQL 연결                          |
+| `DATABASE_SSL=require`                                                       | 원격 TLS 검증. disable은 loopback에만 허용              |
+| `INTERNAL_LIVE_ENABLED=true`                                                 | 내부 검증용 실제 모드                                   |
+| `PROVIDER_RETENTION_ACK=true`                                                | 운영자가 공급자 보관 조건 확인                          |
+| `MAX_DAILY_CALLS`, `MAX_DAILY_TOKENS`, `MAX_CONCURRENT`, `MAX_OUTPUT_TOKENS` | 호출·토큰·동시성 제한                                   |
+| `INPUT_USD_PER_MILLION`, `OUTPUT_USD_PER_MILLION`, `DAILY_BUDGET_USD`        | 셋 모두 있을 때 보수적 비용 예약. 미설정 시 비용 미산정 |
+| `ALLOWED_ORIGINS`, `HOST`, `PORT`                                            | API 호스트·포트·명시적 Origin 목록                      |
+| `VITE_API_BASE_URL`                                                          | 별도 배포 API의 공개 주소. 기본 같은 Origin `/api`      |
+| `PUBLIC_LAUNCH_ENABLED`                                                      | 기본 false. 현재 true로 바꿔도 공개 운영 차단           |
 
 실제 모드는 키·명시적 모델·DB·내부 플래그·보관 확인·출처 조건이 없으면 요청을 차단합니다. 오류를 mock 성공으로 바꾸지 않습니다. DB 마이그레이션은 별도 승인 후 적용하며 연결은 [DATABASE](docs/DATABASE.md)를 따릅니다. HYUNDO Master 식별 정보는 제공받지 않았습니다.
 
@@ -107,3 +145,11 @@ API는 단일 인스턴스만 지원하며 DB advisory lock으로 중복 서버�
 `src/` 화면·플랫폼 / `shared/` 타입·질문·안전 / `server/` API·규칙·AI·저장소·출처 / `supabase/` 마이그레이션·권한 검사 / `tests/` 단위·통합·E2E / `fixtures/` 40 개발 + 20 고정 평가 / `docs/` Notion에 옮길 수 있는 Markdown.
 
 [현재 인계 상태](docs/HANDOFF.md) · [검증 기록](docs/TEST_RESULTS.md) · [공식 자료](docs/OFFICIAL_SOURCES.md) · [토스 준비](docs/TOSS_READINESS.md)
+
+## GPT 연결과 기본 안내 (2026-11-03)
+
+서버는 DB에서 검색한 근거를 GPT에 전달하고 검증된 출처 ID와 짧은 생성 설명을 결과에 표시한다. 연결 시간 초과(기본 15초), 제공자 오류·응답 검증 실패·자료 부족·예산 제한에서는 문제 유형별 기본 안내를 저장하고 표시한다. 기본 안내는 AI 결과와 구분하며 비용 책임을 확정하거나 출처를 만들어내지 않는다. 인증·취소·DB 저장 오류와 전체 서버 연결 장애는 별도 오류 처리를 유지한다.
+
+2026-11-03 사용자 제공 키를 `.local/ai.env`에서 확인하고 모델을 `gpt-6.1-sol`로 설정했다. `npm run dev:ai`로 내부 검증을 시작한다. 파일은 Git 제외 대상이며 키 값을 출력하지 않는다. 기존 `npm run dev:db`는 모의 AI를 유지한다. 로컬 API → PostgreSQL 근거 검색 → 실제 GPT-6.1 Sol → 검증된 결과 저장까지 1회 성공했다(약 7.1초, 근거 2건, 생성 설명 포함, 기본 안내 전환 없음). 운영 사이트 연결·배포는 아직 미완료다.
+
+`AI_FALLBACK_ENABLED=false`로 서버 기본 안내 전환을 끌 수 있다. 기본 안내 결과는 `fallback.reason`으로 구분한다. 기존 mode 집계에서는 mock에 포함되며 실제 GPT 분석 건수로 계산하지 않는다. 실패한 요청의 과금은 확인되지 않으므로 0원으로 단정하지 않는다.

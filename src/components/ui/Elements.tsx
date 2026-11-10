@@ -33,11 +33,13 @@ export function SectionTitle({
 export function Choice({
   value,
   current,
+  name,
   label,
   onChange,
 }: {
   value: string;
   current: string;
+  name?: string;
   label: string;
   onChange: (value: string) => void;
 }) {
@@ -45,6 +47,7 @@ export function Choice({
     <label className={`choice ${current === value ? "selected" : ""}`}>
       <input
         type="radio"
+        name={name}
         checked={current === value}
         onChange={() => onChange(value)}
       />

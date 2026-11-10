@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { PhotoUpload } from "../photos/PhotoUpload";
+import { drainFacts, drainQuestions } from "../../../shared/drain";
 import type { AppConfig, Intake } from "../../../shared/schema";
 import { issueNames } from "../../../shared/schema";
 import { answerLabel, observationLabel } from "../../../shared/questions";
@@ -12,7 +15,15 @@ export function Review({
   onEdit,
   onAnalyze,
   busy,
+  photos,
+  onPhotos,
+  photoConsent,
+  onPhotoConsent,
 }: {
+  photos: string[];
+  onPhotos: (images: string[]) => void;
+  photoConsent: boolean;
+  onPhotoConsent: (value: boolean) => void;
   input: Intake;
   config: AppConfig | null;
   accepted: boolean;
@@ -21,26 +32,45 @@ export function Review({
   onAnalyze: () => void;
   busy: boolean;
 }) {
+  const [photoBusy, setPhotoBusy] = useState(false);
   const rows = [
     ["보이는 증상", observationLabel(input), 0],
-    ["상황", input.description || "별도 설명 없음", 0],
+    ...drainFacts(input).map((f) => {
+      const [id, q] = Object.entries(drainQuestions).find(
+        ([, q]) => `drain.${q.key}` === f.key,
+      )!;
+      return [q.title, f.value, Number(id)] as const;
+    }),
+    ["추가 설명", input.description || "별도 설명 없음", 6],
+    ...(input.building
+      ? [
+          [
+            "건물 정보",
+            `${input.building.use} · ${input.building.structure} · 승인 ${input.building.approval || "미등록"} · ${input.building.floors}층 (사용자 선택)`,
+            6,
+          ] as [string, string, number],
+        ]
+      : []),
     ["발견 시점", answerLabel("discovered", input.discovered), 1],
-    ["입주 당시", answerLabel("preexisting", input.preexisting), 2],
-    ["시설", answerLabel("installed", input.installed), 3],
+    ["입주 당시", answerLabel("preexisting", input.preexisting), 1],
+    ["시설", answerLabel("installed", input.installed), 2],
     [
       "원인 설명",
       `${answerLabel("cause", input.cause)} · ${answerLabel("causeSource", input.causeSource)}`,
-      4,
+      3,
     ],
-    ["다른 주장", answerLabel("otherClaim", input.otherClaim), 4],
-    ["계약 문구", input.contract || "미확인", 5],
-    ["연락 상태", answerLabel("contact", input.contact), 6],
+    ["다른 주장", answerLabel("otherClaim", input.otherClaim), 3],
+    ...(input.contract
+      ? [["이전에 입력한 계약 문구", input.contract, 6] as const]
+      : []),
+    ["위험 신호", answerLabel("safety", input.safety), 5],
+    ["연락 상태", answerLabel("contact", input.contact), 4],
   ] as const;
   return (
     <>
       <SectionTitle eyebrow="내용 검토" title="이 내용으로 확인할까요?">
         <p>
-          {issueNames[input.issue]} · 입력 버전 {input.inputVersion}
+          {issueNames[input.issue]} · 답변을 확인하고 필요한 부분을 수정하세요.
         </p>
       </SectionTitle>
       <dl className="review-list">
@@ -59,6 +89,28 @@ export function Review({
         ))}
       </dl>
       {hasDanger(input) && <SafetyNotice />}
+      {!hasDanger(input) && config?.storage !== "browser" && (
+        <PhotoUpload
+          images={photos}
+          onChange={onPhotos}
+          onBusy={setPhotoBusy}
+        />
+      )}
+      {photos.length > 0 && (
+        <label className="checkbox photo-consent">
+          <input
+            type="checkbox"
+            checked={photoConsent}
+            onChange={(e) => onPhotoConsent(e.target.checked)}
+          />
+          <span>
+            사진 {photos.length}장을 OpenAI로 보내 분석하는 데 동의해요. 사진
+            원본은 방로그 DB에 저장하지 않으며 관찰 결과는 기존 결과·회원 기록과
+            함께 저장될 수 있어요. 사진의 개인정보는 자동으로 가려지지 않아요.
+          </span>
+        </label>
+      )}
+
       <div className="processing-notice">
         <strong>
           {config?.ai === "live"
@@ -83,6 +135,14 @@ export function Review({
             ? "새로고침하거나 페이지를 닫으면 기록이 사라져요. 피드백은 체험용이며 운영자에게 전달되지 않아요."
             : "새로고침하면 기록에 다시 접근할 수 없어요. 새로고침 자체가 서버 기록을 삭제하지는 않아요. 원문을 연구·학습용으로 따로 저장하지 않아요."}
         </p>
+        {config?.storage === "database" && (
+          <p>
+            문제 유형·선택 증상·결과 분류별 일일 완료 건수를 집계해요. 집계에는
+            식별자와 자유 입력 원문을 넣지 않으며 개별 기록 삭제 후에도 건수는
+            남아요. v1.3 팀 체험 기간에는 이 익명 집계를 공개 관리자 화면에서
+            누구나 볼 수 있어요.
+          </p>
+        )}
         <label className="checkbox">
           <input
             type="checkbox"
@@ -99,9 +159,15 @@ export function Review({
           {config.blockers.join(" · ")}
         </p>
       )}
-      <div className="actions">
+      <div className="actions sticky-actions">
         <Button
-          disabled={!accepted || busy || !config?.ready}
+          disabled={
+            !accepted ||
+            busy ||
+            photoBusy ||
+            !config?.ready ||
+            (photos.length > 0 && !photoConsent)
+          }
           onClick={onAnalyze}
         >
           {busy ? "세션을 준비하고 있어요…" : "수리 가이드 확인하기"}

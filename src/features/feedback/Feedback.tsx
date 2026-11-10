@@ -106,6 +106,19 @@ export function Feedback({
           </option>
         ))}
       </select>
+      <details className="result-section">
+        <summary>화면 문제를 따로 전달하고 싶어요</summary>
+        <p className="small">
+          어느 화면에서 무엇을 눌렀고, 예상과 달리 무엇이 나왔는지 알려주세요.
+          캡처에는 이름·주소·연락처가 나오지 않게 가려주세요.
+        </p>
+        <p className="small">
+          결과 번호: <code style={{ overflowWrap: "anywhere" }}>{id}</code>
+        </p>
+        <p className="small">
+          이 번호는 결과를 찾는 용도이며 로그인 비밀번호나 접근 권한이 아니에요.
+        </p>
+      </details>
       {error && (
         <p className="error" role="alert">
           {error}

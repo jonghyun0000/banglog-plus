@@ -13,27 +13,53 @@ export function Home({
   return (
     <div className="home">
       <div className="home-copy">
-        <p className="eyebrow">전·월세 세입자를 위한 AI 수리 가이드</p>
+        <p className="eyebrow home-audience">
+          전·월세 세입자를 위한 집 수리 가이드
+        </p>
         <h1 tabIndex={-1}>
-          이거, 누가
+          집 수리비,
           <br />
-          고쳐야 하지?
+          누가 부담하나요?
         </h1>
         <p className="home-description">
-          집주인에게 요청할지,
+          증상 몇 가지를 고르면, 수리 요청부터
           <br />
-          비용 협의에 필요한 내용을 정리해요.
+          비용 협의·집주인에게 보낼 문구까지 정리해요.
         </p>
-        <p className="scope">
-          곰팡이 · 누수 · 보일러
-          <br />
-          벽지·장판 · 배수 · 옵션 제품
+        <p className="home-issues">
+          곰팡이·누수·보일러·벽지·장판·배수·옵션 제품
         </p>
+        <section className="home-benefits" aria-label="방로그에서 확인할 내용">
+          <div>
+            <span aria-hidden="true">01</span>
+            <strong>
+              누구에게
+              <br />
+              수리 요청할지
+            </strong>
+          </div>
+          <div>
+            <span aria-hidden="true">02</span>
+            <strong>
+              비용 협의 전<br />
+              확인할 근거
+            </strong>
+          </div>
+          <div>
+            <span aria-hidden="true">03</span>
+            <strong>
+              집주인에게
+              <br />
+              보낼 문구
+            </strong>
+          </div>
+        </section>
       </div>
       <div className="home-action">
         <Button onClick={onStart}>
-          내 상황 확인하기 <ArrowIcon />
+          우리 집 수리 문제 확인하기 <ArrowIcon />
         </Button>
+        <p className="home-guest">회원가입 없이 바로 확인할 수 있어요</p>
         <p className="small disclaimer">
           AI 안내이며, 법적 판단을 확정하지 않아요.
         </p>

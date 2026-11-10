@@ -1,13 +1,13 @@
 import type { Intake, Issue } from "./schema.js";
-export const questionVersion = "questions-1.1";
+export const questionVersion = "questions-1.3";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
-  "언제부터 보였나요?",
-  "입주 때도 문제가 있었나요?",
-  "원래 있던 시설인가요?",
-  "원인을 확인해 보셨나요?",
-  "수리 관련 계약 문구가 있나요?",
+  "언제부터 있었던 문제인가요?",
+  "누가 설치하거나 제공한 시설인가요?",
+  "원인에 대해 들은 내용이 있나요?",
   "이미 연락하셨나요?",
+  "지금 위험 신호가 있나요?",
+  "추가로 설명할 내용이 있나요?",
 ];
 export const descriptionHints: Record<Issue, string> = {
   mold: "예: 창문 옆 벽에 곰팡이가 생겼고, 아침에 물방울이 맺혀요.",

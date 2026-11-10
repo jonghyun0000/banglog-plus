@@ -1,93 +1,72 @@
-import { useState } from "react";
 import type { Analysis } from "../../../shared/schema";
-import { Button, SectionTitle } from "../../components/ui/Elements";
-import { platform } from "../../platform";
+import { SectionTitle, Button } from "../../components/ui/Elements";
 import { api } from "../../app/api";
+import { DraftEditor } from "./DraftEditor";
+import { NextResponse } from "../analysis/NextResponse";
 export function Message({
   result,
+  text,
+  onChange,
+  onSave,
   onFeedback,
 }: {
   result: Analysis;
+  text: string;
+  onChange: (text: string) => void;
+  onSave: () => void;
   onFeedback: () => void;
 }) {
-  const [text, setText] = useState(result.messageDraft);
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  async function copy() {
-    setBusy(true);
-    setError("");
-    try {
-      await platform.copy(text);
-      setCopied(true);
-      void api.copied(result.analysisId).catch(() => {});
-    } catch {
-      setCopied(false);
-      setError(
-        "자동 복사가 되지 않았어요. 문구를 길게 누르거나 전체 선택한 뒤 직접 복사해 주세요.",
-      );
-      document.getElementById("message-draft")?.focus();
-    } finally {
-      setBusy(false);
-    }
-  }
+  const recipient =
+    result.repairRequest.recipient === "manager"
+      ? "관리 담당자에게"
+      : result.repairRequest.recipient === "service"
+        ? "제조사·수리업체에"
+        : "집주인에게";
   return (
-    <>
+    <div className="message-screen">
       <SectionTitle
         eyebrow={
-          result.mode === "mock" ? "데모: 가상 결과 · 연락 문구" : "연락 문구"
+          result.fallback
+            ? "기본 안내 · 연락 문구"
+            : result.mode === "mock"
+              ? "데모: 가상 결과 · 연락 문구"
+              : "연락 문구"
         }
-        title="차분하게, 이렇게 물어보세요"
+        title="수정하고, 복사해서 보내세요"
       >
-        <p>
-          {result.messageKind === "initial"
-            ? "처음 점검을 요청하는 문구예요."
-            : result.messageKind === "cost"
-              ? "비용 기준을 확인하는 문구예요."
-              : "이전 요청에 대한 답변을 확인하는 문구예요."}{" "}
-          보내기 전에 내 상황에 맞게 수정하세요.
-        </p>
+        <p>{recipient} 보낼 문구를 준비했어요.</p>
       </SectionTitle>
-      <label className="field-label" htmlFor="message-draft">
-        {result.repairRequest.recipient === "manager"
-          ? "관리 담당자에게"
-          : result.repairRequest.recipient === "service"
-            ? "제조사·수리업체에"
-            : "집주인에게"}{" "}
-        보낼 문구
-      </label>
-      <textarea
-        className="message-draft"
-        id="message-draft"
-        value={text}
-        maxLength={2000}
-        rows={11}
-        onChange={(e) => {
-          setText(e.target.value);
-          setCopied(false);
+      <div className="message-purpose">
+        <strong>
+          {result.messageKind === "initial"
+            ? "처음 점검 요청하기"
+            : result.messageKind === "cost"
+              ? "비용 부담의 근거 확인하기"
+              : "이전 요청에 답변 부탁하기"}
+        </strong>
+        <p className="small">
+          증상과 요청 사항을 확인하고, 내 상황에 맞게 고쳐주세요.
+        </p>
+      </div>
+      <DraftEditor
+        text={text}
+        original={result.messageDraft}
+        onChange={onChange}
+        label={`${recipient} 보낼 문구`}
+        onCopied={() => {
+          void api.copied(result.analysisId).catch(() => {});
         }}
       />
-      <p className="small">연락처를 수집하거나 자동으로 발송하지 않아요.</p>
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-      <div aria-live="polite">
-        {copied && (
-          <p className="success">
-            복사됐어요. 사용하는 메시지 앱에 붙여넣어 보내주세요.
-          </p>
-        )}
-      </div>
-      <div className="actions">
-        <Button disabled={busy || !text.trim()} onClick={() => void copy()}>
-          {busy ? "복사 중…" : "문구 복사하기"}
-        </Button>
-        <button className="text-button" onClick={onFeedback}>
-          도움이 됐는지 알려주기
-        </button>
-      </div>
-    </>
+      <Button secondary onClick={onSave}>
+        문구와 결과를 내 기록에 저장
+      </Button>
+      <p className="small save-help">
+        로그인 후 동의하면 수정한 문구도 함께 보관해요.
+      </p>
+      <NextResponse result={result} />
+      <button className="text-button" onClick={onFeedback}>
+        도움이 됐는지 알려주기
+      </button>
+    </div>
   );
 }

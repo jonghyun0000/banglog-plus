@@ -1,3 +1,5 @@
+> 이 문서는 초기 단계 기록을 보존합니다. 최신 운영 구조는 ../HANDOFF_CLAUDE.md와 PR1_INTEGRATION.md를 우선 확인하세요.
+
 # AI·근거·평가
 
 ## 현재 상태

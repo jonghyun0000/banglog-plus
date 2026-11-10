@@ -1,5 +1,14 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+async function additional(page: Page) {
+  for (let i = 0; i < 15; i++) {
+    if (await page.getByLabel("추가로 설명할 내용").isVisible()) return;
+    await page.getByRole("button", { name: "다음", exact: true }).click();
+  }
+  throw new Error("Additional explanation step not reached");
+}
 
 for (const issue of [
   "곰팡이가 생겼어요",
@@ -20,9 +29,11 @@ for (const issue of [
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "이거, 누가 고쳐야 하지?" }),
+      page.getByRole("heading", { name: "집 수리비, 누가 부담하나요?" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "내 상황 확인하기" }).click();
+    await page
+      .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
+      .click();
     await page.getByRole("button", { name: issue }).click();
     const selected =
       issue === "벽지·장판이 손상됐어요"
@@ -33,12 +44,12 @@ for (const issue of [
             ? "침대가 파손됐어요"
             : null;
     if (selected)
-      await page.getByRole("radio", { name: selected, exact: true }).check();
+      await page.getByRole("button", { name: selected, exact: true }).click();
+    await additional(page);
     await page
-      .getByLabel("상황 설명")
+      .getByLabel("추가로 설명할 내용")
       .fill("증상이 계속되어 점검을 요청하고 싶어요.");
-    for (let i = 0; i < 6; i++)
-      await page.getByRole("button", { name: "다음", exact: true }).click();
+    await additional(page);
     await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
     await expect(
       page.getByText("입력·결과·피드백은 현재 페이지의 메모리에만", {
@@ -57,7 +68,12 @@ for (const issue of [
       .getByRole("button", { name: "집주인에게 보낼 문구 보기" })
       .click();
     if (selected)
-      await expect(page.getByRole("textbox")).toHaveValue(new RegExp(selected));
+      await expect(
+        page.getByRole("textbox", {
+          name: "집주인에게 보낼 문구",
+          exact: true,
+        }),
+      ).toHaveValue(new RegExp(selected));
     await page.getByRole("button", { name: "문구 복사하기" }).click();
     await expect(page.getByText("복사됐어요.", { exact: false })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
@@ -77,7 +93,7 @@ for (const issue of [
     ).toBeVisible();
     await page.reload();
     await expect(
-      page.getByRole("heading", { name: "이거, 누가 고쳐야 하지?" }),
+      page.getByRole("heading", { name: "집 수리비, 누가 부담하나요?" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "현재 세션 기록 삭제" }),
@@ -128,16 +144,16 @@ test("own fridge goes to service support and keeps the expanded reference access
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "내 상황 확인하기" }).click();
+  await page
+    .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
+    .click();
   await page
     .getByRole("button", { name: "집에 설치된 옵션에 문제가 있어요" })
     .click();
-  await page.getByRole("radio", { name: "냉장고가 작동하지 않아요" }).check();
-  for (let i = 0; i < 3; i++)
-    await page.getByRole("button", { name: "다음", exact: true }).click();
-  await page.getByRole("radio", { name: "제가 설치한 시설이에요" }).check();
-  for (let i = 0; i < 3; i++)
-    await page.getByRole("button", { name: "다음", exact: true }).click();
+  await page.getByRole("button", { name: "냉장고가 작동하지 않아요" }).click();
+  await page.getByRole("button", { name: "다음", exact: true }).click();
+  await page.getByRole("button", { name: "제가 설치한 시설이에요" }).click();
+  await additional(page);
   await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();

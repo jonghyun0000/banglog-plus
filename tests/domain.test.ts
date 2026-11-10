@@ -13,7 +13,7 @@ import {
   validateClaims,
   verifyCitations,
 } from "../server/sources/catalog.js";
-import { validatePlan } from "../server/ai/provider.js";
+import { validatePlan } from "./helpers/knowledge.js";
 describe("40 development scenarios, software invariants only", () => {
   for (const f of scenarios.filter((f) => f.split === "development"))
     it(f.id + " " + f.name, () => {
