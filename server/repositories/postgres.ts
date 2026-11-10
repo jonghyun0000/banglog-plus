@@ -1,4 +1,5 @@
 import pg from "pg";
+import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import type { Analysis, Feedback, Intake } from "../../shared/schema.js";
 import { questionVersion } from "../../shared/questions.js";
@@ -16,8 +17,14 @@ export class PostgresRepository implements Repository {
   constructor(url: string, ssl = true) {
     this.pool = new pg.Pool({
       connectionString: url,
-      ssl: ssl ? { rejectUnauthorized: true } : false,
-      max: 8,
+      ssl: ssl
+        ? {
+            rejectUnauthorized: true,
+            ca: readFileSync("data/supabase-ca.crt", "utf8"),
+          }
+        : false,
+      max: process.env.VERCEL ? 3 : 8,
+      idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 5000,
     });
   }
@@ -186,6 +193,20 @@ export class PostgresRepository implements Repository {
             "insert into banglog_plus.result_sources values($1,$2,$3,$4,$5,$6)",
             [id, owner, s.sourceId, s.sourceVersion, s.claim, s.location],
           );
+        await c.query(
+          `insert into banglog_plus.usage_daily_summary(day,issue,observation,direction,mode)
+          select (now() at time zone 'Asia/Seoul')::date,issue,input->>'observation',$3,$4 from banglog_plus.analysis_sessions where id=$1 and guest_id=$2
+          on conflict(day,issue,observation,direction,mode) do update set completed=banglog_plus.usage_daily_summary.completed+1`,
+          [id, owner, result.costResponsibility.direction, result.mode],
+        );
+        await c.query(
+          `insert into banglog_plus.answer_daily_summary(day,issue,question,answer,mode)
+          select (now() at time zone 'Asia/Seoul')::date,a.issue,choice.key,choice.value,$3
+          from banglog_plus.analysis_sessions a cross join lateral jsonb_each_text(a.input) choice
+          where a.id=$1 and a.guest_id=$2 and choice.key in ('observation','discovered','preexisting','installed','cause','causeSource','otherClaim','contact','safety')
+          on conflict(day,issue,question,answer,mode) do update set completed=banglog_plus.answer_daily_summary.completed+1`,
+          [id, owner, result.mode],
+        );
         return true;
       });
     } catch (e) {
@@ -266,6 +287,10 @@ export class PostgresRepository implements Repository {
   }
   async cleanup() {
     return this.transaction("", async (c) => {
+      await c.query("select set_config('banglog.cleanup','true',true)");
+      await c.query(
+        "delete from banglog_plus.member_history where expires_at<=now()",
+      );
       const q = await c.query(
         "delete from banglog_plus.guest_sessions where expires_at<=now() or revoked_at is not null",
       );

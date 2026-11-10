@@ -1,3 +1,4 @@
+import type { PhotoUpload } from "../../shared/photo";
 import { createBrowserDemo } from "./browser-demo";
 import type {
   Analysis,
@@ -6,6 +7,9 @@ import type {
   Intake,
 } from "../../shared/schema";
 import { analysisSchema, consentVersion } from "../../shared/schema";
+const browserOnly =
+  import.meta.env.MODE === "hosted" &&
+  import.meta.env.VITE_CONNECTED_MODE !== "true";
 let token: string | null = null;
 const base = import.meta.env.VITE_API_BASE_URL ?? "";
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -36,11 +40,16 @@ const serverApi = {
     });
     token = data.token;
   },
-  async analyze(intake: Intake, key: string, signal: AbortSignal) {
+  async analyze(
+    intake: Intake,
+    key: string,
+    signal: AbortSignal,
+    photos?: PhotoUpload,
+  ) {
     return analysisSchema.parse(
       await request<Analysis>("/analyses", {
         method: "POST",
-        body: JSON.stringify({ intake, idempotencyKey: key }),
+        body: JSON.stringify({ intake, idempotencyKey: key, photos }),
         signal,
       }),
     );
@@ -67,5 +76,8 @@ const serverApi = {
   hasSession: () => !!token,
 };
 
-export const api: typeof serverApi =
-  import.meta.env.MODE === "hosted" ? createBrowserDemo() : serverApi;
+export const api: typeof serverApi = browserOnly
+  ? createBrowserDemo()
+  : serverApi;
+
+export const guestProof = () => (browserOnly ? null : token);

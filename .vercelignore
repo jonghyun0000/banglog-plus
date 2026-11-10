@@ -7,3 +7,14 @@ dist-server
 playwright-report
 test-results
 docs/screenshots
+
+# Research originals and review candidates are not function assets.
+data/research
+
+node_modules.offloaded-backup/
+
+.claude
+
+output
+
+docs

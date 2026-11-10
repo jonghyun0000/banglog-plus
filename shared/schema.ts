@@ -1,3 +1,5 @@
+import { photoResultSchema, photoUploadSchema } from "./photo.js";
+import { buildingSchema, buildingGuideSchema } from "./building.js";
 import { z } from "zod";
 export const issueSchema = z.enum([
   "mold",
@@ -16,9 +18,37 @@ export const issueNames: Record<Issue, string> = {
   drain: "배수 문제",
   fixture: "옵션 제품 고장",
 };
+export const drainSchema = z
+  .object({
+    location: z.enum(["basin", "sink", "floor", "toilet", "other", "unknown"]),
+    locationDetail: z.string().max(80).optional(),
+    scope: z.enum(["single", "multiple", "unknown"]),
+    overflow: z.enum(["no", "yes", "unknown"]),
+    chemical: z.enum(["no", "yes", "unknown"]),
+    attempted: z.enum(["none", "cleaned", "tool", "professional", "unknown"]),
+  })
+  .strict();
+export type DrainAnswers = z.infer<typeof drainSchema>;
+export const defaultDrain: DrainAnswers = {
+  location: "unknown",
+  scope: "unknown",
+  overflow: "unknown",
+  chemical: "unknown",
+  attempted: "unknown",
+};
+export const drainGuideSchema = z.object({
+  version: z.string(),
+  route: z.enum(["self_check", "contact", "stop"]),
+  title: z.string(),
+  steps: z.array(z.object({ title: z.string(), body: z.string() })).max(3),
+  warning: z.string(),
+  sources: z.array(z.object({ title: z.string(), url: z.string().url() })),
+});
 export const intakeSchema = z
   .object({
     issue: issueSchema,
+    drain: drainSchema.optional(),
+    building: buildingSchema.optional(),
     inputVersion: z.number().int().min(1).max(1000),
     description: z.string().max(1000),
     observation: z
@@ -158,12 +188,52 @@ export const sourceSchema = z.object({
   effectiveDate: z.string().nullable(),
   technicalStatus: z.enum(["verified", "pending"]),
   humanLegalReview: z.enum(["pending", "approved"]),
-  use: z.enum(["internal", "public"]),
+  reviewBasis: z.literal("official_statute").optional(),
+  reviewEvidence: z
+    .object({
+      crossCheckUrl: z.string().url(),
+      permissionEvidenceUrl: z.string().url(),
+      originalSha256: z.string().regex(/^[a-f0-9]{64}$/),
+      reviewerType: z.literal("ai_source_comparison"),
+    })
+    .optional(),
+  use: z.enum(["internal", "public", "general"]),
   scope: z.string(),
   issues: z.array(issueSchema),
 });
 export type LegalSource = z.infer<typeof sourceSchema>;
+export const responseStepSchema = z.object({
+  title: z.string().min(1).max(80),
+  action: z.string().min(10).max(350),
+  reason: z.string().min(10).max(350),
+  factKeys: z.array(z.string()).min(1).max(5),
+  missingEvidence: z.array(z.string().min(1).max(150)).max(3),
+  citations: z
+    .array(
+      z.object({
+        sourceId: z.string(),
+        sourceVersion: z.string(),
+        claim: z.string(),
+        location: z.string(),
+      }),
+    )
+    .min(1)
+    .max(3),
+});
 export const analysisSchema = z.object({
+  photoAnalysis: photoResultSchema.optional(),
+  drainGuide: drainGuideSchema.optional(),
+  buildingGuide: buildingGuideSchema.optional(),
+  tailoredResponse: z
+    .object({
+      summary: z.string().min(10).max(350),
+      steps: z.array(responseStepSchema).min(2).max(3),
+    })
+    .optional(),
+  aiExplanation: z.string().min(20).max(700).optional(),
+  fallback: z
+    .object({ reason: z.string().max(100), notice: z.string().max(400) })
+    .optional(),
   schemaVersion: z.literal("1.0"),
   analysisId: z.string().uuid(),
   inputVersion: z.number().int(),
@@ -198,6 +268,21 @@ export const analysisSchema = z.object({
     }),
   ),
   sources: z.array(sourceSchema),
+  retrieval: z
+    .object({
+      datasetVersion: z.string(),
+      method: z.literal("postgres-filter-keyword-1"),
+      chunks: z
+        .array(
+          z.object({
+            id: z.string(),
+            sourceId: z.string(),
+            sourceVersion: z.string(),
+          }),
+        )
+        .max(4),
+    })
+    .optional(),
   additionalChecks: z.array(z.string()),
   otherPartyCheckRequired: z.boolean(),
   nextActions: z.array(z.string()).max(3),
@@ -227,9 +312,13 @@ export const feedbackSchema = z
   .strict();
 export type Feedback = z.infer<typeof feedbackSchema>;
 export const analyzeRequestSchema = z
-  .object({ intake: intakeSchema, idempotencyKey: z.string().uuid() })
+  .object({
+    intake: intakeSchema,
+    idempotencyKey: z.string().uuid(),
+    photos: photoUploadSchema.optional(),
+  })
   .strict();
-export const consentVersion = "2026-10-15.v1";
+export const consentVersion = "2026-11-10.v4";
 export const eventSchema = z.enum([
   "start",
   "questions_complete",
@@ -239,9 +328,18 @@ export const eventSchema = z.enum([
 ]);
 export type EventName = z.infer<typeof eventSchema>;
 export type AppConfig = {
+  account?: {
+    enabled: boolean;
+    url: string;
+    publishableKey: string;
+    google: boolean;
+    kakao: boolean;
+    signup?: boolean;
+    retentionDays: number;
+  };
   ai: "mock" | "live";
   storage: "memory" | "database" | "browser";
-  publicLaunch: false;
+  publicLaunch: boolean;
   retentionHours: number;
   ready: boolean;
   blockers: string[];

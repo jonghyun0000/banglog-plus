@@ -1,3 +1,5 @@
+import { buildingFacts, buildingGuide } from "./building.js";
+import { drainGuide, drainFacts, drainMessage } from "./drain.js";
 import type { Analysis, Direction, Intake } from "./schema.js";
 import { analysisSchema, issueNames } from "./schema.js";
 import {
@@ -7,7 +9,7 @@ import {
   issueGuidance,
 } from "./questions.js";
 import { hasDanger, outOfScope, safetyText } from "./safety.js";
-export const ruleVersion = "rules-1.1";
+export const ruleVersion = "rules-1.2";
 export function directionFor(i: Intake): Direction {
   if (
     hasDanger(i) ||
@@ -72,6 +74,18 @@ export function makeAnalysis(
               : "누가 부담할지 가르는 원인과 점검 기록이 더 필요해요.",
     ],
   };
+  const buildingCare =
+    danger || outside ? undefined : buildingGuide(i.building, ownFixture);
+  const care = outside ? undefined : drainGuide(i);
+  if (care && buildingCare) {
+    care.steps[1] = {
+      title:
+        care.route === "self_check"
+          ? `해결되지 않으면 · ${buildingCare.contactTitle}`
+          : buildingCare.contactTitle,
+      body: buildingCare.contactSteps.slice(0, 2).join(" "),
+    };
+  }
   const guidance = issueGuidance[i.issue];
   const checks = [
     third
@@ -80,6 +94,19 @@ export function makeAnalysis(
     ...guidance.checks,
     "관련 계약 문장과 입주 당시 상태 확인하기",
   ];
+  const recipient = danger
+    ? "emergency"
+    : (buildingCare?.recipient ??
+      (third ? "manager" : ownFixture ? "service" : "landlord"));
+  const managerMessage = recipient === "manager";
+  const repairHistoryMessage = !i.building
+    ? ""
+    : {
+        yes: "제가 알고 있는 해당 부위의 교체·수리 이력이 있어, 알고 있는 내용을 함께 전달드리겠습니다. 이전 수리 내용이 이번 문제와 관련 있는지도 확인 부탁드립니다.\n",
+        no: "제가 알고 있는 해당 부위의 교체·수리 이력은 없습니다. 확인 가능한 이전 점검이나 수리 기록이 있다면 알려주시면 감사하겠습니다.\n",
+        unknown:
+          "해당 부위의 교체·수리 이력은 아직 확인하지 못했습니다. 이전 점검이나 수리 기록을 확인할 수 있을까요?\n",
+      }[i.building.repairHistory];
   const messageKind = ownFixture
     ? "initial"
     : i.contact === "cost"
@@ -89,15 +116,32 @@ export function makeAnalysis(
         : "initial";
   const opening = ownFixture
     ? "안녕하세요. 제가 소유한 제품의 점검과 수리 가능 여부를 문의드립니다."
-    : messageKind === "followup"
-      ? `안녕하세요. 앞서 연락드린 ${issueNames[i.issue]} 문제의 점검 일정과 진행 상황을 확인하고 싶습니다.`
-      : `안녕하세요. ${issueNames[i.issue]} 문제로 점검이 필요해 연락드립니다.`;
+    : managerMessage
+      ? `안녕하세요, 관리 담당자님. ${issueNames[i.issue]} 관련 점검을 문의드립니다.`
+      : messageKind === "followup"
+        ? `안녕하세요. 앞서 연락드린 ${issueNames[i.issue]} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
+        : `안녕하세요. ${issueNames[i.issue]} 때문에 점검이 필요해 연락드립니다.`;
   const symptom =
-    i.observation === "unknown"
-      ? ""
-      : `제가 확인한 증상은 ‘${observationLabel(i)}’입니다.\n`;
-  const message = `${opening}\n${symptom}${messageKind === "cost" ? "안내받은 비용의 산정 기준과 점검 결과를 알려주실 수 있을까요?" : "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?"}\n${third ? "공용부분이나 다른 세대와 관련이 있는지도 확인 부탁드립니다.\n" : ""}${ownFixture ? "원인과 수리 범위, 보증 적용 여부 및 예상 견적을 안내 부탁드립니다." : "원인과 수리 범위를 확인한 뒤 비용 부담을 협의하고 싶습니다."}`;
+    i.observation === "unknown" ? "" : `현재 ${observationLabel(i)}.\n`;
+  const requestMessage =
+    messageKind === "cost"
+      ? "안내받은 비용의 산정 기준과 점검 결과를 알려주실 수 있을까요?"
+      : managerMessage
+        ? "해당 시설을 점검해 주실 수 있는지와 가능한 일정을 알려주세요. 직접 처리하기 어려우시면 담당 부서나 점검을 요청할 곳을 안내해 주시면 감사하겠습니다."
+        : ownFixture
+          ? "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?"
+          : i.building
+            ? "점검을 맡길 관리 담당자나 수리업체, 가능한 방문 일정을 안내해 주실 수 있을까요?"
+            : "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?";
+  const closing = ownFixture
+    ? "원인과 수리 범위, 보증 적용 여부 및 예상 견적을 안내 부탁드립니다."
+    : managerMessage
+      ? "점검 결과와 필요한 수리 범위를 알려주시면 집주인과도 공유하고 비용 부담을 확인하겠습니다."
+      : "원인과 수리 범위를 확인한 뒤 비용 부담을 협의하고 싶습니다.";
+  const message = `${opening}\n${symptom}${i.issue === "drain" ? drainMessage(i) : ""}${repairHistoryMessage}${requestMessage}\n${third ? "공용부분이나 다른 세대와 관련이 있는지도 확인 부탁드립니다.\n" : ""}${closing}`;
   return analysisSchema.parse({
+    drainGuide: care,
+    buildingGuide: buildingCare,
     schemaVersion: "1.0",
     analysisId: id,
     inputVersion: i.inputVersion,
@@ -111,6 +155,8 @@ export function makeAnalysis(
           ? "needs_information"
           : "complete",
     userReportedFacts: [
+      ...drainFacts(i),
+      ...buildingFacts(i.building),
       {
         key: "description",
         value: i.description || "별도 설명 없음",
@@ -158,23 +204,24 @@ export function makeAnalysis(
     ],
     conflictingFacts: conflictFor(i),
     repairRequest: {
-      recipient: danger
-        ? "emergency"
-        : third
-          ? "manager"
-          : ownFixture
-            ? "service"
-            : "landlord",
-      reason: danger
-        ? safetyText
-        : outside
-          ? "지원하는 주택 수리 범위 밖의 법률 문제는 해당 분야의 별도 상담에서 확인해 주세요."
-          : third
-            ? "관리 담당자에게 발생 위치와 공용부분 여부의 점검을 요청하고, 집주인에게도 상황을 알려주세요."
-            : ownFixture
-              ? "직접 소유한 제품은 제조사·수리업체에 점검과 보증 적용 여부를 문의하세요. 누수 등으로 집의 시설에도 영향이 있다면 집주인에게 상황을 알려주세요."
-              : "집주인에게 현재 상황을 알리고 점검·수리 진행 방법을 먼저 요청하세요. 요청 상대와 최종 비용 부담자는 다를 수 있어요.",
-      immediateAction: danger ? safetyText : checks[0],
+      recipient,
+      reason:
+        buildingCare && care?.route !== "stop"
+          ? `${care?.route === "self_check" ? "간단한 확인으로 해결되지 않거나 직접 확인하기 어렵다면 " : ""}${buildingCare.contactSteps[0]}`
+          : care
+            ? care.route === "self_check"
+              ? "간단한 확인으로 해결되지 않으면 집주인·관리 담당자에게 연락하세요. 직접 조치를 하기 어렵다면 먼저 점검을 요청해도 괜찮아요."
+              : care.steps[1].body
+            : danger
+              ? safetyText
+              : outside
+                ? "지원하는 주택 수리 범위 밖의 법률 문제는 해당 분야의 별도 상담에서 확인해 주세요."
+                : third
+                  ? "관리 담당자에게 발생 위치와 공용부분 여부의 점검을 요청하고, 집주인에게도 상황을 알려주세요."
+                  : ownFixture
+                    ? "직접 소유한 제품은 제조사·수리업체에 점검과 보증 적용 여부를 문의하세요. 누수 등으로 집의 시설에도 영향이 있다면 집주인에게 상황을 알려주세요."
+                    : "집주인에게 현재 상황을 알리고 점검·수리 진행 방법을 먼저 요청하세요. 요청 상대와 최종 비용 부담자는 다를 수 있어요.",
+      immediateAction: danger ? safetyText : (care?.steps[0].body ?? checks[0]),
     },
     costResponsibility: {
       direction,
@@ -208,28 +255,30 @@ export function makeAnalysis(
     sources: [],
     additionalChecks: checks,
     otherPartyCheckRequired: third,
-    nextActions: danger
-      ? [
-          "안전한 장소로 이동하기",
-          "안전한 곳에서 119에 도움 요청하기",
-          "안전 확인 전 자가 수리하지 않기",
-        ]
-      : outside
+    nextActions: care
+      ? care.steps.map((s) => s.body)
+      : danger
         ? [
-            "지원 범위에 맞는 문제인지 다시 확인하기",
-            "범위 밖 법률 문제는 별도 전문 상담으로 확인하기",
+            "안전한 장소로 이동하기",
+            "안전한 곳에서 119에 도움 요청하기",
+            "안전 확인 전 자가 수리하지 않기",
           ]
-        : [
-            guidance.record,
-            guidance.checks[0],
-            "점검 일정과 비용 협의 방법을 연락하기",
-          ],
+        : outside
+          ? [
+              "지원 범위에 맞는 문제인지 다시 확인하기",
+              "범위 밖 법률 문제는 별도 전문 상담으로 확인하기",
+            ]
+          : [
+              guidance.record,
+              guidance.checks[0],
+              "점검 일정과 비용 협의 방법을 연락하기",
+            ],
     messageDraft: danger || outside ? "" : message,
     messageKind,
     cautions: [
       mode === "mock"
         ? "데모: 가상 결과이며 실제 AI 분석이나 법률 판단이 아니에요."
-        : "AI 보조 안내이며 법적 판단을 확정하지 않아요. 사람의 법률 검토 전 내부 검증용이에요.",
+        : "AI 보조 안내이며 법적 판단을 확정하지 않아요. 법률가 검토 전 자료를 참고한 안내이므로 구체적인 분쟁은 전문가와 확인해 주세요.",
       "임의로 임대료를 중단하거나 보증금에서 수리비를 공제하지 마세요.",
     ],
     questionVersion,

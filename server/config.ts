@@ -1,13 +1,29 @@
 import "dotenv/config";
 import { z } from "zod";
 import type { AppConfig } from "../shared/schema.js";
-import { searchSources } from "./sources/catalog.js";
 const integer = (fallback: number) =>
   z.coerce.number().int().positive().default(fallback);
 const envSchema = z.object({
+  BUILDING_API_KEY: z.string().default(""),
+  PUBLIC_TEAM_DASHBOARD: z.enum(["true", "false"]).default("true"),
+  ADMIN_PASSWORD_HASH: z.string().default(""),
+  CRON_SECRET: z.string().default(""),
+  SUPABASE_URL: z.string().default(""),
+  SUPABASE_PUBLISHABLE_KEY: z.string().default(""),
+  MEMBER_SIGNUP_ENABLED: z.string().default("false"),
+  MEMBER_HISTORY_ENABLED: z.string().default("false"),
+  GOOGLE_LOGIN_ENABLED: z.string().default("false"),
+  KAKAO_LOGIN_ENABLED: z.string().default("false"),
   AI_MODE: z.enum(["mock", "live"]).default("mock"),
   REPOSITORY: z.enum(["memory", "database"]).default("memory"),
   OPENAI_API_KEY: z.string().default(""),
+  AI_FALLBACK_ENABLED: z.enum(["true", "false"]).default("true"),
+  OPENAI_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(30000)
+    .default(30000),
   OPENAI_MODEL: z.string().default(""),
   DATABASE_URL: z.string().default(""),
   DATABASE_SSL: z.enum(["require", "disable"]).default("require"),
@@ -22,7 +38,7 @@ const envSchema = z.object({
   MAX_DAILY_CALLS: integer(30),
   MAX_DAILY_TOKENS: integer(300000),
   MAX_CONCURRENT: integer(2),
-  MAX_OUTPUT_TOKENS: integer(800),
+  MAX_OUTPUT_TOKENS: integer(1800),
   INPUT_USD_PER_MILLION: z.string().default(""),
   OUTPUT_USD_PER_MILLION: z.string().default(""),
   DAILY_BUDGET_USD: z.string().default(""),
@@ -38,6 +54,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     )
   )
     throw new Error("TLS_REQUIRED");
+  if (
+    c.SUPABASE_URL &&
+    !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(c.SUPABASE_URL)
+  )
+    throw new Error("INVALID_SUPABASE_URL");
+  if (
+    c.SUPABASE_PUBLISHABLE_KEY &&
+    !c.SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_")
+  )
+    throw new Error("PUBLISHABLE_KEY_REQUIRED");
   const prices = [
     c.INPUT_USD_PER_MILLION,
     c.OUTPUT_USD_PER_MILLION,
@@ -53,10 +79,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
 }
 export function publicConfig(c: Config): AppConfig {
   const blockers: string[] = [];
-  if (c.PUBLIC_LAUNCH_ENABLED === "true")
-    blockers.push(
-      "공개 운영은 법률·개인정보·플랫폼 검토 전 비활성화되어 있어요.",
-    );
   if (c.REPOSITORY === "database" && !c.DATABASE_URL)
     blockers.push("DATABASE_URL 미설정");
   if (c.AI_MODE === "live") {
@@ -64,17 +86,32 @@ export function publicConfig(c: Config): AppConfig {
     if (!c.OPENAI_MODEL) blockers.push("OPENAI_MODEL 미설정");
     if (c.REPOSITORY !== "database")
       blockers.push("실제 모드에는 database 저장소가 필요해요.");
-    if (c.INTERNAL_LIVE_ENABLED !== "true")
+    if (
+      c.INTERNAL_LIVE_ENABLED !== "true" &&
+      c.PUBLIC_LAUNCH_ENABLED !== "true"
+    )
       blockers.push("INTERNAL_LIVE_ENABLED 확인 필요");
     if (c.PROVIDER_RETENTION_ACK !== "true")
       blockers.push("PROVIDER_RETENTION_ACK 확인 필요");
-    if (!searchSources("mold").length)
-      blockers.push("기술 확인된 내부 검증 자료가 없어요.");
   }
   return {
+    account: {
+      enabled:
+        c.MEMBER_HISTORY_ENABLED === "true" &&
+        c.REPOSITORY === "database" &&
+        !!c.DATABASE_URL &&
+        !!c.SUPABASE_URL &&
+        !!c.SUPABASE_PUBLISHABLE_KEY,
+      url: c.SUPABASE_URL,
+      publishableKey: c.SUPABASE_PUBLISHABLE_KEY,
+      google: c.GOOGLE_LOGIN_ENABLED === "true",
+      kakao: c.KAKAO_LOGIN_ENABLED === "true",
+      signup: c.MEMBER_SIGNUP_ENABLED === "true",
+      retentionDays: 90,
+    },
     ai: c.AI_MODE,
     storage: c.REPOSITORY,
-    publicLaunch: false,
+    publicLaunch: c.PUBLIC_LAUNCH_ENABLED === "true",
     retentionHours: 24,
     ready: !blockers.length,
     blockers,

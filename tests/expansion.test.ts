@@ -4,7 +4,7 @@ import { defaultIntake, intakeSchema, issueSchema } from "../shared/schema.js";
 import { observations } from "../shared/questions.js";
 import { makeAnalysis, directionFor } from "../shared/analysis.js";
 import { searchSources, sources } from "../server/sources/catalog.js";
-import { validatePlan } from "../server/ai/provider.js";
+import { validatePlan } from "./helpers/knowledge.js";
 
 for (const issue of ["surface", "drain", "fixture"] as const) {
   it(`${issue}: every selected symptom survives validation and the message without deciding fault`, () => {

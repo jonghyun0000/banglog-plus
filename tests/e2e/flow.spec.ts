@@ -1,14 +1,23 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+async function additional(page: Page) {
+  for (let i = 0; i < 15; i++) {
+    if (await page.getByLabel("추가로 설명할 내용").isVisible()) return;
+    await page.getByRole("button", { name: "다음", exact: true }).click();
+  }
+  throw new Error("Additional explanation step not reached");
+}
+
 async function pick(page: Page, issue = "보일러가 고장 났어요") {
   await page.goto("/");
-  await page.getByRole("button", { name: "내 상황 확인하기" }).click();
+  await page
+    .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
+    .click();
   await page.getByRole("button", { name: issue }).click();
 }
 async function review(page: Page) {
-  for (let i = 0; i < 6; i++)
-    await page.getByRole("button", { name: "다음", exact: true }).click();
+  await additional(page);
   await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
 }
 async function analyze(page: Page) {
@@ -38,9 +47,11 @@ for (const [w, h] of [
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "이거, 누가 고쳐야 하지?" }),
+      page.getByRole("heading", { name: "집 수리비, 누가 부담하나요?" }),
     ).toBeVisible();
-    const button = page.getByRole("button", { name: "내 상황 확인하기" });
+    const button = page.getByRole("button", {
+      name: "우리 집 수리 문제 확인하기",
+    });
     const box = await button.boundingBox();
     expect(box!.y + box!.height).toBeLessThanOrEqual(h);
     await noOverflow(page);
@@ -51,8 +62,9 @@ for (const [w, h] of [
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await button.click();
     await page.getByRole("button", { name: "보일러가 고장 났어요" }).click();
+    await additional(page);
     await page
-      .getByLabel("상황 설명")
+      .getByLabel("추가로 설명할 내용")
       .fill("보일러 전원은 켜지는데 온수가 나오지 않아요.");
     await page.screenshot({
       path: `docs/screenshots/questions-${w}x${h}.png`,
@@ -60,9 +72,12 @@ for (const [w, h] of [
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await review(page);
-    await page.getByRole("button", { name: "상황 수정", exact: true }).click();
     await page
-      .getByLabel("상황 설명")
+      .getByRole("button", { name: "추가 설명 수정", exact: true })
+      .click();
+    await additional(page);
+    await page
+      .getByLabel("추가로 설명할 내용")
       .fill("온수가 나오지 않고 오류 표시가 보여요.");
     await review(page);
     await analyze(page);
@@ -79,6 +94,12 @@ for (const [w, h] of [
       path: `docs/screenshots/message-${w}x${h}.png`,
       fullPage: true,
     });
+    const draft = page.getByLabel(/보낼 문구/);
+    const original = await draft.inputValue();
+    await draft.fill("수정한 문구");
+    await page.getByRole("button", { name: "처음 문구로 되돌리기" }).click();
+    await page.getByRole("button", { name: "되돌리기 확인" }).click();
+    await expect(draft).toHaveValue(original);
     await page.getByRole("button", { name: "문구 복사하기" }).click();
     await expect(page.getByText("복사됐어요.", { exact: false })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
@@ -124,7 +145,8 @@ for (const issue of ["곰팡이가 생겼어요", "물이 새요"])
 test("safety appears while typing and before analysis", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await pick(page);
-  await page.getByLabel("상황 설명").fill("가스 냄새가 나요.");
+  await additional(page);
+  await page.getByLabel("추가로 설명할 내용").fill("가스 냄새가 나요.");
   await expect(page.getByRole("alert")).toContainText("안전한 곳에서 119");
   await page.screenshot({
     path: "docs/screenshots/safety-390x844.png",
@@ -140,24 +162,29 @@ test("long text, 200% text zoom, focus, browser back", async ({ page }) => {
     path: "docs/screenshots/home-200-percent.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "내 상황 확인하기" }).click();
-  await page.getByRole("button", { name: "물이 새요" }).click();
   await page
-    .getByLabel("상황 설명")
+    .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
+    .click();
+  await page.getByRole("button", { name: "물이 새요" }).click();
+  await additional(page);
+  await page
+    .getByLabel("추가로 설명할 내용")
     .fill("천장에서 물이 조금씩 떨어지는 상황입니다. ".repeat(20));
   await noOverflow(page);
   await page.screenshot({
     path: "docs/screenshots/questions-long-200-percent.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "다음", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "언제부터 보였나요?" }),
-  ).toBeFocused();
   await page.goBack();
   await expect(
-    page.getByRole("heading", { name: "지금 보이는 증상은 무엇인가요?" }),
-  ).toBeVisible();
+    page.getByRole("heading", { name: "지금 위험 신호가 있나요?" }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
+    .click();
+  await expect(page.getByLabel("추가로 설명할 내용")).toHaveValue(
+    /천장에서 물/,
+  );
   await review(page);
   await analyze(page);
   await noOverflow(page);
@@ -232,8 +259,9 @@ for (const [width, height] of [
   }) => {
     await page.setViewportSize({ width, height });
     await pick(page, "물이 새요");
+    await additional(page);
     await page
-      .getByLabel("상황 설명")
+      .getByLabel("추가로 설명할 내용")
       .fill(
         "비가 오는 날 천장 모서리에서 물이 떨어지는 상황을 기록했습니다. ".repeat(
           15,
@@ -291,13 +319,14 @@ test("keyboard-sized viewport keeps editable text and controls reachable", async
 }) => {
   await page.setViewportSize({ width: 390, height: 400 });
   await pick(page);
-  await page.getByLabel("상황 설명").focus();
-  await expect(page.getByLabel("상황 설명")).toBeFocused();
+  await additional(page);
+  await page.getByLabel("추가로 설명할 내용").focus();
+  await expect(page.getByLabel("추가로 설명할 내용")).toBeFocused();
   await noOverflow(page);
   await page
-    .getByRole("button", { name: "다음", exact: true })
+    .getByRole("button", { name: "입력한 내용 확인하기", exact: true })
     .scrollIntoViewIfNeeded();
   await expect(
-    page.getByRole("button", { name: "다음", exact: true }),
+    page.getByRole("button", { name: "입력한 내용 확인하기", exact: true }),
   ).toBeVisible();
 });

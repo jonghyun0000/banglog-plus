@@ -7,6 +7,9 @@ export default tseslint.config(
       "dist/**",
       "dist-server/**",
       "node_modules/**",
+      "node_modules.offloaded-backup/**",
+      ".claude/**",
+      "output/**",
       "test-results/**",
       "playwright-report/**",
     ],
@@ -15,6 +18,9 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
+    },
     plugins: { "react-hooks": hooks },
     rules: {
       ...hooks.configs.recommended.rules,

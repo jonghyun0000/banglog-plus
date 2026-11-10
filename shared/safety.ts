@@ -4,11 +4,12 @@ export const safetyUrl =
 export const safetyText =
   "비용 확인보다 안전이 먼저예요. 위험 장소에서 벗어나 안전한 곳에서 119에 도움을 요청하세요. 가스 냄새가 나면 불을 켜거나 전기 스위치를 조작하지 마세요. 젖은 전기기기나 배선을 만지거나 직접 수리하지 마세요.";
 export function hasDanger(
-  input: Pick<Intake, "description" | "safety" | "contract">,
+  input: Pick<Intake, "description" | "safety" | "contract"> &
+    Partial<Pick<Intake, "drain">>,
 ) {
   if (["gas", "fire", "electric"].includes(input.safety)) return true;
   return /가스\s*(냄새|누출)|타는\s*냄새|불꽃|화재|감전|일산화탄소|연기|전기.{0,8}(물|젖)|콘센트.{0,8}(물|젖)/u.test(
-    `${input.description} ${input.contract}`,
+    `${input.description} ${input.contract} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`,
   );
 }
 export function outOfScope(text: string) {
@@ -31,6 +32,17 @@ export function maskPersonalData(text: string) {
 export function sanitizeIntake(input: Intake): Intake {
   return {
     ...input,
+    ...(input.drain
+      ? {
+          drain: {
+            ...input.drain,
+            locationDetail:
+              input.drain.location === "other"
+                ? maskPersonalData(input.drain.locationDetail?.trim() ?? "")
+                : undefined,
+          },
+        }
+      : {}),
     description: maskPersonalData(input.description.trim()),
     contract: maskPersonalData(input.contract.trim()),
   };

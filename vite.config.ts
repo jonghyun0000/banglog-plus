@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: { include: ["@supabase/supabase-js"] },
   server: {
     port: 5173,
     strictPort: true,
