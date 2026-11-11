@@ -1,4 +1,8 @@
-import { PhotoResult } from "../photos/PhotoResult";
+import {
+  InspectionChecklist,
+  type InspectionKey,
+} from "../repair/InspectionChecklist";
+import { PhotoCoaching, PhotoResult } from "../photos/PhotoResult";
 import { BuildingGuide } from "./BuildingGuide";
 import { DrainGuide } from "./DrainGuide";
 import { NextResponse } from "./NextResponse";
@@ -14,6 +18,9 @@ export function Result({
   onEdit,
   onFeedback,
   onSave,
+  onRepair,
+  inspectionQuestions,
+  onInspectionQuestions,
 }: {
   result: Analysis;
   issue: Issue;
@@ -21,6 +28,9 @@ export function Result({
   onEdit: () => void;
   onFeedback: () => void;
   onSave: () => void;
+  onRepair: () => void;
+  inspectionQuestions: InspectionKey[];
+  onInspectionQuestions: (keys: InspectionKey[]) => void;
 }) {
   const emergency = result.status === "safety_priority",
     outside = result.status === "out_of_scope";
@@ -67,7 +77,6 @@ export function Result({
           </p>
         )}
       {emergency && <SafetyNotice />}
-      <PhotoResult photo={result.photoAnalysis} />
       <DrainGuide result={result} />
       <section className="result-lead">
         <p className="eyebrow">
@@ -88,7 +97,6 @@ export function Result({
         </h2>
         <p>{result.repairRequest.reason}</p>
       </section>
-      <Responsibility result={result} issue={issue} />
       <BuildingGuide result={result} />
       {result.aiExplanation && !result.fallback && (
         <section className="result-card">
@@ -109,6 +117,7 @@ export function Result({
           </ol>
         </section>
       )}
+      <Responsibility result={result} issue={issue} />
       {result.messageDraft && (
         <div className="result-action">
           <Button onClick={onMessage}>
@@ -122,6 +131,19 @@ export function Result({
             문구를 확인·수정하고 직접 전달하세요. 자동 발송되지 않아요.
           </p>
         </div>
+      )}
+      {!emergency && !outside && (
+        <>
+          <Button secondary onClick={onRepair}>
+            이 상황을 수선 기록으로 이어가기
+          </Button>
+          <InspectionChecklist
+            selected={inspectionQuestions}
+            onChange={onInspectionQuestions}
+          />
+          <PhotoResult photo={result.photoAnalysis} />
+          <PhotoCoaching issue={issue} />
+        </>
       )}
       <button className="button secondary result-save" onClick={onSave}>
         내 기록에 저장

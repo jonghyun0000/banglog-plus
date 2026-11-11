@@ -12,6 +12,10 @@ test("quick answers persist, free text is last, and review edits return directly
   await page
     .getByRole("button", { name: "장판에 찍힘이 있어요", exact: true })
     .click();
+  await page
+    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
+    .click();
+
   await expect(
     page.getByRole("heading", { name: "언제부터 있었던 문제인가요?" }),
   ).toBeFocused();
@@ -26,20 +30,18 @@ test("quick answers persist, free text is last, and review edits return directly
     .getByRole("button", { name: "집에 원래 있던 시설이에요", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "아직 원인을 몰라요", exact: true })
-    .click();
-  await expect(
-    page.getByText("누구에게 들었나요?", { exact: true }),
-  ).toHaveCount(0);
-  await page
     .getByRole("button", {
       name: "비용을 부담하라는 답을 받았어요",
       exact: true,
     })
     .click();
   await page
-    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
+    .getByRole("button", { name: "아직 원인을 몰라요", exact: true })
     .click();
+  await expect(
+    page.getByText("누구에게 들었나요?", { exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "다음", exact: true }).click();
   await expect(page.getByRole("textbox")).toHaveCount(1);
   await page
     .getByLabel("추가로 설명할 내용")
@@ -76,7 +78,7 @@ test("quick answers persist, free text is last, and review edits return directly
   });
   expect(input.description).toContain("계약서에는 시설 수리 협의");
 });
-test("danger selection stops automatic navigation and source questions stay conditional", async ({
+test("danger selection stops automatic navigation before situation questions", async ({
   page,
 }) => {
   await page.goto("/");
@@ -86,26 +88,6 @@ test("danger selection stops automatic navigation and source questions stay cond
   await page.getByRole("button", { name: "보일러가 고장 났어요" }).click();
   await page
     .getByRole("button", { name: "잘 모르겠어요", exact: true })
-    .click();
-  await page.getByRole("button", { name: "다음", exact: true }).click();
-  await page
-    .getByRole("button", { name: "집에 원래 있던 시설이에요", exact: true })
-    .click();
-  await page
-    .getByRole("button", {
-      name: "노후·시설 또는 건물 문제라는 설명",
-      exact: true,
-    })
-    .click();
-  await expect(
-    page.getByText("누구에게 들었나요?", { exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("radio", { name: "점검 기사에게 들었어요", exact: true })
-    .check();
-  await page.getByRole("button", { name: "다음", exact: true }).click();
-  await page
-    .getByRole("button", { name: "아직 연락하지 않았어요", exact: true })
     .click();
   await page
     .getByRole("button", { name: "가스 냄새가 나요", exact: true })
@@ -164,6 +146,10 @@ test("mobile choices, back navigation and result actions stay clear", async ({
     .getByRole("button", { name: "장판에 찍힘이 있어요", exact: true })
     .click();
   await page
+    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
+    .click();
+
+  await page
     .getByRole("radio", { name: "오늘 발견했어요", exact: true })
     .check();
   await page.keyboard.press("ArrowRight");
@@ -185,13 +171,7 @@ test("mobile choices, back navigation and result actions stay clear", async ({
     .getByRole("button", { name: "집에 원래 있던 시설이에요", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "아직 원인을 몰라요", exact: true })
-    .click();
-  await page
     .getByRole("button", { name: "아직 연락하지 않았어요", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
     .click();
   await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
   await page.getByRole("checkbox").check();

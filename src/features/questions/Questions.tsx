@@ -12,6 +12,9 @@ import {
   descriptionHints,
   observations,
   issueGuidance,
+  emptyDetails,
+  hasReply,
+  applyQuestionPatch,
 } from "../../../shared/questions";
 import {
   hasDanger,
@@ -51,43 +54,53 @@ export function Questions({
   const danger = hasDanger(input);
   function choose(patch: Partial<Intake>, advance = false) {
     onChange(patch);
-    if (advance && autoAdvance && !hasDanger({ ...input, ...patch }))
+    if (advance && autoAdvance && !hasDanger(applyQuestionPatch(input, patch)))
       onNext(patch);
   }
   function choices(key: keyof typeof options, legend: string, quick = false) {
     return (
-      <fieldset className={step === 1 ? "compact-answers" : undefined}>
+      <fieldset
+        className={step === 1 || step === 4 ? "compact-answers" : undefined}
+      >
         <legend>{legend}</legend>
         <div className="choices">
-          {options[key].map(([value, label]) =>
-            quick ? (
-              <button
-                type="button"
-                key={value}
-                className={`choice ${input[key] === value ? "selected" : ""}`}
-                aria-pressed={input[key] === value}
-                onClick={() =>
-                  choose(
-                    { [key]: value },
-                    key !== "safety" ||
-                      !["gas", "fire", "electric"].includes(value),
-                  )
-                }
-              >
-                {label}
-                <span aria-hidden="true">→</span>
-              </button>
-            ) : (
-              <Choice
-                key={value}
-                value={value}
-                name={key}
-                label={label}
-                current={input[key]}
-                onChange={(v) => choose({ [key]: v })}
-              />
-            ),
-          )}
+          {options[key]
+            .filter(
+              ([value]) =>
+                key !== "causeSource" ||
+                ((value !== "technician" ||
+                  input.details?.inspection === "yes") &&
+                  (value !== "landlord" || hasReply(input))),
+            )
+            .map(([value, label]) =>
+              quick ? (
+                <button
+                  type="button"
+                  key={value}
+                  className={`choice ${input[key] === value ? "selected" : ""}`}
+                  aria-pressed={input[key] === value}
+                  onClick={() =>
+                    choose(
+                      { [key]: value },
+                      key !== "safety" ||
+                        !["gas", "fire", "electric"].includes(value),
+                    )
+                  }
+                >
+                  {label}
+                  <span aria-hidden="true">→</span>
+                </button>
+              ) : (
+                <Choice
+                  key={value}
+                  value={value}
+                  name={key}
+                  label={label}
+                  current={input[key]}
+                  onChange={(v) => choose({ [key]: v })}
+                />
+              ),
+            )}
         </div>
       </fieldset>
     );
@@ -100,6 +113,11 @@ export function Questions({
       ? drainQuestions[step as keyof typeof drainQuestions]
       : undefined;
   const path = questionSteps(input);
+  const phase = step === 0 || step === 5 ? 1 : step === 6 ? 3 : 2;
+  const details = input.details ?? emptyDetails;
+  function updateDetails(patch: Partial<typeof details>) {
+    onChange({ details: { ...details, ...patch } });
+  }
   const customLocation = step === 7 && input.drain?.location === "other";
   const emptyLocation = customLocation && !input.drain?.locationDetail?.trim();
   return (
@@ -107,20 +125,13 @@ export function Questions({
       <div className="question-context">
         <span>{issueNames[input.issue]}</span>
         <span>
-          {input.issue === "drain"
-            ? step === 6
-              ? "마지막 설명"
-              : (drainQuestion?.phase ??
-                (step === 4 || step === 3 ? "연락 상황" : "상태 확인"))
-            : step === 6
-              ? "마지막 질문"
-              : `${step + 1} / ${titles.length}`}
+          {phase} / 3 · {["증상·안전", "상황 확인", "자료·검토"][phase - 1]}
         </span>
       </div>
       <progress
         className="question-progress"
-        value={path.indexOf(step) + 1}
-        max={path.length}
+        value={phase}
+        max={3}
         aria-label="질문 진행 상황"
       />
       <SectionTitle
@@ -293,11 +304,8 @@ export function Questions({
                       {
                         cause: value,
                         causeSource: "unknown",
-                        ...(value === "unknown"
-                          ? { otherClaim: "unknown" as const }
-                          : {}),
                       },
-                      value === "unknown",
+                      false,
                     )
                   }
                 >
@@ -306,29 +314,102 @@ export function Questions({
               ))}
             </div>
           </fieldset>
-          {input.cause !== "unknown" && (
-            <>
-              {choices("causeSource", "누구에게 들었나요?")}
-              <details
-                open={
-                  !["none", "unknown"].includes(input.otherClaim)
-                    ? true
-                    : undefined
+          {input.cause !== "unknown" &&
+            choices("causeSource", "누구에게 들었나요?")}
+          {details.inspection === "yes" && (
+            <label className="field-label">
+              기사에게 들은 소견 (선택)
+              <textarea
+                value={details.technicianNote}
+                maxLength={320}
+                onChange={(e) =>
+                  updateDetails({ technicianNote: e.target.value })
                 }
-              >
-                <summary>집주인이 다른 원인을 주장했어요</summary>
-                {choices("otherClaim", "집주인이 말한 다른 원인")}
-              </details>
-            </>
+              />
+            </label>
+          )}
+          {hasReply(input) && (
+            <details
+              open={
+                Boolean(details.reply) ||
+                !["unknown", "none"].includes(input.otherClaim)
+              }
+            >
+              <summary>집주인·관리 담당자 답변 추가</summary>
+              <label className="field-label">
+                상대방 답변 (선택)
+                <textarea
+                  value={details.reply}
+                  maxLength={320}
+                  onChange={(e) => updateDetails({ reply: e.target.value })}
+                />
+              </label>
+              {choices("otherClaim", "집주인이 말한 다른 원인")}
+            </details>
           )}
         </>
       )}
-      {step === 4 &&
-        choices("contact", "집주인·관리 담당자에게 연락한 상태", true)}
+      {step === 4 && (
+        <>
+          <label className="field-label">
+            수리 기사에게 점검받았나요?
+            <select
+              value={details.inspection}
+              onChange={(e) =>
+                updateDetails({
+                  inspection: e.target.value as typeof details.inspection,
+                })
+              }
+            >
+              <option value="unknown">아직 선택하지 않았어요</option>
+              <option value="no">점검받지 않았어요</option>
+              <option value="yes">점검받았어요</option>
+            </select>
+          </label>
+          {choices("contact", "집주인·관리 담당자에게 연락한 상태", true)}
+        </>
+      )}
       {step === 5 && choices("safety", "지금 확인되는 위험 신호", true)}
       {step === 6 && (
         <>
           {!danger && <BuildingLookup input={input} onChange={onChange} />}
+          <details>
+            <summary>발견 기록·계약 특약 (선택)</summary>
+            <label className="field-label">
+              문제 위치 (선택)
+              <input
+                maxLength={120}
+                value={details.location}
+                onChange={(e) => updateDetails({ location: e.target.value })}
+              />
+            </label>
+            <label className="field-label">
+              발견 시각 (선택)
+              <input
+                type="datetime-local"
+                value={details.discoveredAt}
+                onChange={(e) =>
+                  updateDetails({ discoveredAt: e.target.value })
+                }
+              />
+            </label>
+            <label className="field-label">
+              사용에 지장이 생긴 부분 (선택)
+              <textarea
+                maxLength={240}
+                value={details.impact}
+                onChange={(e) => updateDetails({ impact: e.target.value })}
+              />
+            </label>
+            <label className="field-label">
+              관련 계약 특약 (선택)
+              <textarea
+                maxLength={300}
+                value={input.contract}
+                onChange={(e) => onChange({ contract: e.target.value })}
+              />
+            </label>
+          </details>
           <label className="field-label" htmlFor="description">
             추가로 설명할 내용 <span>선택</span>
           </label>
@@ -337,7 +418,7 @@ export function Questions({
             maxLength={1000}
             rows={6}
             value={input.description}
-            placeholder={`${descriptionHints[input.issue]}\n집주인이 답했다면 실제 답변과 요구한 내용을 적어주세요. 점검 결과·수리 약정도 함께 적을 수 있어요.`}
+            placeholder={`${descriptionHints[input.issue]}\n그 밖에 확인이 필요한 내용을 적을 수 있어요.`}
             onChange={(e) => onChange({ description: e.target.value })}
           />
           <p className="small field-help">

@@ -1,20 +1,29 @@
-import type { Analysis } from "../../../shared/schema";
+import { repairMessage } from "../../../shared/analysis";
+import type { Analysis, Intake } from "../../../shared/schema";
 import { SectionTitle, Button } from "../../components/ui/Elements";
 import { api } from "../../app/api";
 import { DraftEditor } from "./DraftEditor";
 import { NextResponse } from "../analysis/NextResponse";
 export function Message({
   result,
+  input,
+  kind,
+  onKind,
   text,
   onChange,
   onSave,
   onFeedback,
+  onRepair,
 }: {
   result: Analysis;
+  input: Intake;
+  kind: Analysis["messageKind"];
+  onKind: (kind: Analysis["messageKind"]) => void;
   text: string;
   onChange: (text: string) => void;
   onSave: () => void;
   onFeedback: () => void;
+  onRepair: () => void;
 }) {
   const recipient =
     result.repairRequest.recipient === "manager"
@@ -36,21 +45,29 @@ export function Message({
       >
         <p>{recipient} 보낼 문구를 준비했어요.</p>
       </SectionTitle>
-      <div className="message-purpose">
-        <strong>
-          {result.messageKind === "initial"
-            ? "처음 점검 요청하기"
-            : result.messageKind === "cost"
-              ? "비용 부담의 근거 확인하기"
-              : "이전 요청에 답변 부탁하기"}
-        </strong>
-        <p className="small">
-          증상과 요청 사항을 확인하고, 내 상황에 맞게 고쳐주세요.
-        </p>
+      <div className="message-kinds" role="group" aria-label="연락 문구 종류">
+        {(
+          [
+            ["initial", "첫 수선 요청"],
+            ["cost", "점검 후 비용 협의"],
+            ["followup", "답변 지연·거절 후 재요청"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            className="button secondary"
+            type="button"
+            aria-pressed={kind === value}
+            onClick={() => onKind(value)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
       <DraftEditor
+        key={kind}
         text={text}
-        original={result.messageDraft}
+        original={repairMessage(input, result.repairRequest.recipient, kind)}
         onChange={onChange}
         label={`${recipient} 보낼 문구`}
         onCopied={() => {
@@ -63,6 +80,9 @@ export function Message({
       <p className="small save-help">
         로그인 후 동의하면 수정한 문구도 함께 보관해요.
       </p>
+      <Button secondary onClick={onRepair}>
+        수선 기록에 이 문구 가져오기
+      </Button>
       <NextResponse result={result} />
       <button className="text-button" onClick={onFeedback}>
         도움이 됐는지 알려주기

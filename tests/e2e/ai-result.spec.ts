@@ -65,16 +65,17 @@ for (const fallback of [false, true]) {
     await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
     const responsibility = page.locator(".responsibility");
     await expect(
-      responsibility.getByText("책임 비율은 아직 산정할 수 없어요", {
-        exact: true,
+      responsibility.getByRole("heading", {
+        name: "점검 결과에 따라 이렇게 대응해요",
       }),
     ).toBeVisible();
-    await expect(
-      responsibility.getByRole("heading", { name: "임차인 · 세입자" }),
-    ).toBeVisible();
-    await expect(
-      responsibility.getByRole("heading", { name: "임대인 · 집주인" }),
-    ).toBeVisible();
+    await expect(responsibility.locator("details")).toHaveCount(3);
+    await expect(responsibility.locator("details[open]")).toContainText(
+      "지금 할 일",
+    );
+    await expect(responsibility.locator(".responsibility-ratio")).toHaveCount(
+      0,
+    );
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

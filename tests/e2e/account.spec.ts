@@ -300,8 +300,10 @@ test("mobile edited message survives navigation and saves separately with consen
     .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
     .click();
   await page.getByRole("button", { name: "곰팡이가 생겼어요" }).click();
-  for (let i = 0; i < 6; i++)
+  for (let i = 0; i < 7; i++) {
+    if (await page.getByLabel("추가로 설명할 내용").isVisible()) break;
     await page.getByRole("button", { name: "다음", exact: true }).click();
+  }
   await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();

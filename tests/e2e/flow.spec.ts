@@ -177,10 +177,10 @@ test("long text, 200% text zoom, focus, browser back", async ({ page }) => {
   });
   await page.goBack();
   await expect(
-    page.getByRole("heading", { name: "지금 위험 신호가 있나요?" }),
+    page.getByRole("heading", { name: "이미 연락하셨나요?" }),
   ).toBeFocused();
   await page
-    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
+    .getByRole("button", { name: "아직 연락하지 않았어요", exact: true })
     .click();
   await expect(page.getByLabel("추가로 설명할 내용")).toHaveValue(
     /천장에서 물/,

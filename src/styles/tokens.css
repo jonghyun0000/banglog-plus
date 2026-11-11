@@ -1599,3 +1599,35 @@ select,
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.condition-cards {
+  display: grid;
+  gap: 0.625rem;
+}
+.condition-cards details {
+  padding: 0.75rem;
+  border: 1px solid #cddbed;
+  border-radius: 0.75rem;
+}
+.condition-cards details[open] {
+  background: #f3f7ff;
+}
+.message-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+.message-kinds .button {
+  min-height: 44px;
+  padding: 0.5rem 0.375rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+.message-kinds .button[aria-pressed="true"] {
+  background: #1d4ed8;
+  color: white;
+}
+.inspection-checklist fieldset {
+  margin: 0.75rem 0;
+}

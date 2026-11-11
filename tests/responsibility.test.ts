@@ -22,11 +22,13 @@ for (const direction of [
     const html = renderToStaticMarkup(
       createElement(Responsibility, { result, issue: "drain" }),
     );
-    expect(html).toContain("임차인 · 세입자");
-    expect(html).toContain("임대인 · 집주인");
-    expect(html).toContain("책임 비율은 아직 산정할 수 없어요");
+    expect(html).toContain("세입자 부담 가능성");
+    expect(html).toContain("집주인의 수선 범위");
+    expect(html).toContain("외부 원인이 의심되거나 원인을 모르면");
+    expect(html).not.toContain("responsibility-ratio");
+    expect(html).toContain("지금 할 일");
     expect(html).not.toMatch(/\d+\s*%/);
-    expect(html).toContain("막힌 위치·원인");
+    expect(html).toContain("막힌 위치·범위");
     expect(html).toContain(result.costResponsibility.uncertainty);
   });
 }

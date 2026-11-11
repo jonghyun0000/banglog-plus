@@ -1,5 +1,9 @@
 import { releaseLabel } from "../../shared/release";
-import { adjacentQuestion } from "../../shared/drain";
+import { repairMessage } from "../../shared/analysis";
+import { canLinkGuide, type RepairImport } from "../../shared/repair-guide";
+import type { InspectionKey } from "../features/repair/InspectionChecklist";
+import { applyQuestionPatch } from "../../shared/questions";
+import { adjacentQuestion, questionSteps } from "../../shared/drain";
 import { Status } from "../features/status/Status";
 import {
   lazy,
@@ -52,10 +56,24 @@ export default function App() {
       : "home",
     step: 0,
   });
-  const { screen, step } = location;
+  const { screen } = location;
   const [repairOpened, setRepairOpened] = useState(false);
   const [input, setInput] = useState<Intake>({ ...defaultIntake });
-  const [draft, setDraft] = useState<{ id: string; text: string } | null>(null);
+  const step =
+    screen === "questions" && !questionSteps(input).includes(location.step)
+      ? 4
+      : location.step;
+  const [draft, setDraft] = useState<{
+    id: string;
+    kind: Analysis["messageKind"];
+    edits: Partial<Record<Analysis["messageKind"], string>>;
+  } | null>(null);
+  const [repairImport, setRepairImport] = useState<RepairImport | null>(null);
+  const [followupId, setFollowupId] = useState<string>();
+  const [repairFrom, setRepairFrom] = useState<Screen>("home");
+  const [inspectionQuestions, setInspectionQuestions] = useState<
+    InspectionKey[]
+  >([]);
   const [result, setResult] = useState<Analysis | null>(null);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -138,14 +156,19 @@ export default function App() {
   }, [screen, step]);
   function change(patch: Partial<Intake>) {
     version.current++;
+    setAccepted(false);
     setInput((previous) => ({
-      ...previous,
-      ...patch,
+      ...applyQuestionPatch(previous, patch),
       inputVersion: version.current,
     }));
     setResult(null);
   }
   function pick(issue: Issue) {
+    setFollowupId(undefined);
+    setRepairImport(null);
+    setInspectionQuestions([]);
+    setDraft(null);
+    setAccepted(false);
     setPhotos([]);
     setPhotoConsent(false);
     editingQuestion.current = false;
@@ -168,7 +191,7 @@ export default function App() {
       );
       return;
     }
-    if (busy.current) return;
+    if (busy.current || !accepted) return;
     busy.current = true;
     setPreparing(true);
     setError("");
@@ -188,6 +211,8 @@ export default function App() {
       );
       if (pending.current?.key !== key) return;
       setResult(response);
+      setDraft(null);
+      setInspectionQuestions([]);
       go("result", 0, true);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
@@ -233,6 +258,10 @@ export default function App() {
       pending.current?.controller.abort();
       pending.current = null;
       setResult(null);
+      setRepairImport(null);
+      setFollowupId(undefined);
+      setDraft(null);
+      setInspectionQuestions([]);
       setInput({ ...defaultIntake });
       setPhotos([]);
       setPhotoConsent(false);
@@ -250,6 +279,44 @@ export default function App() {
     } finally {
       setDeleting(false);
     }
+  }
+  const currentDraft = draft?.id === result?.analysisId ? draft : null;
+  const messageKind = currentDraft?.kind ?? result?.messageKind ?? "initial";
+  const messageText = result
+    ? (currentDraft?.edits[messageKind] ??
+      repairMessage(
+        sanitizeIntake(input),
+        result.repairRequest.recipient,
+        messageKind,
+      ))
+    : "";
+  function openRepair(request: RepairImport | null = null) {
+    setRepairImport(request);
+    setRepairFrom(screen);
+    setRepairOpened(true);
+    go("repair");
+  }
+  function linkRepair() {
+    if (!result || !canLinkGuide(result)) return;
+    openRepair({
+      guide: { intake: sanitizeIntake(input), result, draft: messageText },
+      images: photos,
+      inspectionQuestions,
+      targetId: followupId,
+    });
+  }
+  function followup(next: Intake, recordId: string) {
+    setFollowupId(recordId);
+    setRepairImport(null);
+    setPhotos([]);
+    setPhotoConsent(false);
+    setAccepted(false);
+    setResult(null);
+    setDraft(null);
+    editingQuestion.current = false;
+    version.current++;
+    setInput({ ...next, inputVersion: version.current });
+    go("review");
   }
   const showResult =
     ["result", "message", "feedback"].includes(screen) &&
@@ -294,8 +361,13 @@ export default function App() {
                 } else if (screen === "questions" && step > 0)
                   go("questions", adjacentQuestion(input, step, -1));
                 else if (screen === "questions") go("issue");
+                else if (screen === "review" && followupId) go("repair");
                 else if (screen === "review") go("questions", 6);
-                else if (["message", "feedback"].includes(screen)) go("result");
+                else if (screen === "repair") {
+                  setRepairImport(null);
+                  go(repairFrom);
+                } else if (["message", "feedback"].includes(screen))
+                  go("result");
                 else if (screen === "result") go("review");
                 else if (
                   screen === "account" &&
@@ -334,13 +406,7 @@ export default function App() {
           )}
         </div>
         {["home", "result", "account"].includes(screen) && (
-          <button
-            className="text-button"
-            onClick={() => {
-              setRepairOpened(true);
-              go("repair");
-            }}
-          >
+          <button className="text-button" onClick={() => openRepair()}>
             수선 요청·퇴실 기록장
           </button>
         )}
@@ -349,7 +415,11 @@ export default function App() {
             <Suspense
               fallback={<p role="status">수선 기록을 준비하고 있어요…</p>}
             >
-              <RepairWorkspace />
+              <RepairWorkspace
+                request={repairImport}
+                onDismissImport={() => setRepairImport(null)}
+                onFollowup={followup}
+              />
             </Suspense>
           </div>
         )}
@@ -358,9 +428,7 @@ export default function App() {
             <Account
               config={config}
               analysisId={result?.analysisId}
-              editedMessage={
-                draft?.id === result?.analysisId ? draft?.text : undefined
-              }
+              editedMessage={currentDraft ? messageText : undefined}
               onHome={() => go("home")}
             />
           </Suspense>
@@ -402,16 +470,21 @@ export default function App() {
               step={step}
               onChange={change}
               onNext={(patch) => {
-                if (hasDanger({ ...input, ...patch })) return;
+                const next = applyQuestionPatch(input, patch ?? {});
+                if (hasDanger(next)) return;
+                if (
+                  editingQuestion.current &&
+                  step === 4 &&
+                  questionSteps(next).includes(3)
+                ) {
+                  go("questions", 3);
+                  return;
+                }
                 if (step === 6 || editingQuestion.current) {
                   editingQuestion.current = false;
                   setInput((previous) => sanitizeIntake(previous));
                   go("review");
-                } else
-                  go(
-                    "questions",
-                    adjacentQuestion({ ...input, ...patch }, step, 1),
-                  );
+                } else go("questions", adjacentQuestion(next, step, 1));
               }}
             />
           </>
@@ -438,6 +511,7 @@ export default function App() {
             }}
             onAnalyze={() => void analyze()}
             busy={preparing}
+            followup={Boolean(followupId)}
           />
         )}
         {screen === "loading" && (
@@ -465,6 +539,9 @@ export default function App() {
           <Result
             result={result!}
             issue={input.issue}
+            onRepair={linkRepair}
+            inspectionQuestions={inspectionQuestions}
+            onInspectionQuestions={setInspectionQuestions}
             onMessage={() => go("message")}
             onEdit={() => {
               setResult(null);
@@ -478,12 +555,24 @@ export default function App() {
           <Message
             key={result!.analysisId}
             result={result!}
-            text={
-              draft?.id === result!.analysisId
-                ? draft.text
-                : result!.messageDraft
+            input={sanitizeIntake(input)}
+            kind={messageKind}
+            onKind={(kind) =>
+              setDraft({
+                id: result!.analysisId,
+                kind,
+                edits: currentDraft?.edits ?? {},
+              })
             }
-            onChange={(text) => setDraft({ id: result!.analysisId, text })}
+            text={messageText}
+            onChange={(text) =>
+              setDraft({
+                id: result!.analysisId,
+                kind: messageKind,
+                edits: { ...currentDraft?.edits, [messageKind]: text },
+              })
+            }
+            onRepair={linkRepair}
             onSave={() => go("account")}
             onFeedback={() => go("feedback")}
           />
@@ -513,10 +602,11 @@ export default function App() {
               <h2>수선 기록장은 이 기기에만 보관해요</h2>
               <p>
                 선택한 수선 기록과 사진·영상·문서는 별도 동의 후 이 브라우저에
-                저장돼요. 서버·GPT·상대방에게 자동 전송되지 않고 회원 기록과
-                동기화되지 않아요. 브라우저 데이터 삭제 시 사라질 수 있어요.
-                기록장 안에서 파일을 내려받고 기록과 첨부를 삭제할 수 있어요.
-                현재 세션 삭제·로그아웃은 기기 기록장을 삭제하지 않아요.
+                저장돼요. 추가 안내를 요청하면 검토 화면에서 확인한 답변만 기존
+                분석 절차로 보낼 수 있어요. 기록장 파일은 회원 기록과 동기화되지
+                않아요. 브라우저 데이터 삭제 시 사라질 수 있어요. 기록장 안에서
+                파일을 내려받고 기록과 첨부를 삭제할 수 있어요. 현재 세션
+                삭제·로그아웃은 기기 기록장을 삭제하지 않아요.
               </p>
               <h2>선택적으로 로그인하고 기록을 보관해요</h2>
               <p>
@@ -532,7 +622,7 @@ export default function App() {
                     문제 유형·선택 증상·결과 분류·데모 여부별 일일 완료 건수를
                     집계해요. 집계에는 계정·세션 식별자나 상황 설명 원문을 넣지
                     않아요. 개별 기록을 삭제해도 집계 건수는 유지됩니다. 집계는
-                    법률 근거나 AI 학습 데이터로 사용하지 않아요. v1.4 팀 체험
+                    법률 근거나 AI 학습 데이터로 사용하지 않아요. v1.5 팀 체험
                     기간에는 익명 집계를 공개 관리자 화면에서 누구나 볼 수
                     있어요.
                   </p>
@@ -585,10 +675,10 @@ export default function App() {
               <h2>외부 AI 처리</h2>
               <p>
                 데모는 외부 AI로 보내지 않아요. 실제 모드에서는 가린 설명·선택
-                답변·계약 문구를 OpenAI에 전송해요. 응답 저장은 store:false로
-                비활성화하지만 악용 모니터링 기록이 기본 최대 30일 보관될 수
-                있어요. 제공자 계정의 실제 보관 설정은 공개 전 추가 확인해야
-                해요.
+                답변·계약 문구와 검토한 점검 소견·상대방 답변을 OpenAI에
+                전송해요. 응답 저장은 store:false로 비활성화하지만 악용 모니터링
+                기록이 기본 최대 30일 보관될 수 있어요. 제공자 계정의 실제 보관
+                설정은 공개 전 추가 확인해야 해요.
               </p>
               <h2>별도 연구 동의는 받지 않아요</h2>
               <p>
@@ -603,7 +693,7 @@ export default function App() {
                 데모는 가상 결과예요. 실제 AI도 입력과 근거에 따른 조건부
                 안내이며 전문가 법률 검토는 아직 완료되지 않았어요.
               </p>
-              <p className="small">안내 버전 2026-11-11 · v1.4</p>
+              <p className="small">안내 버전 2026-11-11 · v1.5</p>
             </div>
             <Button secondary onClick={() => go("home")}>
               홈으로 돌아가기

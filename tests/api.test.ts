@@ -1,3 +1,4 @@
+import { emptyDetails } from "../shared/questions.js";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../server/routes/app.js";
@@ -470,4 +471,63 @@ it("accepts the new repair categories and rejects cross-category symptoms", asyn
     },
   });
   expect(invalid.statusCode).toBe(400);
+});
+
+it("accepts a separate follow-up with masked reported notes and preserves the earlier result", async () => {
+  const { app } = setup();
+  const headers = await session(app);
+  async function submit(input: typeof defaultIntake) {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/analyses",
+      headers,
+      payload: { intake: input, idempotencyKey: randomUUID() },
+    });
+    expect(response.statusCode).toBe(200);
+    return response.json();
+  }
+  const first = await submit(defaultIntake);
+  const next = await submit({
+    ...defaultIntake,
+    inputVersion: 2,
+    contact: "replied",
+    details: {
+      ...emptyDetails,
+      inspection: "yes",
+      technicianNote: "밸브 상태 확인 필요",
+      reply: "점검 일정 문의 010-1234-5678",
+    },
+  });
+  expect(next.analysisId).not.toBe(first.analysisId);
+  expect(next.userReportedFacts).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        key: "사용자가 전한 기사 소견",
+        provenance: "relayed_technician",
+        value: "밸브 상태 확인 필요",
+      }),
+      expect.objectContaining({
+        key: "사용자가 전한 상대방 답변",
+        provenance: "landlord_claim",
+        value: "점검 일정 문의 [연락처 가림]",
+      }),
+    ]),
+  );
+  const original = await app.inject({
+    method: "GET",
+    url: `/api/analyses/${first.analysisId}`,
+    headers,
+  });
+  expect(original.statusCode).toBe(200);
+  expect(original.json().result).toEqual(first);
+  const danger = await submit({
+    ...defaultIntake,
+    inputVersion: 3,
+    details: {
+      ...emptyDetails,
+      inspection: "yes",
+      technicianNote: "가스 냄새가 납니다",
+    },
+  });
+  expect(danger.status).toBe("safety_priority");
 });

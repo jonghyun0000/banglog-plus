@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { repairGuideSchema } from "./repair-guide.js";
+import { issueNames } from "./schema.js";
+import { intakeDetails, observationLabel, answerLabel } from "./questions.js";
+import { drainFacts } from "./drain.js";
 const text = z.string().max(5000);
 const localTime = z
   .string()
@@ -17,6 +21,13 @@ export const attachmentKinds = {
 export const repairSchema = z.object({
   id: z.string().uuid(),
   location: z.string().max(200),
+  guides: z.array(repairGuideSchema).max(100).default([]),
+  inspectionQuestions: z
+    .array(z.enum(["cause", "unknown", "scope", "cost", "documents"]))
+    .max(5)
+    .default([]),
+  inspectionAnswers: text.default(""),
+  itemizedCost: text.default(""),
   discoveredAt: localTime,
   impact: text,
   recurrence: text,
@@ -74,6 +85,10 @@ export function newRepair(): RepairRecord {
   return {
     id: crypto.randomUUID(),
     location: "",
+    guides: [],
+    inspectionQuestions: [],
+    inspectionAnswers: "",
+    itemizedCost: "",
     discoveredAt: "",
     impact: "",
     recurrence: "",
@@ -131,6 +146,25 @@ export function repairText(r: RepairRecord) {
     `견적: ${r.quote || "미입력"}`,
     `지출: ${r.paidAmount || "미입력"}`,
     `업체 소견: ${r.contractorOpinion || "미입력"}`,
+    ...(r.inspectionAnswers
+      ? [`기사에게 들은 점검 답변: ${r.inspectionAnswers}`]
+      : []),
+    ...(r.itemizedCost ? [`항목별 비용 메모: ${r.itemizedCost}`] : []),
+    ...r.guides.map((g) =>
+      [
+        `연결한 안내 · ${issueNames[g.intake.issue]} · ${g.result.analysisId}`,
+        `사용자 진술: ${observationLabel(g.intake)} · ${answerLabel("discovered", g.intake.discovered)} · ${answerLabel("contact", g.intake.contact)}`,
+        ...intakeDetails(g.intake).map(
+          ([label, value]) => `${label}: ${value}`,
+        ),
+        ...drainFacts(g.intake).map((f) => f.value),
+        g.intake.description,
+        `연락 문구 초안: ${g.draft}`,
+        `근거 자료 버전: ${g.result.retrieval?.datasetVersion ?? "미제공"}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    ),
     `추가 자료: ${repairMissing(r).join(", ")}`,
     `첨부 ${r.attachments.length}개: 텍스트 복사에는 파일이 포함되지 않습니다.`,
   ].join("\n\n");

@@ -151,6 +151,9 @@ test("own fridge goes to service support and keeps the expanded reference access
     .getByRole("button", { name: "집에 설치된 옵션에 문제가 있어요" })
     .click();
   await page.getByRole("button", { name: "냉장고가 작동하지 않아요" }).click();
+  await page
+    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
+    .click();
   await page.getByRole("button", { name: "다음", exact: true }).click();
   await page.getByRole("button", { name: "제가 설치한 시설이에요" }).click();
   await additional(page);

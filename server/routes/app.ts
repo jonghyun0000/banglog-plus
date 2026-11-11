@@ -21,6 +21,7 @@ import {
   sanitizeIntake,
   hasDanger,
   outOfScope,
+  intakeContext,
   maskPersonalData,
 } from "../../shared/safety.js";
 import { loadConfig, publicConfig } from "../config.js";
@@ -292,7 +293,7 @@ export function createApp(
       let photo: PhotoResult | undefined = body.photos
         ? { status: "skipped", signs: [], count: body.photos.images.length }
         : undefined;
-      if (hasDanger(input) || outOfScope(input.description)) {
+      if (hasDanger(input) || outOfScope(intakeContext(input))) {
         output = {
           result: makeAnalysis(
             input,
@@ -422,7 +423,7 @@ export function createApp(
       });
       if (!(await repo.finish(g.id, record.id, result)))
         throw new AppError("CANCELLED", 409);
-      if (!hasDanger(input) && !outOfScope(input.description))
+      if (!hasDanger(input) && !outOfScope(intakeContext(input)))
         await repo.metric(g.id, {
           event: "analysis_success",
           analysisId: record.id,

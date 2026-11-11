@@ -1,5 +1,6 @@
+import { hasReply } from "./questions.js";
 import { defaultDrain, type Intake, type Analysis } from "./schema.js";
-import { hasDanger } from "./safety.js";
+import { hasDanger, intakeContext } from "./safety.js";
 
 export const drainOptions = {
   location: [
@@ -80,22 +81,27 @@ export function drainEscalation(i: Intake) {
   );
 }
 export function questionSteps(i: Intake): number[] {
-  if (i.issue !== "drain") return [0, 1, 2, 3, 4, 5, 6];
   const d = i.drain ?? defaultDrain;
   return [
     0,
-    7,
-    8,
-    9,
     5,
-    10,
-    ...(!drainEscalation(i) && d.chemical === "no" ? [11] : []),
+    ...(i.issue === "drain"
+      ? [
+          7,
+          8,
+          9,
+          10,
+          ...(!drainEscalation(i) && d.chemical === "no" ? [11] : []),
+        ]
+      : []),
     1,
+    ...(i.issue === "drain" ? [] : [2]),
     4,
-    ...(["cost", "replied"].includes(i.contact) ? [3] : []),
+    ...(hasReply(i) || i.details?.inspection === "yes" ? [3] : []),
     6,
   ];
 }
+
 export function adjacentQuestion(i: Intake, step: number, direction: 1 | -1) {
   const steps = questionSteps(i);
   const index = steps.indexOf(step);
@@ -107,7 +113,7 @@ export function drainGuide(i: Intake): Analysis["drainGuide"] {
   // Unstructured reports can override reassuring selections. Uncertainty never enables DIY.
   const uncertainText =
     /약품|세정제|락스|뚫어뻥|역류|넘치|누수|새고|여러\s*(곳|배수구)/u.test(
-      i.description,
+      intakeContext(i),
     );
   const canTry =
     !drainEscalation(i) &&

@@ -54,8 +54,9 @@ test("danger stays below choices, does not jump, and blocks the next step", asyn
     .getByRole("button", { name: "우리 집 수리 문제 확인하기" })
     .click();
   await page.getByRole("button", { name: "보일러가 고장 났어요" }).click();
-  for (let i = 0; i < 5; i++)
-    await page.getByRole("button", { name: "다음", exact: true }).click();
+  await page
+    .getByRole("button", { name: "온수가 나오지 않아요", exact: true })
+    .click();
   const danger = page.getByRole("button", {
     name: "가스 냄새가 나요",
     exact: true,
