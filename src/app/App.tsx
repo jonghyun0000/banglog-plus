@@ -26,7 +26,13 @@ const Account = lazy(() =>
     default: module.Account,
   })),
 );
+const RepairWorkspace = lazy(() =>
+  import("../features/repair/RepairWorkspace").then((m) => ({
+    default: m.RepairWorkspace,
+  })),
+);
 type Screen =
+  | "repair"
   | "account"
   | "home"
   | "issue"
@@ -47,6 +53,7 @@ export default function App() {
     step: 0,
   });
   const { screen, step } = location;
+  const [repairOpened, setRepairOpened] = useState(false);
   const [input, setInput] = useState<Intake>({ ...defaultIntake });
   const [draft, setDraft] = useState<{ id: string; text: string } | null>(null);
   const [result, setResult] = useState<Analysis | null>(null);
@@ -301,9 +308,14 @@ export default function App() {
               ← <span>이전</span>
             </button>
           )}
-          {!["home", "privacy", "issue", "references", "account"].includes(
-            screen,
-          ) && (
+          {![
+            "home",
+            "privacy",
+            "issue",
+            "references",
+            "account",
+            "repair",
+          ].includes(screen) && (
             <p className="flow-indicator">
               <span className={screen === "questions" ? "current" : ""}>
                 상황 확인
@@ -321,6 +333,26 @@ export default function App() {
             </p>
           )}
         </div>
+        {["home", "result", "account"].includes(screen) && (
+          <button
+            className="text-button"
+            onClick={() => {
+              setRepairOpened(true);
+              go("repair");
+            }}
+          >
+            수선 요청·퇴실 기록장
+          </button>
+        )}
+        {repairOpened && (
+          <div hidden={screen !== "repair"}>
+            <Suspense
+              fallback={<p role="status">수선 기록을 준비하고 있어요…</p>}
+            >
+              <RepairWorkspace />
+            </Suspense>
+          </div>
+        )}
         {screen === "account" && (
           <Suspense fallback={<p role="status">내 기록을 준비하고 있어요…</p>}>
             <Account
@@ -478,6 +510,14 @@ export default function App() {
               title="필요한 내용만 잠시 보관해요"
             />
             <div className="prose">
+              <h2>수선 기록장은 이 기기에만 보관해요</h2>
+              <p>
+                선택한 수선 기록과 사진·영상·문서는 별도 동의 후 이 브라우저에
+                저장돼요. 서버·GPT·상대방에게 자동 전송되지 않고 회원 기록과
+                동기화되지 않아요. 브라우저 데이터 삭제 시 사라질 수 있어요.
+                기록장 안에서 파일을 내려받고 기록과 첨부를 삭제할 수 있어요.
+                현재 세션 삭제·로그아웃은 기기 기록장을 삭제하지 않아요.
+              </p>
               <h2>선택적으로 로그인하고 기록을 보관해요</h2>
               <p>
                 이메일 계정으로 로그인한 뒤 직접 저장한 답변과 결과는 내 계정에
@@ -492,7 +532,7 @@ export default function App() {
                     문제 유형·선택 증상·결과 분류·데모 여부별 일일 완료 건수를
                     집계해요. 집계에는 계정·세션 식별자나 상황 설명 원문을 넣지
                     않아요. 개별 기록을 삭제해도 집계 건수는 유지됩니다. 집계는
-                    법률 근거나 AI 학습 데이터로 사용하지 않아요. v1.3 팀 체험
+                    법률 근거나 AI 학습 데이터로 사용하지 않아요. v1.4 팀 체험
                     기간에는 익명 집계를 공개 관리자 화면에서 누구나 볼 수
                     있어요.
                   </p>
@@ -563,7 +603,7 @@ export default function App() {
                 데모는 가상 결과예요. 실제 AI도 입력과 근거에 따른 조건부
                 안내이며 전문가 법률 검토는 아직 완료되지 않았어요.
               </p>
-              <p className="small">안내 버전 2026-11-03 · v1.3</p>
+              <p className="small">안내 버전 2026-11-11 · v1.4</p>
             </div>
             <Button secondary onClick={() => go("home")}>
               홈으로 돌아가기

@@ -1,0 +1,103 @@
+.repair-workspace {
+  overflow-wrap: anywhere;
+}
+.repair-workspace label {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.repair-workspace input,
+.repair-workspace select,
+.repair-workspace textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+.repair-workspace textarea {
+  min-height: 96px;
+}
+.repair-workspace input[type="file"] {
+  font-size: 14px;
+  width: 100%;
+}
+.repair-workspace .repair-check {
+  display: flex;
+  align-items: flex-start;
+}
+.repair-check input {
+  flex: 0 0 22px;
+}
+.repair-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 24px 0;
+}
+.repair-steps button {
+  min-height: 44px;
+  border: 1px solid #ccd4e2;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e293b;
+}
+.repair-steps [aria-current] {
+  background: #1d4ed8;
+  color: white;
+}
+.repair-file,
+.repair-workspace fieldset {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 16px 0;
+  min-width: 0;
+}
+.repair-file img,
+.repair-file video {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+}
+.repair-workspace button {
+  min-height: 44px;
+}
+.repair-summary {
+  white-space: pre-wrap;
+  font: inherit;
+  background: #f1f5f9;
+  padding: 16px;
+  border-radius: 12px;
+}
+.repair-save {
+  margin-top: 24px;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+.repair-compare {
+  display: grid;
+  gap: 16px;
+}
+.repair-compare section {
+  min-width: 0;
+}
+
+.repair-workspace .repair-controls {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.repair-facts {
+  background: #f1f5f9;
+  padding: 16px;
+  border-radius: 12px;
+}
+.repair-facts dt {
+  color: #475569;
+  font-size: 14px;
+  margin-top: 12px;
+}
+.repair-facts dd {
+  margin: 4px 0;
+}

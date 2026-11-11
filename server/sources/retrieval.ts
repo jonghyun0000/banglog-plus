@@ -1,3 +1,4 @@
+import { passesRepairTeamReview } from "./team-review.js";
 import { z } from "zod";
 import { sourceSchema, type Intake } from "../../shared/schema.js";
 import type { PostgresRepository } from "../repositories/postgres.js";
@@ -102,6 +103,7 @@ export class PostgresKnowledgeRetriever implements KnowledgeRetriever {
       rows.some((r, index) => {
         const s = parsed.data?.passages[index]?.source;
         return (
+          !passesRepairTeamReview(r.source_id) ||
           (r.dataset_version === officialDatasetVersion &&
             !isVerifiedOfficialRow(r)) ||
           !s ||

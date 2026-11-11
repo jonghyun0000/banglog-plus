@@ -1,3 +1,4 @@
+import { releaseVersion } from "../shared/release.js";
 import { evaluateResearchRetrieval } from "./research-evaluation.js";
 import { Operations } from "../server/operations.js";
 import { scryptSync } from "node:crypto";
@@ -659,7 +660,7 @@ try {
       "usage",
       "version",
     ]);
-    assert.equal(publicData.version, "1.3.0");
+    assert.equal(publicData.version, releaseVersion);
     assert.equal(publicData.knowledge.length, 7);
     assert.ok(!publicResponse.body.includes("release-test@example.invalid"));
     assert.ok(!publicResponse.body.includes(memberId));
