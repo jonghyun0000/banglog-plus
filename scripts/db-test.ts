@@ -920,8 +920,24 @@ try {
   pass(
     "public retrieval requires expert approval and active external-AI permission; missing, revoked, expired denied",
   );
-  await admin.query(await readFile("data/official-statutes.v1.sql", "utf8"));
-  await admin.query(await readFile("data/official-statutes.v1.sql", "utf8"));
+  await admin.query(await readFile("data/official-statutes.v2.sql", "utf8"));
+  await admin.query(await readFile("data/official-statutes.v2.sql", "utf8"));
+  const surfaceKnowledge = await new PostgresKnowledgeRetriever(
+    repo,
+    true,
+  ).retrieve(
+    {
+      ...defaultIntake,
+      issue: "surface",
+      description: "퇴실 보증금 공제 원상회복 벽지 장판 특약",
+    },
+    new AbortController().signal,
+  );
+  assert(surfaceKnowledge.passages.some((p) => p.source.id === "civil-615"));
+  assert(surfaceKnowledge.passages.some((p) => p.source.id === "civil-654"));
+  pass(
+    "surface restoration retrieves both 615 and 654 without expert-approval claims",
+  );
   const official = await lookup();
   assert.equal(official.passages.length, 3);
   assert(
@@ -932,11 +948,11 @@ try {
     ),
   );
   await admin.query(
-    "update banglog_plus.source_permissions set revoked_at=now() where source_version='2026-03-17.official-2026-11-10.v1'",
+    "update banglog_plus.source_permissions set revoked_at=now() where source_version in ('2026-03-17.official-2026-11-10.v1','2026-03-17.official-2026-11-11.v2')",
   );
   await assert.rejects(lookup, { code: "KNOWLEDGE_NOT_FOUND" });
   await admin.query(
-    "update banglog_plus.source_permissions set revoked_at=null,expires_at=now()-interval '1 hour' where source_version='2026-03-17.official-2026-11-10.v1'",
+    "update banglog_plus.source_permissions set revoked_at=null,expires_at=now()-interval '1 hour' where source_version in ('2026-03-17.official-2026-11-10.v1','2026-03-17.official-2026-11-11.v2')",
   );
   await assert.rejects(lookup, { code: "KNOWLEDGE_NOT_FOUND" });
   pass(

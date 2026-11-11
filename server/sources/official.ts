@@ -1,5 +1,6 @@
+import { passesRepairTeamReview } from "./team-review.js";
 import { isDeepStrictEqual } from "node:util";
-import manifest from "../../data/official-statutes.v1.json" with { type: "json" };
+import manifest from "../../data/official-statutes.v2.json" with { type: "json" };
 import { sourceSchema } from "../../shared/schema.js";
 
 export const officialDatasetVersion = manifest.version;
@@ -14,6 +15,7 @@ export function isVerifiedOfficialRow(row: Record<string, unknown>): boolean {
   const source = manifest.sources.find((s) => s.id === chunk?.sourceId);
   return (
     !!chunk &&
+    passesRepairTeamReview(`repair-${chunk.sourceId}`) &&
     !!source &&
     row.dataset_version === officialDatasetVersion &&
     row.source_id === chunk.sourceId &&
