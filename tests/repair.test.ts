@@ -6,7 +6,12 @@ import {
   repairSchema,
   repairText,
 } from "../shared/repair";
-import { repairLegalReviews, teamReviewed } from "../shared/repair-review";
+import {
+  repairLegalReviews,
+  teamReviewed,
+  administratorApproved,
+  reviewSnapshot,
+} from "../shared/repair-review";
 import { officialSources } from "../server/sources/official";
 import { datasetSources } from "../server/sources/dataset";
 import { validateFile } from "../src/features/repair/store";
@@ -53,10 +58,12 @@ it("requires two distinct registered team reviewers for the current version", ()
   r.status = "pending";
   expect(teamReviewed(r, team)).toBe(false);
 });
-it("all seven new drafts are pending and absent from operational AI datasets", () => {
+it("all seven admin approvals remain separate from team reviews and operational AI datasets", () => {
   expect(repairLegalReviews).toHaveLength(7);
   for (const r of repairLegalReviews) {
-    expect(r.status).toBe("pending");
+    expect(r.status).toBe("approved");
+    expect(administratorApproved(r)).toBe(true);
+    expect(teamReviewed(r, new Set())).toBe(false);
     expect(r.reviews).toEqual([]);
     expect(
       [...officialSources, ...datasetSources].some((s) => s.id === r.id),
@@ -84,9 +91,32 @@ it("rejects executable or oversized attachments", () => {
   ).not.toThrow();
 });
 
-it("server rejects pending or unknown repair drafts even if a DB row is marked approved", () => {
+it("server accepts registered admin approvals but rejects unknown repair drafts", () => {
   expect(passesRepairTeamReview("civil-623")).toBe(true);
   for (const r of repairLegalReviews)
-    expect(passesRepairTeamReview(r.id)).toBe(false);
+    expect(passesRepairTeamReview(r.id)).toBe(true);
   expect(passesRepairTeamReview("repair-forged")).toBe(false);
+});
+
+it("invalidates admin approval for changed content, scope, version or revoked status", () => {
+  for (const field of [
+    "draft",
+    "scope",
+    "version",
+    "url",
+    "title",
+    "checkedAt",
+    "effectiveDate",
+  ] as const) {
+    const r = structuredClone(repairLegalReviews[0]);
+    r[field] = "changed";
+    expect(administratorApproved(r)).toBe(false);
+  }
+  const r = structuredClone(repairLegalReviews[0]);
+  r.status = "pending";
+  expect(administratorApproved(r)).toBe(false);
+  r.status = "approved";
+  r.id = "repair-forged";
+  expect(administratorApproved(r)).toBe(false);
+  expect(reviewSnapshot(r)).not.toBe(reviewSnapshot(repairLegalReviews[0]));
 });

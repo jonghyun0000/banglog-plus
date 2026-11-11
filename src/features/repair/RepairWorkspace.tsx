@@ -7,7 +7,10 @@ import {
   type RepairRecord,
   type AttachmentKind,
 } from "../../../shared/repair";
-import { repairLegalReviews } from "../../../shared/repair-review";
+import {
+  repairLegalReviews,
+  repairReviewLabel,
+} from "../../../shared/repair-review";
 import {
   deleteRepair,
   getRepairFile,
@@ -589,9 +592,9 @@ export function RepairWorkspace() {
                 </Button>
                 <h3>관련 공식 출처</h3>
                 <p>
-                  기록 항목을 점검하는 참고 링크예요. 새 법률 해설은 팀원 2명
-                  검증 전이며 AI 답변에 추가되지 않았어요. 조정사례는 법원
-                  판결과 달라요.
+                  기록 항목을 점검하는 참고 링크예요. 새 법률 해설 7건은 관리자
+                  단독 승인 상태이며 팀 교차·법률 전문가 검토와 운영 AI 반영은
+                  아직이에요. 조정사례는 법원 판결과 달라요.
                 </p>
                 {repairLegalReviews.map((r) => (
                   <p key={r.id}>
@@ -600,8 +603,7 @@ export function RepairWorkspace() {
                     </a>
                     <br />
                     <small>
-                      검토 대기 · 팀 검증 {r.reviews.length}/2 · 확인{" "}
-                      {r.checkedAt}
+                      {repairReviewLabel(r)} · 확인 {r.checkedAt}
                       {r.effectiveDate
                         ? ` · 시행 ${r.effectiveDate}`
                         : " · 게시 2022-07-14"}

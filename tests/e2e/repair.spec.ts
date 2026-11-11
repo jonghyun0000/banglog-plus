@@ -102,6 +102,11 @@ for (const [width, height] of [
     await audit("comparison");
     await page.getByRole("button", { name: "4 기록 요약" }).click();
     await page.getByText("전체 기록 내용 보기", { exact: true }).click();
+    await expect(
+      page.getByText("관리자 단독 승인 · 팀 교차·전문가 검토 미완료", {
+        exact: false,
+      }),
+    ).toHaveCount(7);
     await expect(page.locator(".repair-summary")).toContainText(
       "내일 업체 방문 예정",
     );

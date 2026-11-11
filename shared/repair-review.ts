@@ -1,3 +1,4 @@
+import adminApprovals from "./repair-admin-approvals.json" with { type: "json" };
 export interface LegalReview {
   id: string;
   title: string;
@@ -28,7 +29,7 @@ const statute = (
   checkedAt: "2026-11-11",
   scope,
   draft,
-  status: "pending",
+  status: "approved",
   reviews: [],
   version: "2026-11-11.v1",
 });
@@ -83,7 +84,7 @@ export const repairLegalReviews: LegalReview[] = [
     scope:
       "2022-07-14 게시 조정사례. 법원 판결·일반화된 책임 기준이 아니며 기록 체크리스트로만 활용.",
     draft: s.draft,
-    status: "pending" as const,
+    status: "approved" as const,
     reviews: [],
     version: "2026-11-11.v1",
   })),
@@ -104,4 +105,39 @@ export function teamReviewed(r: LegalReview, teamIds: ReadonlySet<string>) {
         .map((v) => v.reviewerId),
     ).size >= 2
   );
+}
+
+// Admin authorization is separate from team and professional legal review.
+export function reviewSnapshot(r: LegalReview) {
+  return JSON.stringify([
+    r.id,
+    r.version,
+    r.title,
+    r.url,
+    r.effectiveDate,
+    r.checkedAt,
+    r.scope,
+    r.draft,
+  ]);
+}
+export function administratorApproved(r: LegalReview): boolean {
+  const approval = adminApprovals.find((a) => a.sourceId === r.id);
+  return (
+    !!approval &&
+    r.status === "approved" &&
+    approval.approvalType === "administrator_single" &&
+    approval.administratorId === "project-owner-jonghyun" &&
+    approval.snapshot === reviewSnapshot(r)
+  );
+}
+export function repairReviewApproved(
+  r: LegalReview,
+  teamIds: ReadonlySet<string>,
+) {
+  return administratorApproved(r) || teamReviewed(r, teamIds);
+}
+export function repairReviewLabel(r: LegalReview) {
+  return administratorApproved(r)
+    ? "관리자 단독 승인 · 팀 교차·전문가 검토 미완료"
+    : "검토 대기";
 }
