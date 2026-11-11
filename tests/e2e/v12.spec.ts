@@ -31,6 +31,8 @@ test("v1.2 mobile: confirm choices, back edit, custom location and natural messa
   ).toBeVisible();
   await click("물이 잘 내려가지 않아요");
   await click("다음");
+  await click("지금 위험 신호는 없어요");
+  await click("다음");
   await click("직접 입력하기");
   await expect(
     page.getByRole("button", { name: "다음", exact: true }),
@@ -51,7 +53,6 @@ test("v1.2 mobile: confirm choices, back edit, custom location and natural messa
   for (const name of [
     "이곳 한 군데만 그래요",
     "넘치거나 주변으로 새지는 않아요",
-    "지금 위험 신호는 없어요",
     "배수구 약품은 넣지 않았어요",
     "아직 해본 조치는 없어요",
   ])
@@ -89,6 +90,9 @@ test("v1.2 dangerous custom text blocks progress immediately", async ({
   await page.getByRole("button", { name: "배수가 안 돼요" }).click();
   await page
     .getByRole("button", { name: "물이 천천히 내려가요", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
     .click();
   await page
     .getByRole("button", { name: "직접 입력하기", exact: true })

@@ -7,13 +7,14 @@ import {
   observationLabel,
   questionVersion,
   issueGuidance,
+  intakeDetails,
 } from "./questions.js";
-import { hasDanger, outOfScope, safetyText } from "./safety.js";
+import { hasDanger, outOfScope, safetyText, intakeContext } from "./safety.js";
 export const ruleVersion = "rules-1.2";
 export function directionFor(i: Intake): Direction {
   if (
     hasDanger(i) ||
-    outOfScope(i.description) ||
+    outOfScope(intakeContext(i)) ||
     conflictFor(i).length ||
     i.contract.trim()
   )
@@ -46,7 +47,7 @@ export function makeAnalysis(
   model: string,
 ): Analysis {
   const danger = hasDanger(i),
-    outside = outOfScope(i.description),
+    outside = outOfScope(intakeContext(i)),
     direction = directionFor(i);
   const third = i.cause === "third" || i.otherClaim === "third";
   const ownFixture = i.issue === "fixture" && i.installed === "own" && !third;
@@ -98,15 +99,6 @@ export function makeAnalysis(
     ? "emergency"
     : (buildingCare?.recipient ??
       (third ? "manager" : ownFixture ? "service" : "landlord"));
-  const managerMessage = recipient === "manager";
-  const repairHistoryMessage = !i.building
-    ? ""
-    : {
-        yes: "제가 알고 있는 해당 부위의 교체·수리 이력이 있어, 알고 있는 내용을 함께 전달드리겠습니다. 이전 수리 내용이 이번 문제와 관련 있는지도 확인 부탁드립니다.\n",
-        no: "제가 알고 있는 해당 부위의 교체·수리 이력은 없습니다. 확인 가능한 이전 점검이나 수리 기록이 있다면 알려주시면 감사하겠습니다.\n",
-        unknown:
-          "해당 부위의 교체·수리 이력은 아직 확인하지 못했습니다. 이전 점검이나 수리 기록을 확인할 수 있을까요?\n",
-      }[i.building.repairHistory];
   const messageKind = ownFixture
     ? "initial"
     : i.contact === "cost"
@@ -114,31 +106,7 @@ export function makeAnalysis(
       : ["waiting", "replied"].includes(i.contact)
         ? "followup"
         : "initial";
-  const opening = ownFixture
-    ? "안녕하세요. 제가 소유한 제품의 점검과 수리 가능 여부를 문의드립니다."
-    : managerMessage
-      ? `안녕하세요, 관리 담당자님. ${issueNames[i.issue]} 관련 점검을 문의드립니다.`
-      : messageKind === "followup"
-        ? `안녕하세요. 앞서 연락드린 ${issueNames[i.issue]} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
-        : `안녕하세요. ${issueNames[i.issue]} 때문에 점검이 필요해 연락드립니다.`;
-  const symptom =
-    i.observation === "unknown" ? "" : `현재 ${observationLabel(i)}.\n`;
-  const requestMessage =
-    messageKind === "cost"
-      ? "안내받은 비용의 산정 기준과 점검 결과를 알려주실 수 있을까요?"
-      : managerMessage
-        ? "해당 시설을 점검해 주실 수 있는지와 가능한 일정을 알려주세요. 직접 처리하기 어려우시면 담당 부서나 점검을 요청할 곳을 안내해 주시면 감사하겠습니다."
-        : ownFixture
-          ? "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?"
-          : i.building
-            ? "점검을 맡길 관리 담당자나 수리업체, 가능한 방문 일정을 안내해 주실 수 있을까요?"
-            : "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?";
-  const closing = ownFixture
-    ? "원인과 수리 범위, 보증 적용 여부 및 예상 견적을 안내 부탁드립니다."
-    : managerMessage
-      ? "점검 결과와 필요한 수리 범위를 알려주시면 집주인과도 공유하고 비용 부담을 확인하겠습니다."
-      : "원인과 수리 범위를 확인한 뒤 비용 부담을 협의하고 싶습니다.";
-  const message = `${opening}\n${symptom}${i.issue === "drain" ? drainMessage(i) : ""}${repairHistoryMessage}${requestMessage}\n${third ? "공용부분이나 다른 세대와 관련이 있는지도 확인 부탁드립니다.\n" : ""}${closing}`;
+  const message = repairMessage(i, recipient, messageKind);
   return analysisSchema.parse({
     drainGuide: care,
     buildingGuide: buildingCare,
@@ -157,6 +125,16 @@ export function makeAnalysis(
     userReportedFacts: [
       ...drainFacts(i),
       ...buildingFacts(i.building),
+      ...intakeDetails(i).map(([label, value]) => ({
+        key: label,
+        value,
+        provenance:
+          label === "사용자가 전한 기사 소견"
+            ? ("relayed_technician" as const)
+            : label === "사용자가 전한 상대방 답변"
+              ? ("landlord_claim" as const)
+              : ("tenant_report" as const),
+      })),
       {
         key: "description",
         value: i.description || "별도 설명 없음",
@@ -287,4 +265,72 @@ export function makeAnalysis(
     model,
     generatedAt: new Date().toISOString(),
   });
+}
+
+export function repairMessage(
+  i: Intake,
+  recipient: Analysis["repairRequest"]["recipient"],
+  messageKind: Analysis["messageKind"],
+) {
+  if (recipient === "emergency" || hasDanger(i) || outOfScope(intakeContext(i)))
+    return "";
+  const ownFixture = recipient === "service";
+  const third = i.cause === "third" || i.otherClaim === "third";
+  const managerMessage = recipient === "manager";
+  const repairHistoryMessage = !i.building
+    ? ""
+    : {
+        yes: "제가 알고 있는 해당 부위의 교체·수리 이력이 있어, 알고 있는 내용을 함께 전달드리겠습니다. 이전 수리 내용이 이번 문제와 관련 있는지도 확인 부탁드립니다.\n",
+        no: "제가 알고 있는 해당 부위의 교체·수리 이력은 없습니다. 확인 가능한 이전 점검이나 수리 기록이 있다면 알려주시면 감사하겠습니다.\n",
+        unknown:
+          "해당 부위의 교체·수리 이력은 아직 확인하지 못했습니다. 이전 점검이나 수리 기록을 확인할 수 있을까요?\n",
+      }[i.building.repairHistory];
+  const opening = ownFixture
+    ? "안녕하세요. 제가 소유한 제품의 점검과 수리 가능 여부를 문의드립니다."
+    : managerMessage
+      ? `안녕하세요, 관리 담당자님. ${issueNames[i.issue]} 관련 점검을 문의드립니다.`
+      : messageKind === "followup" &&
+          ["waiting", "cost", "replied"].includes(i.contact)
+        ? `안녕하세요. 앞서 연락드린 ${issueNames[i.issue]} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
+        : `안녕하세요. ${issueNames[i.issue]} 때문에 점검이 필요해 연락드립니다.`;
+  const followup = messageKind === "followup";
+  const hasContact = ["waiting", "cost", "replied"].includes(i.contact);
+  const symptom =
+    i.observation === "unknown" ? "" : `현재 ${observationLabel(i)}.\n`;
+  const requestMessage =
+    messageKind === "cost"
+      ? i.contact === "cost"
+        ? "안내받은 비용의 산정 기준과 점검 결과를 알려주실 수 있을까요?"
+        : "점검 후 비용을 협의할 수 있도록 원인과 필요한 작업, 항목별 견적을 알려주세요."
+      : followup
+        ? hasContact
+          ? "이전 요청의 진행 상황과 점검 가능한 일정을 회신해 주실 수 있을까요?"
+          : "점검 가능 여부와 답변을 받을 수 있는 시점을 안내해 주시면 감사하겠습니다."
+        : managerMessage
+          ? "해당 시설을 점검해 주실 수 있는지와 가능한 일정을 알려주세요. 직접 처리하기 어려우시면 담당 부서나 점검을 요청할 곳을 안내해 주시면 감사하겠습니다."
+          : ownFixture
+            ? "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?"
+            : i.building
+              ? "점검을 맡길 관리 담당자나 수리업체, 가능한 방문 일정을 안내해 주실 수 있을까요?"
+              : "점검 일정과 수리 진행 방법을 안내해 주실 수 있을까요?";
+  const closing = ownFixture
+    ? "원인과 수리 범위, 보증 적용 여부 및 예상 견적을 안내 부탁드립니다."
+    : managerMessage
+      ? "점검 결과와 필요한 수리 범위를 알려주시면 집주인과도 공유하고 비용 부담을 확인하겠습니다."
+      : "원인과 수리 범위를 확인한 뒤 비용 부담을 협의하고 싶습니다.";
+  const details = i.details;
+  const actual = [
+    details?.location && `문제가 보이는 곳은 ${details.location}입니다.`,
+    details?.discoveredAt &&
+      `제가 발견한 시각은 ${details.discoveredAt.replace("T", " ")}입니다.`,
+    details?.impact && `사용 중 불편한 점: ${details.impact}`,
+    messageKind !== "initial" &&
+      details?.inspection === "yes" &&
+      details.technicianNote &&
+      `제가 점검 기사에게 들은 내용: ${details.technicianNote}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const message = `${opening}\n${symptom}${actual ? `${actual}\n` : ""}${i.issue === "drain" ? drainMessage(i) : ""}${repairHistoryMessage}${requestMessage}\n${third ? "공용부분이나 다른 세대와 관련이 있는지도 확인 부탁드립니다.\n" : ""}${closing}`;
+  return message.slice(0, 2000);
 }

@@ -121,7 +121,7 @@ export default function PublicAdmin() {
           </button>
         </header>
         <p className="notice">
-          v1.4 팀 체험 기간에는 이 화면을 공개합니다. 회원 개인정보·개별 입력
+          v1.5 팀 체험 기간에는 이 화면을 공개합니다. 회원 개인정보·개별 입력
           원문·삭제 기능은 공개하지 않으며, 운영자 로그인 후 관리할 수 있어요.
         </p>
         {loading && <p role="status">최신 현황을 불러오고 있어요…</p>}

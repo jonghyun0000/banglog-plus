@@ -1,3 +1,4 @@
+import { applyQuestionPatch, intakeDetails } from "./questions.js";
 import type { Intake } from "./schema.js";
 // 국민안전24 국민행동요령 "전기·가스 사고". 2026-11-10 원문 확인.
 export const safetyUrl =
@@ -6,11 +7,11 @@ export const safetyText =
   "비용 확인보다 안전이 먼저예요. 위험 장소에서 벗어나 안전한 곳에서 119에 도움을 요청하세요. 가스 냄새가 나면 불을 켜거나 전기 스위치를 조작하지 마세요. 젖은 전기기기나 배선을 만지거나 직접 수리하지 마세요.";
 export function hasDanger(
   input: Pick<Intake, "description" | "safety" | "contract"> &
-    Partial<Pick<Intake, "drain">>,
+    Partial<Pick<Intake, "drain" | "details" | "contact">>,
 ) {
   if (["gas", "fire", "electric"].includes(input.safety)) return true;
   return dangerPattern.test(
-    `${input.description} ${input.contract} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`,
+    `${input.description} ${input.contract} ${input.details?.technicianNote ?? ""} ${input.details?.reply ?? ""} ${input.details?.location ?? ""} ${input.details?.impact ?? ""} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`,
   );
 }
 // 단어만 겹치는 일상 표현(일정 연기, 화재보험, 연기 감지기)은 위험으로 보지 않는다.
@@ -77,21 +78,55 @@ export function maskPersonalData(text: string) {
     )
     .replace(/\d+동\s*\d+호/g, "[동호수 가림]");
 }
+function maskAnswer(text: string, limit: number) {
+  const masked = maskPersonalData(text.trim());
+  // Short values can grow when replaced by a label. Compact the labels
+  // before applying the limit so the end of a supported answer is retained.
+  return masked.length <= limit
+    ? masked
+    : masked
+        .replace(
+          /\[(?:주민번호|연락처|이메일|번호|상세주소|동호수) 가림\]/g,
+          "*",
+        )
+        .slice(0, limit);
+}
 export function sanitizeIntake(input: Intake): Intake {
+  const normalized = applyQuestionPatch(input, {});
   return {
-    ...input,
+    ...normalized,
+    ...(normalized.details
+      ? {
+          details: {
+            ...normalized.details,
+            location: maskAnswer(normalized.details.location, 120),
+            impact: maskAnswer(normalized.details.impact, 240),
+            technicianNote: maskAnswer(normalized.details.technicianNote, 320),
+            reply: maskAnswer(normalized.details.reply, 320),
+          },
+        }
+      : {}),
     ...(input.drain
       ? {
           drain: {
             ...input.drain,
             locationDetail:
               input.drain.location === "other"
-                ? maskPersonalData(input.drain.locationDetail?.trim() ?? "")
+                ? maskAnswer(input.drain.locationDetail ?? "", 80)
                 : undefined,
           },
         }
       : {}),
-    description: maskPersonalData(input.description.trim()),
-    contract: maskPersonalData(input.contract.trim()),
+    description: maskAnswer(input.description, 1000),
+    contract: maskAnswer(input.contract, 300),
   };
+}
+
+export function intakeContext(input: Intake) {
+  return [
+    input.description,
+    ...intakeDetails(input).map(([label, value]) => `${label}: ${value}`),
+  ]
+    .filter(Boolean)
+    .join("\n");
 }

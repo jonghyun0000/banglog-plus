@@ -1,3 +1,18 @@
+import {
+  guideFields,
+  mergeRepairGuide,
+  prepareRepairFollowup,
+  type RepairImport,
+} from "../../../shared/repair-guide";
+import { issueNames, type Intake } from "../../../shared/schema";
+import {
+  intakeDetails,
+  observationLabel,
+  answerLabel,
+} from "../../../shared/questions";
+import { drainFacts } from "../../../shared/drain";
+import { InspectionChecklist } from "./InspectionChecklist";
+import { PhotoCoaching, PhotoResult } from "../photos/PhotoResult";
 import { useEffect, useRef, useState } from "react";
 import {
   attachmentKinds,
@@ -44,7 +59,15 @@ function Attachment({ file, name }: { file: Blob; name: string }) {
     </div>
   );
 }
-export function RepairWorkspace() {
+export function RepairWorkspace({
+  request,
+  onDismissImport,
+  onFollowup,
+}: {
+  request: RepairImport | null;
+  onDismissImport: () => void;
+  onFollowup: (input: Intake, recordId: string) => void;
+}) {
   const [records, setRecords] = useState<RepairRecord[]>([]);
   const [record, setRecord] = useState<RepairRecord | null>(null);
   const [files, setFiles] = useState<Map<string, Blob>>(new Map());
@@ -57,6 +80,120 @@ export function RepairWorkspace() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [importChoice, setImportChoice] = useState<{
+    request: RepairImport;
+    targetId?: string;
+    images?: boolean;
+  } | null>(null);
+  const choice = importChoice?.request === request ? importChoice : null;
+  const importImages = choice?.images ?? false;
+  const [followupOpen, setFollowupOpen] = useState(false);
+  const [useTechnician, setUseTechnician] = useState(false);
+  const [useReply, setUseReply] = useState(false);
+  const targetId = choice?.targetId ?? request?.targetId ?? "";
+  const target =
+    record?.id === targetId ? record : records.find((r) => r.id === targetId);
+  const previousDraft = target?.guides.find(
+    (g) => g.result.analysisId === request?.guide.result.analysisId,
+  )?.draft;
+  const latestReply =
+    record?.contacts.filter((c) => c.reply.trim()).at(-1)?.reply ?? "";
+  const technician = [record?.contractorOpinion, record?.inspectionAnswers]
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, 320);
+  const candidate =
+    record &&
+    followupOpen &&
+    ((useTechnician && technician) || (useReply && latestReply))
+      ? prepareRepairFollowup(
+          record,
+          useTechnician ? technician : "",
+          useReply ? latestReply.slice(0, 320) : "",
+        )
+      : null;
+
+  function dismissImport() {
+    setImportChoice(null);
+    onDismissImport();
+  }
+  async function importGuide() {
+    if (!request || !ready || busy) return;
+    if (
+      dirty &&
+      target?.id !== record?.id &&
+      !window.confirm("저장하지 않은 수정 내용을 버리고 선택한 기록을 열까요?")
+    )
+      return;
+    setBusy(true);
+    setError("");
+    try {
+      const base = target ?? newRepair();
+      const next = mergeRepairGuide(
+        base,
+        request.guide,
+        request.inspectionQuestions,
+      );
+      const sameRecord = base.id === record?.id;
+      const nextFiles = sameRecord ? new Map(files) : new Map<string, Blob>();
+      if (!sameRecord)
+        for (const attachment of base.attachments) {
+          const file = await getRepairFile(attachment.id);
+          if (file) nextFiles.set(attachment.id, file);
+        }
+      if (importImages)
+        for (const image of request.images) {
+          const match = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(
+            image,
+          );
+          if (!match) throw Error("가져올 사진 형식을 확인해 주세요.");
+          const bytes = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
+          const file = new File(
+            [bytes],
+            `분석에 사용한 사진.${match[1].split("/")[1]}`,
+            { type: match[1] },
+          );
+          validateFile(file);
+          if (
+            next.attachments.length >= 30 ||
+            next.attachments.reduce((sum, a) => sum + a.size, 0) + file.size >
+              100 * 1024 * 1024
+          ) {
+            throw Error(
+              "한 기록에는 파일 30개, 전체 100MB까지 저장할 수 있어요.",
+            );
+          }
+          const id = crypto.randomUUID();
+          nextFiles.set(id, file);
+          next.attachments = [
+            ...next.attachments,
+            {
+              id,
+              kind: "discovery",
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              capturedAt: "",
+              recordedAt: new Date().toISOString(),
+            },
+          ];
+        }
+      setRecord(next);
+      setFiles(nextFiles);
+      if (!sameRecord) setRemoved([]);
+      setAccepted(false);
+      setDirty(true);
+      setStep(0);
+      setConfirmDelete(false);
+      setFollowupOpen(false);
+      setMessage("가져온 내용을 확인하고 이 기기에 저장하세요.");
+      dismissImport();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "내용을 가져오지 못했어요.");
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     let alive = true;
     listRepairs()
@@ -108,6 +245,7 @@ export function RepairWorkspace() {
       setAccepted(true);
       setDirty(false);
       setStep(0);
+      setFollowupOpen(false);
       setError("");
     } catch {
       setError("기록을 열지 못했어요. 다시 시도해 주세요.");
@@ -289,6 +427,111 @@ export function RepairWorkspace() {
           </p>
         )}
         {message && <p role="status">{message}</p>}
+        {request && (
+          <section className="repair-import" aria-labelledby="import-title">
+            <h2 id="import-title">기록장에 가져올 내용</h2>
+            <p>
+              {issueNames[request.guide.intake.issue]} ·{" "}
+              {observationLabel(request.guide.intake)}
+            </p>
+            <p>{answerLabel("contact", request.guide.intake.contact)}</p>
+            {intakeDetails(request.guide.intake).map(([label, value]) => (
+              <p key={label}>
+                <strong>{label}</strong> · {value}
+              </p>
+            ))}
+            <p>{request.guide.intake.description}</p>
+            <details>
+              <summary>연락 문구 초안</summary>
+              <pre>{request.guide.draft}</pre>
+            </details>
+            <label>
+              추가할 기록
+              <select
+                value={targetId}
+                onChange={(e) =>
+                  setImportChoice({
+                    ...choice,
+                    request,
+                    targetId: e.target.value,
+                  })
+                }
+              >
+                <option value="">새 기록</option>
+                {record && !records.some((r) => r.id === record.id) && (
+                  <option value={record.id}>지금 작성 중인 기록</option>
+                )}
+                {records.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.location || "위치 미입력"} ·{" "}
+                    {r.discoveredAt || r.createdAt.slice(0, 10)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {target && (
+              <p>
+                기존 연락·첨부·입력값을 보존하고 안내를 추가해요. 빈칸에 채울
+                항목은{" "}
+                {Object.entries(guideFields(request.guide))
+                  .filter(
+                    ([key, value]) =>
+                      value && !target[key as keyof typeof target],
+                  )
+                  .map(
+                    ([key]) =>
+                      ({
+                        location: "위치",
+                        discoveredAt: "발견 시각",
+                        impact: "사용 지장",
+                        contractorOpinion: "업체 소견",
+                        specialTerms: "특약",
+                      })[key],
+                  )
+                  .join(", ") || "없어요"}
+                .
+              </p>
+            )}
+            {previousDraft !== undefined &&
+              previousDraft !== request.guide.draft && (
+                <details>
+                  <summary>이 안내에 저장된 문구 초안을 교체해요</summary>
+                  <p>기존 초안</p>
+                  <pre>{previousDraft || "미입력"}</pre>
+                  <p>가져올 초안</p>
+                  <pre>{request.guide.draft || "미입력"}</pre>
+                </details>
+              )}
+            {request.images.length > 0 && (
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={importImages}
+                  onChange={(e) =>
+                    setImportChoice({
+                      ...choice,
+                      request,
+                      images: e.target.checked,
+                    })
+                  }
+                />
+                <span>
+                  분석에 쓴 사진 {request.images.length}장도 이 기기에 보관할
+                  초안에 추가해요.
+                </span>
+              </label>
+            )}
+            <Button
+              disabled={!ready || busy}
+              onClick={() => void importGuide()}
+            >
+              기록 초안에 가져오기
+            </Button>
+            <button className="text-button" onClick={dismissImport}>
+              가져오기 취소
+            </button>
+          </section>
+        )}
         <label>
           저장된 수선 기록
           <select
@@ -327,6 +570,7 @@ export function RepairWorkspace() {
             setDirty(true);
             setMessage("");
             setConfirmDelete(false);
+            setFollowupOpen(false);
           }}
         >
           새 수선 기록 만들기
@@ -530,6 +774,35 @@ export function RepairWorkspace() {
                 {field("paidAmount", "실제 지출 금액·일자", "textarea")}
                 {uploads("receipt")}
                 {field("contractorOpinion", "업체 소견·확인일", "textarea")}
+                <InspectionChecklist
+                  selected={record.inspectionQuestions}
+                  onChange={(keys) => patch({ inspectionQuestions: keys })}
+                />
+                {field(
+                  "inspectionAnswers",
+                  "점검 답변 · 원인·근거·확인 범위",
+                  "textarea",
+                )}
+                {field(
+                  "itemizedCost",
+                  "항목별 금액 · 출장비·진단비·부품비·공임",
+                  "textarea",
+                )}
+                <p className="small">
+                  첨부한 증빙 · 견적{" "}
+                  {record.attachments.filter((a) => a.kind === "quote").length}
+                  건 / 영수증{" "}
+                  {
+                    record.attachments.filter((a) => a.kind === "receipt")
+                      .length
+                  }
+                  건 / 업체 소견{" "}
+                  {
+                    record.attachments.filter((a) => a.kind === "opinion")
+                      .length
+                  }
+                  건
+                </p>
                 {uploads("opinion")}
               </>
             )}
@@ -612,6 +885,118 @@ export function RepairWorkspace() {
                   </p>
                 ))}
               </>
+            )}
+            {record.guides.length > 0 && (
+              <section className="repair-import" aria-label="연결한 수리 안내">
+                <h2>연결한 수리 안내</h2>
+                {record.guides.map((guide, index) => (
+                  <details key={guide.result.analysisId}>
+                    <summary>
+                      안내 {index + 1} · {issueNames[guide.intake.issue]} ·{" "}
+                      {observationLabel(guide.intake)}
+                    </summary>
+                    <p className="small">
+                      결과 번호 {guide.result.analysisId} · 근거 버전{" "}
+                      {guide.result.retrieval?.datasetVersion ?? "미제공"}
+                    </p>
+                    <h3>사용자가 입력한 내용</h3>
+                    <p>
+                      {answerLabel("discovered", guide.intake.discovered)} ·{" "}
+                      {answerLabel("contact", guide.intake.contact)}
+                    </p>
+                    {intakeDetails(guide.intake).map(([label, value]) => (
+                      <p key={label}>
+                        <strong>{label}</strong> · {value}
+                      </p>
+                    ))}
+                    {drainFacts(guide.intake).map((fact) => (
+                      <p key={fact.key}>{fact.value}</p>
+                    ))}
+                    <p>{guide.intake.description}</p>
+                    <h3>
+                      {guide.result.mode === "live" && !guide.result.fallback
+                        ? "AI 안내"
+                        : "기본 안내"}
+                    </h3>
+                    <p>
+                      {guide.result.tailoredResponse?.summary ??
+                        guide.result.aiExplanation ??
+                        guide.result.repairRequest.reason}
+                    </p>
+                    <ul>
+                      {guide.result.nextActions.map((action) => (
+                        <li key={action}>{action}</li>
+                      ))}
+                    </ul>
+                    <PhotoResult photo={guide.result.photoAnalysis} />
+                    <p>
+                      <strong>추가 확인 항목</strong> ·{" "}
+                      {guide.result.additionalChecks.join(" · ")}
+                    </p>
+                    <h3>연락 문구 초안</h3>
+                    <pre>{guide.draft}</pre>
+                  </details>
+                ))}
+                {record.guides.at(-1)!.result.status !== "safety_priority" && (
+                  <PhotoCoaching
+                    issue={record.guides.at(-1)!.intake.issue}
+                    suggestions={
+                      record.guides.at(-1)!.result.photoAnalysis
+                        ?.missingPhotoGuide
+                    }
+                  />
+                )}
+                <Button
+                  secondary
+                  onClick={() => {
+                    setFollowupOpen(!followupOpen);
+                    setUseTechnician(false);
+                    setUseReply(false);
+                  }}
+                >
+                  추가 내용으로 다시 안내받기
+                </Button>
+                {followupOpen && (
+                  <>
+                    <p>
+                      포함할 내용을 고르세요. 앞선 질문 답변과 함께 검토
+                      화면에서 확인해요.
+                    </p>
+                    <label className="checkbox">
+                      <input
+                        type="checkbox"
+                        disabled={!technician}
+                        checked={useTechnician}
+                        onChange={(e) => setUseTechnician(e.target.checked)}
+                      />
+                      <span>
+                        업체 소견·점검 답변{" "}
+                        {technician ? "포함" : "(기록 필요)"}
+                      </span>
+                    </label>
+                    <label className="checkbox">
+                      <input
+                        type="checkbox"
+                        disabled={!latestReply}
+                        checked={useReply}
+                        onChange={(e) => setUseReply(e.target.checked)}
+                      />
+                      <span>
+                        최근에 기록한 상대방 답변{" "}
+                        {latestReply ? "포함" : "(기록 필요)"}
+                      </span>
+                    </label>
+                    <Button
+                      disabled={!candidate}
+                      onClick={() => {
+                        if (candidate) onFollowup(candidate, record.id);
+                      }}
+                    >
+                      보낼 내용 확인하기
+                    </Button>
+                  </>
+                )}
+              </section>
             )}
             <div className="repair-save">
               <label className="repair-check">

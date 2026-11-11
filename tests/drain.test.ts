@@ -32,8 +32,9 @@ const input: Intake = {
   },
 };
 it("drain branching preserves normal flow and uses the just-selected answer", () => {
-  expect(questionSteps(defaultIntake)).toEqual([0, 1, 2, 3, 4, 5, 6]);
-  expect(adjacentQuestion(input, 0, 1)).toBe(7);
+  expect(questionSteps(defaultIntake)).toEqual([0, 5, 1, 2, 4, 6]);
+  expect(adjacentQuestion(input, 0, 1)).toBe(5);
+  expect(adjacentQuestion(input, 5, 1)).toBe(7);
   expect(adjacentQuestion(input, 10, 1)).toBe(11);
   const chemical = {
     ...input,

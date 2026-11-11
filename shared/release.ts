@@ -1,4 +1,4 @@
-export const releaseVersion = "1.4.0";
+export const releaseVersion = "1.5.0";
 export const releaseLabel = `v${releaseVersion.split(".").slice(0, 2).join(".")}`;
 // Default closed for v2+. Keep package.json and this version aligned (tested).
 export function publicDashboardAllowed(

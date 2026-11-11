@@ -1,3 +1,4 @@
+import { intakeContext } from "../../shared/safety.js";
 import { passesRepairTeamReview } from "./team-review.js";
 import { z } from "zod";
 import { sourceSchema, type Intake } from "../../shared/schema.js";
@@ -65,7 +66,7 @@ export class PostgresKnowledgeRetriever implements KnowledgeRetriever {
               input.issue,
               input.observation,
               [
-                input.description,
+                intakeContext(input),
                 input.contract,
                 observationLabel(input),
                 answerLabel("contact", input.contact),

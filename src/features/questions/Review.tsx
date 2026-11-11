@@ -1,9 +1,19 @@
 import { useState } from "react";
+import {
+  missingPhotoViews,
+  photoViewLabels,
+  type PhotoView,
+} from "../../../shared/photo";
 import { PhotoUpload } from "../photos/PhotoUpload";
 import { drainFacts, drainQuestions } from "../../../shared/drain";
 import type { AppConfig, Intake } from "../../../shared/schema";
 import { issueNames } from "../../../shared/schema";
-import { answerLabel, observationLabel } from "../../../shared/questions";
+import {
+  answerLabel,
+  observationLabel,
+  intakeDetails,
+  hasReply,
+} from "../../../shared/questions";
 import { Button, SectionTitle } from "../../components/ui/Elements";
 import { hasDanger } from "../../../shared/safety";
 import { SafetyNotice } from "./Questions";
@@ -15,14 +25,19 @@ export function Review({
   onEdit,
   onAnalyze,
   busy,
+  followup,
   photos,
   onPhotos,
   photoConsent,
   onPhotoConsent,
+  coveredPhotos,
+  onCoveredPhotos,
 }: {
   photos: string[];
   onPhotos: (images: string[]) => void;
   photoConsent: boolean;
+  coveredPhotos: PhotoView[];
+  onCoveredPhotos: (views: PhotoView[]) => void;
   onPhotoConsent: (value: boolean) => void;
   input: Intake;
   config: AppConfig | null;
@@ -31,6 +46,7 @@ export function Review({
   onEdit: (step: number) => void;
   onAnalyze: () => void;
   busy: boolean;
+  followup: boolean;
 }) {
   const [photoBusy, setPhotoBusy] = useState(false);
   const rows = [
@@ -41,6 +57,14 @@ export function Review({
       )!;
       return [q.title, f.value, Number(id)] as const;
     }),
+    ...intakeDetails(input).map(
+      ([title, value]) =>
+        [
+          title,
+          value,
+          title.includes("기사") || title.includes("상대방") ? 4 : 6,
+        ] as const,
+    ),
     ["추가 설명", input.description || "별도 설명 없음", 6],
     ...(input.building
       ? [
@@ -53,26 +77,69 @@ export function Review({
       : []),
     ["발견 시점", answerLabel("discovered", input.discovered), 1],
     ["입주 당시", answerLabel("preexisting", input.preexisting), 1],
-    ["시설", answerLabel("installed", input.installed), 2],
-    [
-      "원인 설명",
-      `${answerLabel("cause", input.cause)} · ${answerLabel("causeSource", input.causeSource)}`,
-      3,
-    ],
-    ["다른 주장", answerLabel("otherClaim", input.otherClaim), 3],
-    ...(input.contract
-      ? [["이전에 입력한 계약 문구", input.contract, 6] as const]
+    ...(input.issue !== "drain"
+      ? [["시설", answerLabel("installed", input.installed), 2] as const]
+      : []),
+    ...(hasReply(input) || input.details?.inspection === "yes"
+      ? [
+          [
+            "원인 설명",
+            input.cause === "unknown"
+              ? "미확인"
+              : `${answerLabel("cause", input.cause)} · ${answerLabel("causeSource", input.causeSource)}`,
+            3,
+          ] as const,
+        ]
+      : []),
+    ...(hasReply(input)
+      ? [["다른 주장", answerLabel("otherClaim", input.otherClaim), 3] as const]
+      : []),
+    ...(input.contract ? [["계약 특약", input.contract, 6] as const] : []),
+    ...(input.building
+      ? ([
+          [
+            "시설 교체·수리 이력",
+            {
+              yes: "이력을 알고 있어요",
+              no: "아는 이력이 없어요",
+              unknown: "모름",
+            }[input.building.repairHistory],
+            6,
+          ],
+          [
+            "관리 담당자",
+            {
+              yes: "연락 가능한 담당자가 있어요",
+              no: "아는 담당자가 없어요",
+              unknown: "모름",
+            }[input.building.manager],
+            6,
+          ],
+        ] as const)
       : []),
     ["위험 신호", answerLabel("safety", input.safety), 5],
     ["연락 상태", answerLabel("contact", input.contact), 4],
   ] as const;
   return (
     <>
-      <SectionTitle eyebrow="내용 검토" title="이 내용으로 확인할까요?">
+      <SectionTitle
+        eyebrow="3 / 3 · 자료·검토"
+        title={
+          followup
+            ? "추가 안내에 보낼 내용을 확인해 주세요"
+            : "이 내용으로 확인할까요?"
+        }
+      >
         <p>
           {issueNames[input.issue]} · 답변을 확인하고 필요한 부분을 수정하세요.
         </p>
       </SectionTitle>
+      {followup && (
+        <p className="notice">
+          아래 답변과 선택한 건물 정보로 다시 안내받아요. 이 화면에서 수정하고
+          처리 안내를 확인하세요. 기록장 첨부·연락 일지·문구는 기기에 보관돼요.
+        </p>
+      )}
       <dl className="review-list">
         {rows.map(([title, value, step]) => (
           <div key={title}>
@@ -96,6 +163,27 @@ export function Review({
           onBusy={setPhotoBusy}
         />
       )}
+      {photos.length > 0 && missingPhotoViews(input).length > 0 && (
+        <details className="processing-notice">
+          <summary>이미 찍었거나 갖고 있는 자료 표시 (선택)</summary>
+          {missingPhotoViews(input).map((view) => (
+            <label className="checkbox" key={view}>
+              <input
+                type="checkbox"
+                checked={coveredPhotos.includes(view)}
+                onChange={(e) =>
+                  onCoveredPhotos(
+                    e.target.checked
+                      ? [...coveredPhotos, view]
+                      : coveredPhotos.filter((v) => v !== view),
+                  )
+                }
+              />
+              {photoViewLabels[view]}
+            </label>
+          ))}
+        </details>
+      )}
       {photos.length > 0 && (
         <label className="checkbox photo-consent">
           <input
@@ -104,9 +192,9 @@ export function Review({
             onChange={(e) => onPhotoConsent(e.target.checked)}
           />
           <span>
-            사진 {photos.length}장을 OpenAI로 보내 분석하는 데 동의해요. 사진
-            원본은 방로그 DB에 저장하지 않으며 관찰 결과는 기존 결과·회원 기록과
-            함께 저장될 수 있어요. 사진의 개인정보는 자동으로 가려지지 않아요.
+            {config?.ai === "mock"
+              ? `사진 ${photos.length}장을 개발 서버에 보내는 데 동의해요. 개발용 모의 분석이며 OpenAI는 호출하지 않아요.`
+              : `사진 ${photos.length}장을 OpenAI로 보내는 데 동의해요. 사진의 관찰 결과와 기기 오류코드·제조연도, 직접 확인한 값은 결과·회원 기록에 저장될 수 있어요. 방로그 서버는 사진 원본을 저장하지 않아요. 가릴 내용은 첨부 전에 가려주세요.`}
           </span>
         </label>
       )}
@@ -119,7 +207,7 @@ export function Review({
         </strong>
         <p>
           {config?.ai === "live"
-            ? "가린 상황 설명·선택 답변·계약 문구를 OpenAI에 전송해요. store:false를 사용하며, 제공자의 악용 모니터링 기록은 기본 최대 30일 보관될 수 있어요. 학습용 사용은 기본 비활성화되어 있어요."
+            ? "가린 상황 설명·선택 답변·계약 문구와 확인한 점검 소견·상대방 답변을 OpenAI에 전송해요. store:false를 사용하며, 제공자의 악용 모니터링 기록은 기본 최대 30일 보관될 수 있어요. 학습용 사용은 기본 비활성화되어 있어요."
             : "외부 AI를 호출하지 않고 규칙에 따른 가상 결과를 만들어요."}
         </p>
         <p>
@@ -139,7 +227,7 @@ export function Review({
           <p>
             문제 유형·선택 증상·결과 분류별 일일 완료 건수를 집계해요. 집계에는
             식별자와 자유 입력 원문을 넣지 않으며 개별 기록 삭제 후에도 건수는
-            남아요. v1.4 팀 체험 기간에는 이 익명 집계를 공개 관리자 화면에서
+            남아요. v1.5 팀 체험 기간에는 이 익명 집계를 공개 관리자 화면에서
             누구나 볼 수 있어요.
           </p>
         )}
@@ -163,6 +251,7 @@ export function Review({
         <Button
           disabled={
             !accepted ||
+            hasDanger(input) ||
             busy ||
             photoBusy ||
             !config?.ready ||

@@ -1,4 +1,4 @@
-import type { PhotoUpload } from "../../shared/photo";
+import type { PhotoFollowup, PhotoUpload } from "../../shared/photo";
 import { createBrowserDemo } from "./browser-demo";
 import type {
   Analysis,
@@ -45,11 +45,17 @@ const serverApi = {
     key: string,
     signal: AbortSignal,
     photos?: PhotoUpload,
+    photoFollowup?: PhotoFollowup,
   ) {
     return analysisSchema.parse(
       await request<Analysis>("/analyses", {
         method: "POST",
-        body: JSON.stringify({ intake, idempotencyKey: key, photos }),
+        body: JSON.stringify({
+          intake,
+          idempotencyKey: key,
+          photos,
+          photoFollowup,
+        }),
         signal,
       }),
     );

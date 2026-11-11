@@ -46,10 +46,10 @@ test("drain: safe sink route, back navigation, input preservation, self-care bef
 }) => {
   await start(page);
   await select(page, "물이 천천히 내려가요");
+  await select(page, "지금 위험 신호는 없어요");
   await select(page, "세면대");
   await select(page, "이곳 한 군데만 그래요");
   await select(page, "넘치거나 주변으로 새지는 않아요");
-  await select(page, "지금 위험 신호는 없어요");
   await select(page, "배수구 약품은 넣지 않았어요");
   await expect(
     page.getByRole("heading", { name: "이미 해본 조치가 있나요?" }),
@@ -93,10 +93,10 @@ test("drain: chemical route skips tool questions and back navigation follows the
 }) => {
   await start(page);
   await select(page, "물이 잘 내려가지 않아요");
+  await select(page, "지금 위험 신호는 없어요");
   await select(page, "세면대");
   await select(page, "이곳 한 군데만 그래요");
   await select(page, "넘치거나 주변으로 새지는 않아요");
-  await select(page, "지금 위험 신호는 없어요");
   await select(page, "배수구 약품을 넣었어요");
   await expect(
     page.getByRole("heading", { name: "언제부터 있었던 문제인가요?" }),
@@ -123,10 +123,10 @@ test("drain: multiple backflow skips DIY and prioritizes stopping water", async 
 }) => {
   await start(page);
   await select(page, "물이 역류해요");
+  await select(page, "지금 위험 신호는 없어요");
   await select(page, "욕실 바닥 배수구");
   await select(page, "여러 배수구가 함께 그래요");
   await select(page, "물이 넘치거나 주변으로 새고 있어요");
-  await select(page, "지금 위험 신호는 없어요");
   await select(page, "배수구 약품은 넣지 않았어요");
   await expect(
     page.getByRole("heading", { name: "언제부터 있었던 문제인가요?" }),

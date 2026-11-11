@@ -1,5 +1,5 @@
 import type { Intake, Issue } from "./schema.js";
-export const questionVersion = "questions-1.3";
+export const questionVersion = "questions-1.5";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
   "언제부터 있었던 문제인가요?",
@@ -227,3 +227,75 @@ export const issueGuidance: Record<
     ],
   },
 };
+
+export const emptyDetails: NonNullable<Intake["details"]> = {
+  inspection: "unknown",
+  location: "",
+  discoveredAt: "",
+  impact: "",
+  technicianNote: "",
+  reply: "",
+};
+export function hasReply(input: Intake) {
+  return input.contact === "cost" || input.contact === "replied";
+}
+export function intakeDetails(input: Intake) {
+  const d = input.details;
+  if (!d) return [];
+  return [
+    ["문제 위치", d.location],
+    ["발견 시각", d.discoveredAt],
+    ["사용 지장", d.impact],
+    [
+      "기사 점검 여부",
+      d.inspection === "yes"
+        ? "받았어요"
+        : d.inspection === "no"
+          ? "받지 않았어요"
+          : "",
+    ],
+    ["사용자가 전한 기사 소견", d.inspection === "yes" ? d.technicianNote : ""],
+    ["사용자가 전한 상대방 답변", hasReply(input) ? d.reply : ""],
+  ].filter(([, value]) => value);
+}
+// Only normalize new UI answers, so the stored v1.4 intake shape remains readable.
+export function applyQuestionPatch(
+  input: Intake,
+  patch: Partial<Intake>,
+): Intake {
+  const next = { ...input, ...patch };
+  if (!hasReply(next) && ("contact" in patch || next.details)) {
+    next.otherClaim = "unknown";
+    if (next.causeSource === "landlord") {
+      next.cause = "unknown";
+      next.causeSource = "unknown";
+    }
+  }
+  if (next.details) {
+    next.details = {
+      ...next.details,
+      technicianNote:
+        next.details.inspection === "yes" ? next.details.technicianNote : "",
+      reply: hasReply(next) ? next.details.reply : "",
+    };
+    if (
+      next.details.inspection !== "yes" &&
+      next.causeSource === "technician"
+    ) {
+      next.cause = "unknown";
+      next.causeSource = "unknown";
+    }
+  }
+  if (
+    next.drain &&
+    (next.observation === "backflow" ||
+      next.drain.scope === "multiple" ||
+      next.drain.overflow === "yes" ||
+      next.drain.chemical !== "no") &&
+    (patch.drain || patch.observation === "backflow")
+  ) {
+    next.drain = { ...next.drain, attempted: "unknown" };
+  }
+  if (next.cause === "unknown") next.causeSource = "unknown";
+  return next;
+}

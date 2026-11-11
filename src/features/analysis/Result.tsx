@@ -1,29 +1,54 @@
-import { PhotoResult } from "../photos/PhotoResult";
+import {
+  InspectionChecklist,
+  type InspectionKey,
+} from "../repair/InspectionChecklist";
+import { PhotoCoaching, PhotoResult } from "../photos/PhotoResult";
 import { BuildingGuide } from "./BuildingGuide";
 import { DrainGuide } from "./DrainGuide";
 import { NextResponse } from "./NextResponse";
 import { ReferenceCards } from "../references/References";
-import type { Analysis, Issue } from "../../../shared/schema";
+import {
+  missingPhotoViews,
+  photoClarification,
+  type PhotoDevice,
+} from "../../../shared/photo";
+import type { Analysis, Intake, Issue } from "../../../shared/schema";
 import { Responsibility } from "./Responsibility";
 import { Button, SectionTitle } from "../../components/ui/Elements";
 import { SafetyNotice } from "../questions/Questions";
 export function Result({
   result,
   issue,
+  intake,
+  onPhotoConfirm,
+  onPhotoRetry,
+  photoBusy,
   onMessage,
   onEdit,
   onFeedback,
   onSave,
+  onRepair,
+  inspectionQuestions,
+  onInspectionQuestions,
 }: {
   result: Analysis;
   issue: Issue;
+  intake: Intake;
+  onPhotoConfirm?: (device: PhotoDevice) => void;
+  onPhotoRetry?: () => void;
+  photoBusy: boolean;
   onMessage: () => void;
   onEdit: () => void;
   onFeedback: () => void;
   onSave: () => void;
+  onRepair: () => void;
+  inspectionQuestions: InspectionKey[];
+  onInspectionQuestions: (keys: InspectionKey[]) => void;
 }) {
   const emergency = result.status === "safety_priority",
     outside = result.status === "out_of_scope";
+  const clarification =
+    !emergency && !outside && photoClarification(intake, result.photoAnalysis);
   return (
     <div className="result-screen">
       <SectionTitle
@@ -67,7 +92,31 @@ export function Result({
           </p>
         )}
       {emergency && <SafetyNotice />}
-      <PhotoResult photo={result.photoAnalysis} />
+      {result.photoAnalysis && (
+        <PhotoResult
+          key={result.analysisId}
+          photo={result.photoAnalysis}
+          onConfirm={emergency || outside ? undefined : onPhotoConfirm}
+          onRetry={emergency || outside ? undefined : onPhotoRetry}
+          busy={photoBusy}
+        />
+      )}
+      {!emergency && !outside && (
+        <PhotoCoaching
+          issue={issue}
+          expanded={result.photoAnalysis?.source === "openai"}
+          suggestions={
+            result.photoAnalysis?.missingPhotoGuide ??
+            (result.photoAnalysis ? undefined : missingPhotoViews(intake))
+          }
+        />
+      )}
+      {clarification && (
+        <section className="result-card">
+          <h2>사진과 함께 확인할 내용</h2>
+          <p>{clarification}</p>
+        </section>
+      )}
       <DrainGuide result={result} />
       <section className="result-lead">
         <p className="eyebrow">
@@ -88,7 +137,6 @@ export function Result({
         </h2>
         <p>{result.repairRequest.reason}</p>
       </section>
-      <Responsibility result={result} issue={issue} />
       <BuildingGuide result={result} />
       {result.aiExplanation && !result.fallback && (
         <section className="result-card">
@@ -109,6 +157,7 @@ export function Result({
           </ol>
         </section>
       )}
+      <Responsibility result={result} issue={issue} />
       {result.messageDraft && (
         <div className="result-action">
           <Button onClick={onMessage}>
@@ -122,6 +171,17 @@ export function Result({
             문구를 확인·수정하고 직접 전달하세요. 자동 발송되지 않아요.
           </p>
         </div>
+      )}
+      {!emergency && !outside && (
+        <>
+          <Button secondary onClick={onRepair}>
+            이 상황을 수선 기록으로 이어가기
+          </Button>
+          <InspectionChecklist
+            selected={inspectionQuestions}
+            onChange={onInspectionQuestions}
+          />
+        </>
       )}
       <button className="button secondary result-save" onClick={onSave}>
         내 기록에 저장
