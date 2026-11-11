@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const example = {
-  version: "1.3.0",
+  version: "1.4.0",
   days: 30,
   checkedAt: "2026-11-03T12:00:00Z",
   usage: [{ day: "2026-11-03", issue: "drain", mode: "live", count: 2 }],
@@ -32,7 +32,7 @@ const example = {
     },
   ],
 };
-test("v1.3 home invites login and keeps collapsed status below main content", async ({
+test("v1.4 home invites login and keeps collapsed status below main content", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -53,7 +53,7 @@ test("v1.3 home invites login and keeps collapsed status below main content", as
     statusCalls++;
     return r.fulfill({
       json: {
-        version: "1.3.0",
+        version: "1.4.0",
         api: "connected",
         database: "connected",
         checkedAt: new Date().toISOString(),
@@ -73,7 +73,7 @@ test("v1.3 home invites login and keeps collapsed status below main content", as
   await expect(
     page.getByRole("heading", { name: "로그인해서 기록을 확인해 보세요" }),
   ).toBeVisible();
-  await expect(page.locator(".mode-label")).toHaveText("v1.3");
+  await expect(page.locator(".mode-label")).toHaveText("v1.4");
   const status = page
     .locator(".app-footer")
     .getByRole("button", { name: "연결 상태 확인" });
@@ -87,7 +87,7 @@ test("v1.3 home invites login and keeps collapsed status below main content", as
     fullPage: true,
   });
   await status.click();
-  await expect(page.getByText("v1.3.0", { exact: true })).toBeVisible();
+  await expect(page.getByText("v1.4.0", { exact: true })).toBeVisible();
   expect(statusCalls).toBe(1);
   await page
     .getByRole("button", { name: "로그인하고 기록 보기", exact: true })

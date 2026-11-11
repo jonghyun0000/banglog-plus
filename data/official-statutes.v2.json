@@ -1,0 +1,209 @@
+{
+  "version": "official-statutes-2026-11-11.v2",
+  "sources": [
+    {
+      "id": "civil-623",
+      "version": "2026-03-17.official-2026-11-10.v1",
+      "title": "민법 제623조 · 임대인의 의무",
+      "institution": "국가법령정보센터 / 법무부",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0623&lsiSeq=284415&urlMode=lsScJoRltInfoR",
+      "location": "제623조",
+      "checkedAt": "2026-11-10",
+      "effectiveDate": "2026-03-17",
+      "technicalStatus": "verified",
+      "humanLegalReview": "pending",
+      "use": "general",
+      "reviewBasis": "official_statute",
+      "scope": "수리 요청의 일반 원칙만 안내. 사소한 수리·특약·사용상 과실·원인을 별도로 확인하며 전액 배상이나 책임 비율을 도출하지 않음.",
+      "issues": ["mold", "leak", "boiler", "surface", "drain", "fixture"],
+      "reviewEvidence": {
+        "crossCheckUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=4&cciNo=2&cnpClsNo=3&csmSeq=1171&menuType=cnpcls&popMenu=ov",
+        "permissionEvidenceUrl": "https://www.law.go.kr/lsLinkProc.do?joNo=000700&lsClsCd=L&lsNm=%EC%A0%80%EC%9E%91%EA%B6%8C%EB%B2%95&mode=11",
+        "originalSha256": "d6475b5032a8ecc401344a38aae67bfe3e4786983a0e22413caac85f9ca3c0a4",
+        "reviewerType": "ai_source_comparison"
+      }
+    },
+    {
+      "id": "civil-634",
+      "version": "2026-03-17.official-2026-11-10.v1",
+      "title": "민법 제634조 · 임차인의 통지의무",
+      "institution": "국가법령정보센터 / 법무부",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0634&lsiSeq=284415&urlMode=lsScJoRltInfoR",
+      "location": "제634조",
+      "checkedAt": "2026-11-10",
+      "effectiveDate": "2026-03-17",
+      "technicalStatus": "verified",
+      "humanLegalReview": "pending",
+      "use": "general",
+      "reviewBasis": "official_statute",
+      "scope": "통지와 기록 보존의 일반 안내. 관리 담당자 연락이 임대인 통지를 항상 대체한다고 보지 않음. 늦게 알렸다고 모든 권리 상실·전액 과실로 단정하지 않음.",
+      "issues": ["mold", "leak", "boiler", "surface", "drain", "fixture"],
+      "reviewEvidence": {
+        "crossCheckUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=4&cciNo=2&cnpClsNo=3&csmSeq=1171&menuType=cnpcls&popMenu=ov",
+        "permissionEvidenceUrl": "https://www.law.go.kr/lsLinkProc.do?joNo=000700&lsClsCd=L&lsNm=%EC%A0%80%EC%9E%91%EA%B6%8C%EB%B2%95&mode=11",
+        "originalSha256": "e1bd67302045c8fc7e7130705a2e24d99d944ce7203b001eae0e5f0efd85eaf7",
+        "reviewerType": "ai_source_comparison"
+      }
+    },
+    {
+      "id": "civil-626",
+      "version": "2026-03-17.official-2026-11-10.v1",
+      "title": "민법 제626조 · 임차인의 상환청구권",
+      "institution": "국가법령정보센터 / 법무부",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0626&lsiSeq=284415&urlMode=lsScJoRltInfoR",
+      "location": "제626조 제1항",
+      "checkedAt": "2026-11-10",
+      "effectiveDate": "2026-03-17",
+      "technicalStatus": "verified",
+      "humanLegalReview": "pending",
+      "use": "general",
+      "reviewBasis": "official_statute",
+      "scope": "제1항 필요비에 한정. 모든 수리비 반환 보장, 먼저 결제 권유, 임의 월세 공제 금지. 비용 필요성·원인·특약·증빙 확인과 협의 안내에만 사용.",
+      "issues": ["mold", "leak", "boiler", "surface", "drain", "fixture"],
+      "reviewEvidence": {
+        "crossCheckUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=4&cciNo=2&cnpClsNo=3&csmSeq=1171&menuType=cnpcls&popMenu=ov",
+        "permissionEvidenceUrl": "https://www.law.go.kr/lsLinkProc.do?joNo=000700&lsClsCd=L&lsNm=%EC%A0%80%EC%9E%91%EA%B6%8C%EB%B2%95&mode=11",
+        "originalSha256": "8e93d9fde597c60d0cd13d577476275e0252fa5a000bb4e45fde32439a0aa7e1",
+        "reviewerType": "ai_source_comparison"
+      }
+    },
+    {
+      "id": "civil-615",
+      "version": "2026-03-17.official-2026-11-11.v2",
+      "title": "민법 제615조 · 차주의 원상회복의무와 철거권",
+      "institution": "국가법령정보센터 / 법무부",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0615&lsiSeq=284415&urlMode=lsScJoRltInfoR",
+      "location": "제615조",
+      "checkedAt": "2026-11-11",
+      "effectiveDate": "2026-03-17",
+      "technicalStatus": "verified",
+      "humanLegalReview": "pending",
+      "use": "general",
+      "reviewBasis": "official_statute",
+      "scope": "민법 제615조와 제654조를 함께 읽는 원상회복 일반 안내. 입주·반환 당시 상태와 기존 하자·특약·공제 사유를 확인한다. 전액 교체비·과실 비율·자동 보증금 공제를 도출하지 않는다.",
+      "issues": ["surface", "fixture"],
+      "reviewEvidence": {
+        "crossCheckUrl": "https://www.law.go.kr/법령/민법/제654조",
+        "permissionEvidenceUrl": "https://www.law.go.kr/lsLinkProc.do?joNo=000700&lsClsCd=L&lsNm=%EC%A0%80%EC%9E%91%EA%B6%8C%EB%B2%95&mode=11",
+        "originalSha256": "06a25f0be4857611639e10b1d90ccbd5122aba9e67bb82a24ee0587d7fe9ff52",
+        "reviewerType": "ai_source_comparison"
+      }
+    },
+    {
+      "id": "civil-654",
+      "version": "2026-03-17.official-2026-11-11.v2",
+      "title": "민법 제654조 · 준용규정",
+      "institution": "국가법령정보센터 / 법무부",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0654&lsiSeq=284415&urlMode=lsScJoRltInfoR",
+      "location": "제654조",
+      "checkedAt": "2026-11-11",
+      "effectiveDate": "2026-03-17",
+      "technicalStatus": "verified",
+      "humanLegalReview": "pending",
+      "use": "general",
+      "reviewBasis": "official_statute",
+      "scope": "민법 제615조와 제654조를 함께 읽는 원상회복 일반 안내. 입주·반환 당시 상태와 기존 하자·특약·공제 사유를 확인한다. 전액 교체비·과실 비율·자동 보증금 공제를 도출하지 않는다.",
+      "issues": ["surface", "fixture"],
+      "reviewEvidence": {
+        "crossCheckUrl": "https://www.law.go.kr/법령/민법/제615조",
+        "permissionEvidenceUrl": "https://www.law.go.kr/lsLinkProc.do?joNo=000700&lsClsCd=L&lsNm=%EC%A0%80%EC%9E%91%EA%B6%8C%EB%B2%95&mode=11",
+        "originalSha256": "8d2b17cf5347a7218743c32f63e833aa4803b07ad6e752478458375e421d0b5c",
+        "reviewerType": "ai_source_comparison"
+      }
+    }
+  ],
+  "chunks": [
+    {
+      "id": "official-civil-623-v2",
+      "sourceId": "civil-623",
+      "sourceVersion": "2026-03-17.official-2026-11-10.v1",
+      "claimId": "official-623",
+      "claim": "임대인에게 사용에 지장이 있는 증상과 점검·수리를 요청할 수 있어요. 이 조문만으로 원인이나 모든 비용의 부담을 확정하지 않아요.",
+      "text": "[공식 조문 원문] 임대인은 목적물을 임차인에게 인도하고 계약존속중 그 사용, 수익에 필요한 상태를 유지하게 할 의무를 부담한다.\n[안내 범위] 수리 요청의 일반 원칙만 안내. 사소한 수리·특약·사용상 과실·원인을 별도로 확인하며 전액 배상이나 책임 비율을 도출하지 않음.",
+      "issues": ["mold", "leak", "boiler", "surface", "drain", "fixture"],
+      "keywords": ["수리", "고장", "점검", "누수", "배수", "곰팡이"],
+      "observations": [],
+      "originalText": "임대인은 목적물을 임차인에게 인도하고 계약존속중 그 사용, 수익에 필요한 상태를 유지하게 할 의무를 부담한다.",
+      "originalSha256": "d6475b5032a8ecc401344a38aae67bfe3e4786983a0e22413caac85f9ca3c0a4"
+    },
+    {
+      "id": "official-civil-634-v2",
+      "sourceId": "civil-634",
+      "sourceVersion": "2026-03-17.official-2026-11-10.v1",
+      "claimId": "official-634",
+      "claim": "수리가 필요한 사실을 알게 되면 임대인에게 지체 없이 알려야 해요. 임대인이 이미 알고 있는 경우는 예외이며, 발견 시점과 연락 내용을 남겨 두면 상황 확인에 도움이 돼요.",
+      "text": "[공식 조문 원문] 임차물의 수리를 요하거나 임차물에 대하여 권리를 주장하는 자가 있는 때에는 임차인은 지체없이 임대인에게 이를 통지하여야 한다. 그러나 임대인이 이미 이를 안 때에는 그러하지 아니하다.\n[안내 범위] 통지와 기록 보존의 일반 안내. 관리 담당자 연락이 임대인 통지를 항상 대체한다고 보지 않음. 늦게 알렸다고 모든 권리 상실·전액 과실로 단정하지 않음.",
+      "issues": ["mold", "leak", "boiler", "surface", "drain", "fixture"],
+      "keywords": ["연락", "통지", "답변", "사진", "발견", "관리"],
+      "observations": [],
+      "originalText": "임차물의 수리를 요하거나 임차물에 대하여 권리를 주장하는 자가 있는 때에는 임차인은 지체없이 임대인에게 이를 통지하여야 한다. 그러나 임대인이 이미 이를 안 때에는 그러하지 아니하다.",
+      "originalSha256": "e1bd67302045c8fc7e7130705a2e24d99d944ce7203b001eae0e5f0efd85eaf7"
+    },
+    {
+      "id": "official-civil-626-v2",
+      "sourceId": "civil-626",
+      "sourceVersion": "2026-03-17.official-2026-11-10.v1",
+      "claimId": "official-626",
+      "claim": "임차물이 보존되는 데 필요한 비용을 지출했다면 상환을 청구할 수 있다는 규정이 있어요. 실제로 필요비에 해당하는지와 계약 내용·지출 증빙을 확인해야 해요.",
+      "text": "[공식 조문 원문] ①임차인이 임차물의 보존에 관한 필요비를 지출한 때에는 임대인에 대하여 그 상환을 청구할 수 있다.\n[안내 범위] 제1항 필요비에 한정. 모든 수리비 반환 보장, 먼저 결제 권유, 임의 월세 공제 금지. 비용 필요성·원인·특약·증빙 확인과 협의 안내에만 사용.",
+      "issues": ["mold", "leak", "boiler", "surface", "drain", "fixture"],
+      "keywords": ["비용", "견적", "영수증", "수리비", "청구", "지출"],
+      "observations": [],
+      "originalText": "①임차인이 임차물의 보존에 관한 필요비를 지출한 때에는 임대인에 대하여 그 상환을 청구할 수 있다.",
+      "originalSha256": "8e93d9fde597c60d0cd13d577476275e0252fa5a000bb4e45fde32439a0aa7e1"
+    },
+    {
+      "id": "official-civil-615-v2",
+      "sourceId": "civil-615",
+      "sourceVersion": "2026-03-17.official-2026-11-11.v2",
+      "claimId": "official-615",
+      "claim": "민법 제654조에 따라 임대차에도 제615조의 원상회복 규정이 준용돼요. 입주·반환 상태와 특약·공제 사유를 함께 확인하고, 이 조문만으로 전액 교체비나 책임 비율을 정하지 않아요.",
+      "text": "[공식 조문 원문] 차주가 차용물을 반환하는 때에는 이를 원상에 회복하여야 한다. 이에 부속시킨 물건은 철거할 수 있다.\n[안내 범위] 민법 제615조와 제654조를 함께 읽는 원상회복 일반 안내. 입주·반환 당시 상태와 기존 하자·특약·공제 사유를 확인한다. 전액 교체비·과실 비율·자동 보증금 공제를 도출하지 않는다.",
+      "issues": ["surface", "fixture"],
+      "keywords": [
+        "벽지",
+        "장판",
+        "퇴실",
+        "보증금",
+        "공제",
+        "원상회복",
+        "입주",
+        "특약"
+      ],
+      "observations": [],
+      "originalText": "차주가 차용물을 반환하는 때에는 이를 원상에 회복하여야 한다. 이에 부속시킨 물건은 철거할 수 있다.",
+      "originalSha256": "06a25f0be4857611639e10b1d90ccbd5122aba9e67bb82a24ee0587d7fe9ff52"
+    },
+    {
+      "id": "official-civil-654-v2",
+      "sourceId": "civil-654",
+      "sourceVersion": "2026-03-17.official-2026-11-11.v2",
+      "claimId": "official-654",
+      "claim": "민법 제654조에 따라 임대차에도 제615조의 원상회복 규정이 준용돼요. 입주·반환 상태와 특약·공제 사유를 함께 확인하고, 이 조문만으로 전액 교체비나 책임 비율을 정하지 않아요.",
+      "text": "[공식 조문 원문] 제610조제1항, 제615조 내지 제617조의 규정은 임대차에 이를 준용한다.\n[안내 범위] 민법 제615조와 제654조를 함께 읽는 원상회복 일반 안내. 입주·반환 당시 상태와 기존 하자·특약·공제 사유를 확인한다. 전액 교체비·과실 비율·자동 보증금 공제를 도출하지 않는다.",
+      "issues": ["surface", "fixture"],
+      "keywords": [
+        "벽지",
+        "장판",
+        "퇴실",
+        "보증금",
+        "공제",
+        "원상회복",
+        "입주",
+        "특약"
+      ],
+      "observations": [],
+      "originalText": "제610조제1항, 제615조 내지 제617조의 규정은 임대차에 이를 준용한다.",
+      "originalSha256": "8d2b17cf5347a7218743c32f63e833aa4803b07ad6e752478458375e421d0b5c"
+    }
+  ],
+  "verification": {
+    "checkedAt": "2026-11-10",
+    "reviewerType": "ai_source_comparison",
+    "humanLegalReview": "pending",
+    "crossCheckUrl": "https://easylaw.go.kr/CSP/CnpClsMainBtr.laf?ccfNo=4&cciNo=2&cnpClsNo=3&csmSeq=1171&menuType=cnpcls&popMenu=ov",
+    "permissionEvidenceUrl": "https://www.law.go.kr/lsLinkProc.do?joNo=000700&lsClsCd=L&lsNm=%EC%A0%80%EC%9E%91%EA%B6%8C%EB%B2%95&mode=11",
+    "permissionBasis": "저작권법 제7조 제1호의 법률 원문. 원문 및 자체 작성한 제한적 안내만 저장·전달하며 해설 사이트 본문은 복제하지 않음.",
+    "limitations": "공식 사이트 간 조문·취지 대조이며 독립된 법률가 검토 아님. 개별 사건 판례나 배상책임 확정 자료 아님."
+  }
+}

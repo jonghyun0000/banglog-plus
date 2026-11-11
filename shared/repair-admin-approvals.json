@@ -1,0 +1,65 @@
+[
+  {
+    "sourceId": "repair-civil-623",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-civil-623\",\"2026-11-11.v1\",\"민법 제623조 · 수선 요청\",\"https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0623&lsiSeq=284415&urlMode=lsScJoRltInfoR\",\"2026-03-17\",\"2026-11-11\",\"수선 요청의 일반 근거. 모든 고장 비용을 임대인 부담으로 확정하지 않음.\",\"사용에 지장이 있는 상태와 수선 요청을 기록한다.\"]"
+  },
+  {
+    "sourceId": "repair-civil-634",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-civil-634\",\"2026-11-11.v1\",\"민법 제634조 · 통지와 이미 알고 있던 경우\",\"https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0634&lsiSeq=284415&urlMode=lsScJoRltInfoR\",\"2026-03-17\",\"2026-11-11\",\"앱 저장은 실제 통지가 아님. 임대인이 이미 알았다는 정황도 사용자 진술과 증거를 구분.\",\"통지 시점·방법을 기록하고 임대인이 이미 알고 있던 경우의 예외를 구분한다.\"]"
+  },
+  {
+    "sourceId": "repair-civil-654",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-civil-654\",\"2026-11-11.v1\",\"민법 제654조 · 임대차 준용\",\"https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0654&lsiSeq=284415&urlMode=lsScJoRltInfoR\",\"2026-03-17\",\"2026-11-11\",\"615조와 함께 검토. 전액 교체비·과실 비율 산정 불가.\",\"제615조 등을 임대차에 준용하는 관계를 확인한다.\"]"
+  },
+  {
+    "sourceId": "repair-civil-615",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-civil-615\",\"2026-11-11.v1\",\"민법 제615조 · 원상회복\",\"https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0615&lsiSeq=284415&urlMode=lsScJoRltInfoR\",\"2026-03-17\",\"2026-11-11\",\"기존 하자·통상 마모·특약을 확인하며 사진 부재를 책임 인정으로 취급하지 않음.\",\"입주와 반환 당시 같은 위치의 상태를 비교한다.\"]"
+  },
+  {
+    "sourceId": "repair-civil-626",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-civil-626\",\"2026-11-11.v1\",\"민법 제626조 제1항 · 필요비 상환\",\"https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0626&lsiSeq=284415&urlMode=lsScJoRltInfoR\",\"2026-03-17\",\"2026-11-11\",\"제1항에 한정. 모든 지출의 상환을 보장하지 않고 유익비와 구분.\",\"보존에 필요한 지출의 영수증·견적·업체 소견을 모은다.\"]"
+  },
+  {
+    "sourceId": "repair-adr-32",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-adr-32\",\"2026-11-11.v1\",\"욕실·세탁실 누수 조정사례\",\"https://adrhome.reb.or.kr/adrhome/reb/LO010100/bbs/View.do?Key=10404000000002022101718&boardIdx=32&boardNo=11\",null,\"2026-11-11\",\"2022-07-14 게시 조정사례. 법원 판결·일반화된 책임 기준이 아니며 기록 체크리스트로만 활용.\",\"최초 발견·재발·통지·업체 점검 기록을 확인한다.\"]"
+  },
+  {
+    "sourceId": "repair-adr-30",
+    "approvalType": "administrator_single",
+    "administratorId": "project-owner-jonghyun",
+    "administratorName": "이종현",
+    "approvedAt": "2026-11-11",
+    "authorization": "사용자 명시 요청: 관리자 단독승인이야.",
+    "snapshot": "[\"repair-adr-30\",\"2026-11-11.v1\",\"보증금 반환·원상회복 조정사례\",\"https://adrhome.reb.or.kr/adrhome/reb/LO010100/bbs/View.do?Key=10404000000002022101718&boardIdx=30&boardNo=11\",null,\"2026-11-11\",\"2022-07-14 게시 조정사례. 법원 판결·일반화된 책임 기준이 아니며 기록 체크리스트로만 활용.\",\"입주 상태·통상적인 마모 여부·특약·공제 사유를 확인한다.\"]"
+  }
+]

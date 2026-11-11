@@ -48,3 +48,15 @@ it("rejects modified metadata, scope and issue applicability", () => {
   ).toBe(false);
   expect(isVerifiedOfficialRow({ ...row, issues: ["mold"] })).toBe(false);
 });
+
+it("limits new restoration statutes to their approved scopes", () => {
+  expect(officialSources).toHaveLength(5);
+  for (const id of ["civil-615", "civil-654"]) {
+    const source = officialSources.find((s) => s.id === id)!;
+    expect(source.issues).toEqual(["surface", "fixture"]);
+    expect(source.humanLegalReview).toBe("pending");
+    expect(source.scope).toContain("615");
+    expect(source.scope).toContain("654");
+  }
+  expect(officialSources.some((s) => s.id.includes("adr"))).toBe(false);
+});

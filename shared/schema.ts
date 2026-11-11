@@ -318,7 +318,7 @@ export const analyzeRequestSchema = z
     photos: photoUploadSchema.optional(),
   })
   .strict();
-export const consentVersion = "2026-11-10.v4";
+export const consentVersion = "2026-11-11.v5";
 export const eventSchema = z.enum([
   "start",
   "questions_complete",
