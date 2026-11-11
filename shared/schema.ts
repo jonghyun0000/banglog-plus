@@ -1,4 +1,8 @@
-import { photoResultSchema, photoUploadSchema } from "./photo.js";
+import {
+  photoFollowupSchema,
+  photoResultSchema,
+  photoUploadSchema,
+} from "./photo.js";
 import { buildingSchema, buildingGuideSchema } from "./building.js";
 import { z } from "zod";
 export const issueSchema = z.enum([
@@ -327,9 +331,19 @@ export const analyzeRequestSchema = z
     intake: intakeSchema,
     idempotencyKey: z.string().uuid(),
     photos: photoUploadSchema.optional(),
+    photoFollowup: photoFollowupSchema.optional(),
   })
-  .strict();
-export const consentVersion = "2026-11-11.v6";
+  .strict()
+  .refine(
+    ({ photos, photoFollowup }) =>
+      photoFollowup?.action === "retry"
+        ? !!photos
+        : photoFollowup?.action === "confirm"
+          ? !photos
+          : true,
+    "사진 재분석과 기기 정보 확인의 입력을 확인해 주세요.",
+  );
+export const consentVersion = "2026-11-11.v7";
 export const eventSchema = z.enum([
   "start",
   "questions_complete",

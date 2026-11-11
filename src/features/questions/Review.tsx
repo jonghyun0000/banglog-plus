@@ -1,4 +1,9 @@
 import { useState } from "react";
+import {
+  missingPhotoViews,
+  photoViewLabels,
+  type PhotoView,
+} from "../../../shared/photo";
 import { PhotoUpload } from "../photos/PhotoUpload";
 import { drainFacts, drainQuestions } from "../../../shared/drain";
 import type { AppConfig, Intake } from "../../../shared/schema";
@@ -25,10 +30,14 @@ export function Review({
   onPhotos,
   photoConsent,
   onPhotoConsent,
+  coveredPhotos,
+  onCoveredPhotos,
 }: {
   photos: string[];
   onPhotos: (images: string[]) => void;
   photoConsent: boolean;
+  coveredPhotos: PhotoView[];
+  onCoveredPhotos: (views: PhotoView[]) => void;
   onPhotoConsent: (value: boolean) => void;
   input: Intake;
   config: AppConfig | null;
@@ -154,6 +163,27 @@ export function Review({
           onBusy={setPhotoBusy}
         />
       )}
+      {photos.length > 0 && missingPhotoViews(input).length > 0 && (
+        <details className="processing-notice">
+          <summary>이미 찍었거나 갖고 있는 자료 표시 (선택)</summary>
+          {missingPhotoViews(input).map((view) => (
+            <label className="checkbox" key={view}>
+              <input
+                type="checkbox"
+                checked={coveredPhotos.includes(view)}
+                onChange={(e) =>
+                  onCoveredPhotos(
+                    e.target.checked
+                      ? [...coveredPhotos, view]
+                      : coveredPhotos.filter((v) => v !== view),
+                  )
+                }
+              />
+              {photoViewLabels[view]}
+            </label>
+          ))}
+        </details>
+      )}
       {photos.length > 0 && (
         <label className="checkbox photo-consent">
           <input
@@ -162,9 +192,9 @@ export function Review({
             onChange={(e) => onPhotoConsent(e.target.checked)}
           />
           <span>
-            사진 {photos.length}장을 OpenAI로 보내 분석하는 데 동의해요. 사진
-            원본은 방로그 DB에 저장하지 않으며 관찰 결과는 기존 결과·회원 기록과
-            함께 저장될 수 있어요. 사진의 개인정보는 자동으로 가려지지 않아요.
+            {config?.ai === "mock"
+              ? `사진 ${photos.length}장을 개발 서버에 보내는 데 동의해요. 개발용 모의 분석이며 OpenAI는 호출하지 않아요.`
+              : `사진 ${photos.length}장을 OpenAI로 보내는 데 동의해요. 사진의 관찰 결과와 기기 오류코드·제조연도, 직접 확인한 값은 결과·회원 기록에 저장될 수 있어요. 방로그 서버는 사진 원본을 저장하지 않아요. 가릴 내용은 첨부 전에 가려주세요.`}
           </span>
         </label>
       )}

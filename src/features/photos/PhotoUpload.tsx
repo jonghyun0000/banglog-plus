@@ -116,6 +116,9 @@ export function PhotoUpload({
           {error}
         </p>
       )}
+      {images.length > 0 && !busy && (
+        <p role="status">사진 {images.length}장 첨부 완료</p>
+      )}
       <div className="photo-previews">
         {images.map((src, index) => (
           <div key={index}>
@@ -132,8 +135,8 @@ export function PhotoUpload({
         ))}
       </div>
       <p className="small">
-        사진은 자동으로 개인정보를 가리지 않아요. 얼굴·이름·주소·문서는 빼고
-        첨부하세요. 사진 없이도 기존 안내를 받을 수 있어요.
+        사진을 선택하기 전에 얼굴·이름·주소·연락처·제품번호·QR을 가리거나
+        잘라내세요. 기기 라벨은 제조연월만 보이게 찍어 주세요.
       </p>
     </section>
   );

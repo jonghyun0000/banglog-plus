@@ -937,7 +937,15 @@ export function RepairWorkspace({
                     <pre>{guide.draft}</pre>
                   </details>
                 ))}
-                <PhotoCoaching issue={record.guides.at(-1)!.intake.issue} />
+                {record.guides.at(-1)!.result.status !== "safety_priority" && (
+                  <PhotoCoaching
+                    issue={record.guides.at(-1)!.intake.issue}
+                    suggestions={
+                      record.guides.at(-1)!.result.photoAnalysis
+                        ?.missingPhotoGuide
+                    }
+                  />
+                )}
                 <Button
                   secondary
                   onClick={() => {

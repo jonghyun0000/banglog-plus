@@ -1,3 +1,9 @@
+import type {
+  PhotoDevice,
+  PhotoFollowup,
+  PhotoUpload,
+  PhotoView,
+} from "../../shared/photo";
 import { releaseLabel } from "../../shared/release";
 import { repairMessage } from "../../shared/analysis";
 import { canLinkGuide, type RepairImport } from "../../shared/repair-guide";
@@ -78,6 +84,13 @@ export default function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoConsent, setPhotoConsent] = useState(false);
+  const [coveredPhotos, setCoveredPhotos] = useState<PhotoView[]>([]);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoRequest = useRef<{
+    signature: string;
+    key: string;
+    version: number;
+  } | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -133,6 +146,7 @@ export default function App() {
         pending.current = null;
         busy.current = false;
         setPreparing(false);
+        setPhotoBusy(false);
       }
       const target = event.state as Location | null;
       setLocation(
@@ -171,6 +185,8 @@ export default function App() {
     setAccepted(false);
     setPhotos([]);
     setPhotoConsent(false);
+    setCoveredPhotos([]);
+    photoRequest.current = null;
     editingQuestion.current = false;
     version.current++;
     setInput({
@@ -182,6 +198,15 @@ export default function App() {
     });
     setResult(null);
     go("questions");
+  }
+  function photoPayload(): PhotoUpload | undefined {
+    return photos.length && photoConsent
+      ? {
+          consent: true,
+          images: photos,
+          ...(coveredPhotos.length ? { covered: coveredPhotos } : {}),
+        }
+      : undefined;
   }
   async function analyze() {
     if (hasDanger(input)) {
@@ -205,9 +230,7 @@ export default function App() {
         sanitizeIntake(input),
         key,
         controller.signal,
-        photos.length && photoConsent
-          ? { consent: true, images: photos }
-          : undefined,
+        photoPayload(),
       );
       if (pending.current?.key !== key) return;
       setResult(response);
@@ -224,6 +247,86 @@ export default function App() {
       busy.current = false;
       setPreparing(false);
       pending.current = null;
+    }
+  }
+  async function updatePhoto(device?: PhotoDevice) {
+    const previous = result;
+    if (!previous?.photoAnalysis || busy.current || !accepted) return;
+    const upload = device ? undefined : photoPayload();
+    if (!device && (!upload || previous.photoAnalysis.retryAttempted)) return;
+    const action: PhotoFollowup = device
+      ? { action: "confirm", analysisId: previous.analysisId, device }
+      : { action: "retry", analysisId: previous.analysisId };
+    const signature = JSON.stringify(action);
+    if (photoRequest.current?.signature !== signature)
+      photoRequest.current = {
+        signature,
+        key: device ? crypto.randomUUID() : previous.analysisId,
+        version: ++version.current,
+      };
+    const { key, version: nextVersion } = photoRequest.current;
+    const controller = new AbortController();
+    const request = { key, controller };
+    pending.current = request;
+    busy.current = true;
+    setPhotoBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const nextInput = sanitizeIntake({ ...input, inputVersion: nextVersion });
+      const response = await api.analyze(
+        nextInput,
+        key,
+        controller.signal,
+        upload,
+        action,
+      );
+      if (pending.current !== request) return;
+      if (
+        response.photoAnalysis?.status === "failed" ||
+        (response.fallback && !previous.fallback)
+      ) {
+        setNotice(
+          "다시 확인하지 못했어요. 앞서 받은 안내와 문구를 계속 이용할 수 있어요.",
+        );
+        if (!device)
+          setResult((existing) =>
+            existing?.analysisId === previous.analysisId &&
+            existing.photoAnalysis
+              ? {
+                  ...existing,
+                  photoAnalysis: {
+                    ...existing.photoAnalysis,
+                    retryAttempted: true,
+                  },
+                }
+              : existing,
+          );
+        return;
+      }
+      setInput(nextInput);
+      setDraft((existing) =>
+        existing?.id === previous.analysisId
+          ? { ...existing, id: response.analysisId }
+          : existing,
+      );
+      setResult(response);
+      setNotice(
+        device
+          ? "확인한 기기 정보를 안내에 반영했어요."
+          : "사진과 수리 안내를 다시 확인했어요.",
+      );
+    } catch {
+      if (!controller.signal.aborted)
+        setError(
+          "다시 확인하지 못했어요. 앞서 받은 안내와 문구를 계속 이용할 수 있어요.",
+        );
+    } finally {
+      if (pending.current === request) {
+        pending.current = null;
+        busy.current = false;
+        setPhotoBusy(false);
+      }
     }
   }
   async function cancel() {
@@ -265,6 +368,8 @@ export default function App() {
       setInput({ ...defaultIntake });
       setPhotos([]);
       setPhotoConsent(false);
+      setCoveredPhotos([]);
+      photoRequest.current = null;
       version.current = 1;
       setAccepted(false);
       setDeleteConfirm(false);
@@ -310,6 +415,8 @@ export default function App() {
     setRepairImport(null);
     setPhotos([]);
     setPhotoConsent(false);
+    setCoveredPhotos([]);
+    photoRequest.current = null;
     setAccepted(false);
     setResult(null);
     setDraft(null);
@@ -495,11 +602,18 @@ export default function App() {
             onPhotos={(images) => {
               setPhotos(images);
               setPhotoConsent(false);
+              setCoveredPhotos([]);
+              photoRequest.current = null;
               setAccepted(false);
               change({});
             }}
             photoConsent={photoConsent}
             onPhotoConsent={setPhotoConsent}
+            coveredPhotos={coveredPhotos}
+            onCoveredPhotos={(views) => {
+              setCoveredPhotos(views);
+              change({});
+            }}
             input={sanitizeIntake(input)}
             config={config}
             accepted={accepted}
@@ -528,7 +642,9 @@ export default function App() {
               <p>완료되면 결과를 보여드릴게요.</p>
             </SectionTitle>
             <p role="status" className="small">
-              요청한 분석의 응답을 기다리고 있어요.
+              {photoConsent && photos.length && config?.ai === "live"
+                ? "사진 분석과 수리 안내를 요청했어요."
+                : "요청한 분석의 응답을 기다리고 있어요."}
             </p>
             <Button secondary onClick={() => void cancel()}>
               분석 취소하기
@@ -539,6 +655,22 @@ export default function App() {
           <Result
             result={result!}
             issue={input.issue}
+            intake={input}
+            photoBusy={photoBusy}
+            onPhotoConfirm={
+              input.issue === "boiler" ||
+              (input.issue === "fixture" &&
+                !["cabinet", "bed"].includes(input.observation))
+                ? (device) => void updatePhoto(device)
+                : undefined
+            }
+            onPhotoRetry={
+              result?.photoAnalysis?.status === "failed" &&
+              !result.photoAnalysis.retryAttempted &&
+              photoPayload()
+                ? () => void updatePhoto()
+                : undefined
+            }
             onRepair={linkRepair}
             inspectionQuestions={inspectionQuestions}
             onInspectionQuestions={setInspectionQuestions}
@@ -607,6 +739,14 @@ export default function App() {
                 않아요. 브라우저 데이터 삭제 시 사라질 수 있어요. 기록장 안에서
                 파일을 내려받고 기록과 첨부를 삭제할 수 있어요. 현재 세션
                 삭제·로그아웃은 기기 기록장을 삭제하지 않아요.
+              </p>
+              <h2>선택한 사진에서 보이는 부분을 확인해요</h2>
+              <p>
+                선택 동의한 사진은 실제 AI 모드에서 OpenAI로 전송돼요.
+                오류코드와 제조연도만 읽도록 제한하며 사진 원본은 방로그 서버에
+                보관하지 않아요. 관찰 요약과 기기 정보, 직접 확인한 값은
+                분석·회원 기록에 포함될 수 있어요.
+                얼굴·주소·이름·연락처·제품번호와 QR은 첨부 전에 가려 주세요.
               </p>
               <h2>선택적으로 로그인하고 기록을 보관해요</h2>
               <p>

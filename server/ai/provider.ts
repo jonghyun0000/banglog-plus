@@ -1,4 +1,9 @@
-import { photoContext, type PhotoResult } from "../../shared/photo.js";
+import {
+  photoClarification,
+  photoContext,
+  photoGuidance,
+  type PhotoResult,
+} from "../../shared/photo.js";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
@@ -24,7 +29,11 @@ export interface AnalysisProvider {
     signal: AbortSignal,
     photo?: PhotoResult,
   ): Promise<RetrievedKnowledge>;
-  estimate(input: Intake, knowledge?: RetrievedKnowledge): number;
+  estimate(
+    input: Intake,
+    knowledge?: RetrievedKnowledge,
+    photo?: PhotoResult,
+  ): number;
   analyze(
     input: Intake,
     id: string,
@@ -316,7 +325,17 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
       await this.retriever.retrieve(
         {
           ...input,
-          description: `${input.description} ${photoContext(photo)}`,
+          description: [
+            input.description,
+            photoContext(photo),
+            ...(photo?.source === "openai"
+              ? (photo.observations ?? [])
+                  .filter((observation) => observation.status === "observed")
+                  .map((observation) => observation.visualSummary)
+              : []),
+          ]
+            .filter(Boolean)
+            .join(" "),
         },
         signal,
       ),
@@ -333,9 +352,33 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
     return JSON.stringify({
       responsePolicy:
         "Write a concrete next-action plan in Korean, tailored to the supplied facts, contact reply, repair history and visible photo signs. Distinguish observed signs from causes that require inspection. For official_statute sources give only general notice/inspection/evidence/cost-discussion steps within scope; do not claim expert approval, invent a precedent or assign fault percentages. Each step should say what to do, who to ask, and which missing evidence matters. If landlord already knows, refer to follow-up and response records rather than asserting failure to notify. Cite only supplied claims. Do not repeat actions already tried.",
-      photoObservation: photoContext(photo) || undefined,
+      photoObservations:
+        photo?.source === "openai"
+          ? photo.observations?.flatMap((reading, index) =>
+              reading.status === "observed"
+                ? [
+                    {
+                      photo: index + 1,
+                      summary: reading.visualSummary,
+                      ...(photo.userConfirmed
+                        ? {}
+                        : {
+                            unconfirmedDisplayCode: reading.detectedErrorCode,
+                            unconfirmedManufactureYear:
+                              reading.detectedManufactureYear,
+                          }),
+                    },
+                  ]
+                : [],
+            )
+          : photoContext(photo) || undefined,
+      userConfirmedDevice: photo?.userConfirmed,
+      photoClarification: photoClarification(i, photo) ?? undefined,
+      missingPhotoEvidence: photoGuidance(photo?.missingPhotoGuide ?? []).map(
+        (guide) => guide.title,
+      ),
       photoLimit:
-        "Photo signs are unverified AI observations, not cause or liability evidence. Use them only for conditional inspection questions; never override reported safety or cost direction.",
+        "Photo observations are visual evidence only. Use them to ask what needs inspection; never infer cause, override reported safety or cost direction, or say an error code means a specific fault without an approved exact manufacturer/model manual. A manufacture year alone does not determine condition, replacement or cost. Refer to confirmed device information by category without repeating raw code or year. Do not quote unconfirmed codes as facts. Do not ask for an image the user already supplied; use the listed missing evidence if applicable.",
       facts: makeAnalysis(
         i,
         "00000000-0000-4000-8000-000000000000",
@@ -384,10 +427,13 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
       })),
     });
   }
-  estimate(i: Intake, knowledge?: RetrievedKnowledge) {
+  estimate(i: Intake, knowledge?: RetrievedKnowledge, photo?: PhotoResult) {
     return (
       (knowledge
-        ? Buffer.byteLength(instructions + this.payload(i, knowledge), "utf8")
+        ? Buffer.byteLength(
+            instructions + this.payload(i, knowledge, photo),
+            "utf8",
+          )
         : 40000) +
       4000 +
       this.config.MAX_OUTPUT_TOKENS
@@ -411,6 +457,16 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
         this.config.OPENAI_MODEL,
       ).userReportedFacts.map((f) => f.key);
       const allowedClaims = context.passages.map((p) => p.claimId);
+      const allowedEvidence = evidenceLabelSchema.options.filter((label) => {
+        if (photo?.source !== "openai") return true;
+        if (label === "현재 하자 사진·영상")
+          return !photo.observations?.some(
+            (reading) => reading.status === "observed",
+          );
+        if (label === "입주 사진" || label === "입주 당시 기록")
+          return !photo.coveredViews?.includes("before");
+        return true;
+      });
       const groundedSchema = responseSchema.extend({
         claimIds: z
           .array(z.enum(allowedClaims as [string, ...string[]]))
@@ -420,6 +476,9 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
           steps: z
             .array(
               tailoredPlanSchema.shape.steps.element.extend({
+                missingEvidence: z
+                  .array(z.enum(allowedEvidence as [string, ...string[]]))
+                  .max(3),
                 factKeys: z
                   .array(z.enum(allowedFacts as [string, ...string[]]))
                   .min(1)
@@ -457,7 +516,7 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
         invalidOutput("response_incomplete");
       return {
         result: validatePlan(
-          responseSchema.parse(response.output_parsed),
+          groundedSchema.parse(response.output_parsed),
           input,
           id,
           this.config.OPENAI_MODEL,

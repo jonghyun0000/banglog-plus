@@ -255,3 +255,7 @@ Account.tsx + PasswordReset.tsx에 이메일 재설정 요청과 PASSWORD_RECOVE
 - 사진 징후·해본 조치·선택 상황을 기존 생성 입력에 포함. 모델 생성의 factKeys/claimIds는 실제 요청의 enum으로 제한. 존재하지 않는 답변 참조 때문에 기본 안내가 나오던 문제를 예방.
 - 코드/DB 검사와 실제 API 호출은 구분. 실호출 기록은 docs/official-guidance-live-verification.json. 초기 후보의 실패도 first-check JSON에 보존. 일반 안내가 개별 사건 법률가 승인이나 사진 진단 정확도 검증을 뜻하지 않음.
 - 최종 배포 dpl_3Emxc8Zt6C6Ugpk3YnPWtHbQWaNu 운영 promote 완료. 사진 포함 배수·역류/약품·벽지비용 합성3건 모두 실제 GPT 생성/인용/DB 저장 성공, 기본 안내 전환 없음. 단위193/브라우저43/격리DB30 통과. 노션4페이지 갱신. AIHub나 개별 판례의 전문가 승인 완료로 오해하지 말 것.
+
+## 2026-11-11 사진 관찰과 증거 촬영 안내 · v1.5 후속
+
+기존 v1.5 브랜치를 바탕으로 `feature/photo-evidence-coaching`에 구현했다. 사진별 관찰, 제한적 기기 표시 읽기, 사용자 확인값, 빠진 촬영 구도와 한 번 재요청을 추가했다. 사진은 선택이며 회원 기록과 로컬 수선 기록에는 관찰을 저장할 수 있다. 기존 기록 형식과 호환된다. 실제 모델 호출 확인 범위와 운영 반영 상태는 [사진 관찰과 증거 촬영 안내](docs/PHOTO_EVIDENCE_COACHING.md)를 참고한다.

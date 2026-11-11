@@ -1,5 +1,14 @@
-import { photoReader, type PhotoReader } from "../ai/photo.js";
-import { photoDanger, type PhotoResult } from "../../shared/photo.js";
+import {
+  photoReader,
+  photoTokenBudget,
+  type PhotoReader,
+} from "../ai/photo.js";
+import {
+  missingPhotoViews,
+  photoDanger,
+  photoResultSchema,
+  type PhotoResult,
+} from "../../shared/photo.js";
 import { lookupBuilding, lotSchema } from "../building.js";
 import { registerAdmin, clientIp } from "../admin/routes.js";
 import { Operations } from "../operations.js";
@@ -16,6 +25,7 @@ import {
   analyzeRequestSchema,
   consentVersion,
   feedbackSchema,
+  intakeSchema,
 } from "../../shared/schema.js";
 import {
   sanitizeIntake,
@@ -257,10 +267,66 @@ export function createApp(
     const body = analyzeRequestSchema.parse(req.body);
     const input = sanitizeIntake(body.intake);
     await limit(`analysis:${g.id}`, 20, 3600000);
+    let confirmedPhoto: PhotoResult | undefined;
+    if (body.photoFollowup) {
+      const action = body.photoFollowup;
+      const previous = await repo.getAnalysis(g.id, action.analysisId);
+      const reading = previous?.result?.photoAnalysis;
+      if (!previous || !reading || previous.state !== "complete")
+        throw new AppError("NOT_FOUND", 404);
+      const original = sanitizeIntake(intakeSchema.parse(previous.input));
+      if (
+        JSON.stringify({
+          ...original,
+          inputVersion: input.inputVersion,
+        }) !== JSON.stringify(input) ||
+        ["safety_priority", "out_of_scope"].includes(previous.result!.status)
+      )
+        throw new AppError("IDEMPOTENCY_CONFLICT", 409);
+      if (action.action === "retry") {
+        if (
+          reading.status !== "failed" ||
+          reading.retryAttempted ||
+          body.idempotencyKey !== previous.id ||
+          previous.digest !==
+            hash(JSON.stringify({ input: original, photos: body.photos }))
+        )
+          throw new AppError("IDEMPOTENCY_CONFLICT", 409);
+      } else {
+        const deviceIssue =
+          input.issue === "boiler" ||
+          (input.issue === "fixture" &&
+            !["cabinet", "bed"].includes(input.observation));
+        const year = action.device.detectedManufactureYear;
+        if (
+          !deviceIssue ||
+          reading.source !== "openai" ||
+          !["analyzed", "unclear"].includes(reading.status) ||
+          (year !== null && year > new Date(now()).getUTCFullYear())
+        )
+          throw new AppError("IDEMPOTENCY_CONFLICT", 409);
+        const missingPhotoGuide = reading.missingPhotoGuide?.filter(
+          (view) =>
+            !(view === "display" && action.device.detectedErrorCode) &&
+            !(view === "label" && action.device.detectedManufactureYear),
+        );
+        confirmedPhoto = {
+          ...reading,
+          userConfirmed: action.device,
+          missingPhotoGuide,
+        };
+      }
+    }
     const { record, created } = await repo.createAnalysis(
       g.id,
       body.idempotencyKey,
-      hash(JSON.stringify({ input, photos: body.photos })),
+      hash(
+        JSON.stringify({
+          input,
+          photos: body.photos,
+          photoFollowup: body.photoFollowup,
+        }),
+      ),
       input,
     );
     if (!created) {
@@ -290,9 +356,15 @@ export function createApp(
       let output;
       let photoInputTokens = 0,
         photoOutputTokens = 0;
-      let photo: PhotoResult | undefined = body.photos
-        ? { status: "skipped", signs: [], count: body.photos.images.length }
-        : undefined;
+      let photo = confirmedPhoto;
+      if (body.photos)
+        photo = {
+          status: "skipped",
+          source: "none",
+          signs: [],
+          count: body.photos.images.length,
+          missingPhotoGuide: missingPhotoViews(input, body.photos.covered),
+        };
       if (hasDanger(input) || outOfScope(intakeContext(input))) {
         output = {
           result: makeAnalysis(
@@ -311,10 +383,18 @@ export function createApp(
           if (ops) lease = await ops.lease(config.MAX_CONCURRENT);
           active++;
           counted = true;
+          if (
+            photo &&
+            body.photos &&
+            provider.mode === "mock" &&
+            !options.readPhoto
+          ) {
+            photo = { ...photo, status: "mock", source: "mock" };
+          }
           if (body.photos && (provider.mode === "live" || options.readPhoto)) {
             try {
               // Separate visual observation call; never sends legal data or stores images.
-              const photoTokens = 12000;
+              const photoTokens = photoTokenBudget;
               const photoUsd = config.DAILY_BUDGET_USD
                 ? (photoTokens *
                     Math.max(
@@ -334,8 +414,14 @@ export function createApp(
                 body.photos.images,
                 input,
                 controller.signal,
+                body.photos.covered,
               );
-              photo = reading;
+              photo = photoResultSchema.parse({
+                ...reading,
+                source: options.readPhoto ? "mock" : "openai",
+                retryAttempted:
+                  body.photoFollowup?.action === "retry" ? true : undefined,
+              });
               photoInputTokens = reading.inputTokens ?? 0;
               photoOutputTokens = reading.outputTokens ?? 0;
             } catch (photoError) {
@@ -353,8 +439,15 @@ export function createApp(
                 throw new AppError("CANCELLED", 409);
               photo = {
                 status: "failed",
+                source: "none",
                 signs: [],
                 count: body.photos.images.length,
+                missingPhotoGuide: missingPhotoViews(
+                  input,
+                  body.photos.covered,
+                ),
+                retryAttempted:
+                  body.photoFollowup?.action === "retry" ? true : undefined,
               };
             }
           }
@@ -375,7 +468,7 @@ export function createApp(
               ? await provider.prepare(input, controller.signal, photo)
               : undefined;
             if (provider.mode === "live") {
-              const tokens = provider.estimate(input, knowledge);
+              const tokens = provider.estimate(input, knowledge, photo);
               const usd = config.DAILY_BUDGET_USD
                 ? (tokens *
                     Math.max(

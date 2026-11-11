@@ -76,7 +76,7 @@ for (const [width, height] of [
     );
     await page.getByText("추가로 남겨두면 좋은 사진", { exact: true }).click();
     await expect(
-      page.getByText("실내 조절기 오류 코드", { exact: true }),
+      page.getByText("기기 화면을 정면에서 찍은 사진", { exact: true }),
     ).toBeVisible();
     await page.getByText("기사에게 물어볼 점검 질문", { exact: true }).click();
     await page.getByRole("checkbox", { name: /어떤 원인을 확인했고/ }).check();

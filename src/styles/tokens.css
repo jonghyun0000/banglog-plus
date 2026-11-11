@@ -1631,3 +1631,25 @@ select,
 .inspection-checklist fieldset {
   margin: 0.75rem 0;
 }
+
+.photo-device-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photo-device-form label {
+  display: grid;
+  gap: 4px;
+}
+
+.photo-device-form input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #8792a4;
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}

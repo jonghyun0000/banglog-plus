@@ -610,6 +610,101 @@ try {
     await app.close();
   }
   pass("Fastify API through PostgreSQL: create, analyze, delete");
+  const photoRepo = new PostgresRepository(url, false);
+  let reads = 0;
+  const photoApp = createApp({
+    config: loadConfig({
+      REPOSITORY: "database",
+      DATABASE_URL: url,
+      DATABASE_SSL: "disable",
+    }),
+    repository: photoRepo,
+    readPhoto: async () => {
+      if (++reads === 1) throw Error("test timeout");
+      return {
+        source: "mock",
+        status: "analyzed",
+        count: 1,
+        signs: ["tear"],
+        observations: [
+          {
+            status: "observed",
+            visualSummary: "벽 모서리에서 찢어진 부분이 보여요.",
+            signs: ["tear"],
+            detectedErrorCode: null,
+            detectedManufactureYear: null,
+          },
+        ],
+        missingPhotoGuide: ["overview"],
+      };
+    },
+  });
+  try {
+    const session = await photoApp.app.inject({
+      method: "POST",
+      url: "/api/sessions",
+      payload: { noticeAccepted: true, consentVersion },
+    });
+    const headers = { authorization: `Bearer ${session.json().token}` };
+    const guest = await photoRepo.authenticate(
+      createHash("sha256").update(session.json().token).digest("hex"),
+    );
+    assert.ok(guest);
+    const input = { ...surface, inputVersion: 1 };
+    const photos = {
+      consent: true,
+      images: ["data:image/jpeg;base64,/9j/2Q=="],
+      covered: ["before"],
+    };
+    const first = await photoApp.app.inject({
+      method: "POST",
+      url: "/api/analyses",
+      headers,
+      payload: { intake: input, idempotencyKey: randomUUID(), photos },
+    });
+    assert.equal(first.statusCode, 200, first.body);
+    assert.equal(first.json().photoAnalysis.status, "failed");
+    const id = first.json().analysisId;
+    const request = {
+      method: "POST" as const,
+      url: "/api/analyses",
+      headers,
+      payload: {
+        intake: { ...input, inputVersion: 2 },
+        idempotencyKey: id,
+        photos,
+        photoFollowup: { action: "retry", analysisId: id },
+      },
+    };
+    const retry = await photoApp.app.inject(request);
+    assert.equal(retry.statusCode, 200, retry.body);
+    assert.equal(
+      (await photoApp.app.inject(request)).json().analysisId,
+      retry.json().analysisId,
+    );
+    assert.equal(reads, 2);
+    const previous = await photoRepo.getAnalysis(guest.id, id);
+    assert.equal(previous?.result?.photoAnalysis?.status, "failed");
+    const saved = await photoRepo.getAnalysis(
+      guest.id,
+      retry.json().analysisId,
+    );
+    assert.ok(saved);
+    const member = randomUUID();
+    await history.save(member, saved, "기기에서 직접 수정한 문구");
+    const [entry] = await history.list(member);
+    assert.equal(
+      entry.result.photoAnalysis?.observations?.[0].visualSummary,
+      "벽 모서리에서 찢어진 부분이 보여요.",
+    );
+    assert.equal(entry.result.photoAnalysis?.retryAttempted, true);
+    assert.equal(JSON.stringify(entry).includes("base64"), false);
+  } finally {
+    await photoApp.app.close();
+  }
+  pass(
+    "photo retry idempotency after JSONB round trip, enriched member history and raw image exclusion",
+  );
   const releaseRepo = new PostgresRepository(url, false);
   const ops = new Operations(releaseRepo);
   const memberId = randomUUID();

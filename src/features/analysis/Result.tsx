@@ -7,13 +7,22 @@ import { BuildingGuide } from "./BuildingGuide";
 import { DrainGuide } from "./DrainGuide";
 import { NextResponse } from "./NextResponse";
 import { ReferenceCards } from "../references/References";
-import type { Analysis, Issue } from "../../../shared/schema";
+import {
+  missingPhotoViews,
+  photoClarification,
+  type PhotoDevice,
+} from "../../../shared/photo";
+import type { Analysis, Intake, Issue } from "../../../shared/schema";
 import { Responsibility } from "./Responsibility";
 import { Button, SectionTitle } from "../../components/ui/Elements";
 import { SafetyNotice } from "../questions/Questions";
 export function Result({
   result,
   issue,
+  intake,
+  onPhotoConfirm,
+  onPhotoRetry,
+  photoBusy,
   onMessage,
   onEdit,
   onFeedback,
@@ -24,6 +33,10 @@ export function Result({
 }: {
   result: Analysis;
   issue: Issue;
+  intake: Intake;
+  onPhotoConfirm?: (device: PhotoDevice) => void;
+  onPhotoRetry?: () => void;
+  photoBusy: boolean;
   onMessage: () => void;
   onEdit: () => void;
   onFeedback: () => void;
@@ -34,6 +47,8 @@ export function Result({
 }) {
   const emergency = result.status === "safety_priority",
     outside = result.status === "out_of_scope";
+  const clarification =
+    !emergency && !outside && photoClarification(intake, result.photoAnalysis);
   return (
     <div className="result-screen">
       <SectionTitle
@@ -77,6 +92,31 @@ export function Result({
           </p>
         )}
       {emergency && <SafetyNotice />}
+      {result.photoAnalysis && (
+        <PhotoResult
+          key={result.analysisId}
+          photo={result.photoAnalysis}
+          onConfirm={emergency || outside ? undefined : onPhotoConfirm}
+          onRetry={emergency || outside ? undefined : onPhotoRetry}
+          busy={photoBusy}
+        />
+      )}
+      {!emergency && !outside && (
+        <PhotoCoaching
+          issue={issue}
+          expanded={result.photoAnalysis?.source === "openai"}
+          suggestions={
+            result.photoAnalysis?.missingPhotoGuide ??
+            (result.photoAnalysis ? undefined : missingPhotoViews(intake))
+          }
+        />
+      )}
+      {clarification && (
+        <section className="result-card">
+          <h2>사진과 함께 확인할 내용</h2>
+          <p>{clarification}</p>
+        </section>
+      )}
       <DrainGuide result={result} />
       <section className="result-lead">
         <p className="eyebrow">
@@ -141,8 +181,6 @@ export function Result({
             selected={inspectionQuestions}
             onChange={onInspectionQuestions}
           />
-          <PhotoResult photo={result.photoAnalysis} />
-          <PhotoCoaching issue={issue} />
         </>
       )}
       <button className="button secondary result-save" onClick={onSave}>
