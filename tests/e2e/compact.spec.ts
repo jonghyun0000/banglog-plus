@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 for (const width of [360, 390])
   test(`compact question layout ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 640 });
@@ -64,7 +65,9 @@ test("danger stays below choices, does not jump, and blocks the next step", asyn
   await danger.scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => scrollY);
   await danger.click();
-  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
+    "지금은 안전 확인이 먼저예요",
+  );
   expect(Math.abs((await page.evaluate(() => scrollY)) - before)).toBeLessThan(
     5,
   );
@@ -82,5 +85,6 @@ test("danger stays below choices, does not jump, and blocks the next step", asyn
   await expect(
     page.getByRole("link", { name: "119에 전화하기" }),
   ).toHaveAttribute("href", "tel:119");
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({ path: ".local/compact-danger.png", fullPage: true });
 });
