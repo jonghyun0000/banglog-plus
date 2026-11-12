@@ -74,6 +74,25 @@ test("drain: safe sink route, back navigation, input preservation, self-care bef
     "눈에 보이는 이물질부터",
   );
   await expect(page.locator(".drain-guide")).toContainText("그대로라면 집주인");
+  const overview = page.locator(".result-overview");
+  await expect(
+    overview.getByText("눈에 보이는 이물질부터 확인해요", { exact: true }),
+  ).toBeInViewport();
+  await expect(
+    overview.getByText("분해 없이 거름망 표면만 확인하세요.", { exact: true }),
+  ).toBeInViewport();
+  const examples = page.getByRole("region", { name: "비슷한 수리 비용 사례" });
+  await expect(examples).toContainText("세면대 트랩 청소와 배수 마개 교체");
+  await expect(examples).toContainText("업체 공개 예산");
+  await expect(examples).toContainText("100,000원");
+  await expect(examples).toContainText(
+    "실제 결제액과 누가 냈는지는 확인되지 않았어요",
+  );
+  await expect(examples).not.toContainText("연결 배관 청소");
+  await expect(
+    examples.getByRole("link", { name: /세면대.*숨고 원문/ }),
+  ).toHaveAttribute("href", /^https:\/\/soomgo\.com\/portfolio\/detail\//);
+  await examples.screenshot({ path: ".local/repair-cost-mobile.png" });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -133,6 +152,16 @@ test("drain: multiple backflow skips DIY and prioritizes stopping water", async 
   ).toBeVisible();
   await finish(page);
   await expect(page.locator(".drain-guide")).toContainText("물 사용을 멈추고");
+  const overview = page.locator(".result-overview");
+  await expect(
+    overview.getByText("물 사용을 멈추고 점검을 요청해요", { exact: true }),
+  ).toBeInViewport();
+  await expect(overview.getByRole("link", { name: "수리비 사례" })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("region", { name: "비슷한 수리 비용 사례" }),
+  ).toHaveCount(0);
   await expect(page.locator(".drain-guide")).not.toContainText(
     "거름망 표면의 이물질만 제거",
   );

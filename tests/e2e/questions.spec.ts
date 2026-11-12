@@ -177,12 +177,12 @@ test("mobile choices, back navigation and result actions stay clear", async ({
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
   await expect(
-    page.getByRole("heading", { name: "지금은 이렇게 시작해요" }),
+    page.getByRole("heading", { name: /수리 가이드$/ }),
   ).toBeVisible();
   await page.screenshot({
     path: "docs/screenshots/mobile-result-overview.png",
   });
-  const request = await page.locator(".result-lead").boundingBox();
+  const request = await page.locator(".result-contact").boundingBox();
   expect(request!.y + request!.height).toBeLessThan(844);
   await page
     .getByRole("button", { name: "내 기록에 저장", exact: true })
