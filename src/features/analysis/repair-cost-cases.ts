@@ -1,11 +1,15 @@
 import type { Analysis, Intake } from "../../../shared/schema";
+import { repairPriceReferences } from "./repair-price-references";
 
 type CaseGroup =
   | "condensation"
+  | "mold-removal"
   | "ceiling-leak"
   | "pipe-leak"
   | "wallpaper"
+  | "wallpaper-patch"
   | "flooring"
+  | "flooring-patch"
   | "sink"
   | "basin"
   | "toilet"
@@ -16,15 +20,40 @@ type CaseGroup =
   | "boiler"
   | "aircon";
 
-type RepairCostCase = {
+type RepairWork = {
   groups: readonly CaseGroup[];
   title: string;
   work: string;
+  source: string;
+};
+
+type RepairCostCase = RepairWork & {
   publishedBudget: number;
   location: string;
   posted: string;
-  source: string;
 };
+
+export type RepairPriceReference = RepairWork & {
+  referencePrice: string;
+  priceLabel: "업체 참고 견적" | "플랫폼 참고 견적" | "의뢰 게시 금액";
+  sourceName: string;
+};
+
+export type RepairCostEntry = RepairCostCase | RepairPriceReference;
+
+type RepairCostCatalog = {
+  similar: RepairCostEntry[];
+  other: RepairCostEntry[];
+};
+
+const krw = new Intl.NumberFormat("ko-KR");
+const compactKrw = new Intl.NumberFormat("ko-KR", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
+export function formatRepairBudget(won: number) {
+  return `${krw.format(won)}원`;
+}
 
 // Each amount is the portfolio's public budget field. Only reviewed source
 // pages belong here; the public figures do not establish a payment or payer.
@@ -203,14 +232,17 @@ const cases: readonly RepairCostCase[] = [
 function matchingGroups(input: Intake): readonly CaseGroup[] {
   switch (input.issue) {
     case "mold":
-      return input.observation === "furniture" ? [] : ["condensation"];
+      if (input.observation === "furniture") return [];
+      if (input.observation === "condensation") return ["condensation"];
+      if (input.observation === "wall") return ["mold-removal"];
+      return ["mold-removal", "condensation"];
     case "leak":
       if (input.observation === "rain") return [];
       return input.observation === "pipe" ? ["pipe-leak"] : ["ceiling-leak"];
     case "surface":
-      if (input.observation.startsWith("floor-")) return ["flooring"];
-      if (input.observation.startsWith("wall-")) return ["wallpaper"];
-      return ["wallpaper", "flooring"];
+      if (input.observation.startsWith("floor-")) return ["flooring-patch"];
+      if (input.observation.startsWith("wall-")) return ["wallpaper-patch"];
+      return ["wallpaper", "wallpaper-patch", "flooring", "flooring-patch"];
     case "boiler":
       return input.observation === "power" ? [] : ["boiler"];
     case "fixture":
@@ -249,10 +281,26 @@ function matchingGroups(input: Intake): readonly CaseGroup[] {
   }
 }
 
+const groupsByIssue: Partial<Record<Intake["issue"], readonly CaseGroup[]>> = {
+  mold: ["mold-removal", "condensation"],
+  leak: ["ceiling-leak", "pipe-leak"],
+  surface: ["wallpaper", "wallpaper-patch", "flooring", "flooring-patch"],
+  boiler: ["boiler"],
+  drain: [
+    "sink",
+    "basin",
+    "toilet",
+    "floor-drain",
+    "sink-backflow",
+    "balcony-backflow",
+    "shared-drain",
+  ],
+};
+
 export function repairCostCases(
   input: Intake,
   resultStatus: Analysis["status"],
-): readonly RepairCostCase[] | null {
+): RepairCostCatalog | null {
   if (
     resultStatus === "safety_priority" ||
     resultStatus === "out_of_scope" ||
@@ -261,12 +309,48 @@ export function repairCostCases(
   )
     return null;
   const groups = matchingGroups(input);
-  if (groups.length > 1) {
-    return groups.flatMap(
-      (group) => cases.find((item) => item.groups.includes(group)) ?? [],
-    );
+  const catalog: RepairCostCatalog = { similar: [], other: [] };
+  const related: RepairCostEntry[] = [];
+  const issueGroups = groupsByIssue[input.issue] ?? [];
+  for (const item of [...cases, ...repairPriceReferences]) {
+    if (item.groups.some((group) => groups.includes(group))) {
+      catalog.similar.push(item);
+    } else if (item.groups.some((group) => issueGroups.includes(group))) {
+      related.push(item);
+    } else {
+      catalog.other.push(item);
+    }
   }
-  return cases
-    .filter((item) => groups.some((group) => item.groups.includes(group)))
-    .slice(0, 2);
+  catalog.other.unshift(...related);
+  return catalog;
+}
+
+export function repairCostPreview(catalog: RepairCostCatalog) {
+  const count = catalog.similar.length + catalog.other.length;
+  const budgets = catalog.similar.flatMap((item) =>
+    "publishedBudget" in item ? [item.publishedBudget] : [],
+  );
+  if (budgets.length) {
+    const low = Math.min(...budgets);
+    const high = Math.max(...budgets);
+    return {
+      count,
+      label: "비슷한 시공 사례의 공개 예산",
+      amount:
+        low === high
+          ? `${compactKrw.format(low)} 원`
+          : `${compactKrw.format(low)}~${compactKrw.format(high)} 원`,
+    };
+  }
+  const references = catalog.similar.filter((item) => "referencePrice" in item);
+  const reference =
+    references.find((item) => item.priceLabel !== "의뢰 게시 금액") ??
+    references[0];
+  return {
+    count,
+    label: reference
+      ? `${reference.title} · ${reference.priceLabel}`
+      : "등록된 수리비 자료",
+    amount: reference?.referencePrice,
+  };
 }
