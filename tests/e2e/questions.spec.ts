@@ -163,6 +163,13 @@ test("lighting can be selected from home or the issue list, and answers use plai
     ).toBeDisabled();
     await page.getByRole("checkbox", { name: "선택 후 바로 이동" }).check();
     await page.getByRole("button", { name: "지금 위험 신호는 없어요" }).click();
+    await expect(
+      page.getByRole("heading", { name: "어떤 형태의 조명인가요?" }),
+    ).toBeFocused();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page
+      .getByRole("button", { name: "전구·형광등만 바꿀 수 있어요" })
+      .click();
     await page.getByRole("radio", { name: "오늘 발견했어요" }).check();
     const timingDot = page
       .locator("label.choice")
@@ -175,7 +182,15 @@ test("lighting can be selected from home or the issue list, and answers use plai
       .getByRole("button", { name: "집에 원래 있던 시설이에요" })
       .click();
     await page.getByRole("button", { name: "아직 연락하지 않았어요" }).click();
+    await page.getByText("발견 기록·계약 특약 (선택)", { exact: true }).click();
+    await page.getByLabel("수리 진행 상태 (선택)").selectOption("before");
+    await page
+      .getByLabel("관련 계약 특약 (선택)")
+      .fill("조명 수리 범위는 협의");
     await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
+    await expect(
+      page.getByText("전구·형광등만 바꿀 수 있어요", { exact: true }),
+    ).toBeVisible();
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
     await expect(
@@ -190,6 +205,9 @@ test("lighting can be selected from home or the issue list, and answers use plai
     await expect(
       page.getByRole("textbox", { name: "집주인에게 보낼 문구" }),
     ).toHaveValue(/전구를 바꿔도 켜지지 않아요/);
+    await expect(
+      page.getByRole("textbox", { name: "집주인에게 보낼 문구" }),
+    ).toHaveValue(/특약이 이번 작업의 어느 항목과 범위/);
   } finally {
     await app.close();
   }

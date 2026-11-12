@@ -9,10 +9,35 @@ export const lightingOptions = [
   ["light-unknown", "잘 모르겠어요"],
 ] as const;
 export const lightingObservations = lightingOptions.map(([id]) => id);
+export const lightingStep = 12;
+export const lightingQuestion = "어떤 형태의 조명인가요?";
+export const lightingTypes = [
+  ["replaceable", "전구·형광등만 바꿀 수 있어요"],
+  ["integrated", "전구를 분리할 수 없는 일체형 조명이에요"],
+  ["unknown", "어떤 형태인지 잘 모르겠어요"],
+] as const;
 
 export function isLightingIssue(input: Pick<Intake, "issue" | "observation">) {
   return (
     input.issue === "fixture" &&
     lightingObservations.some((value) => value === input.observation)
   );
+}
+
+export function lightingRoute(input: Intake) {
+  if (
+    input.lighting === "integrated" ||
+    ["light-replaced", "light-multiple", "light-flicker"].includes(
+      input.observation,
+    )
+  )
+    return "inspection";
+  if (
+    input.lighting === "replaceable" &&
+    input.observation === "light-out" &&
+    input.safety === "none" &&
+    input.preexisting !== "yes"
+  )
+    return "bulb";
+  return "check";
 }

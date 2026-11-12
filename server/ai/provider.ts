@@ -9,6 +9,7 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import type { Analysis, Intake } from "../../shared/schema.js";
 import { directionSchema } from "../../shared/schema.js";
+import { isLightingIssue, lightingRoute } from "../../shared/lighting.js";
 import { makeAnalysis } from "../domain/analysis.js";
 import { AppError } from "../domain/errors.js";
 import type { Config } from "../config.js";
@@ -265,9 +266,10 @@ export function validatePlan(
         };
       }),
     };
-    result.nextActions = result.drainGuide
-      ? result.drainGuide.steps.map((s) => s.body)
-      : result.tailoredResponse.steps.map((step) => step.action);
+    if (!isLightingIssue(input))
+      result.nextActions = result.drainGuide
+        ? result.drainGuide.steps.map((s) => s.body)
+        : result.tailoredResponse.steps.map((step) => step.action);
   }
   if (input.issue === "drain") {
     const generated = [
@@ -404,6 +406,14 @@ export class OpenAIAnalysisProvider implements AnalysisProvider {
                 "The server displays the supplied safe-care guide FIRST. Do not generate DIY, chemical, tool, disassembly or hot-water instructions. Generate only subsequent contact/evidence/legal steps conditional on that guide, incorporating drain facts and already attempted actions. Never infer tenant fault from occurrence after moving in, or pipe defect from failed cleaning. For self_check route, landlord contact is conditional on unresolved symptoms; otherwise prioritize inspection. Do not ask to repeat attempted cleaning.",
             }
           : undefined,
+      lightingCarePolicy: isLightingIssue(i)
+        ? {
+            route: lightingRoute(i),
+            stage: i.repairStage,
+            instruction:
+              "The server provides the immediate lighting action. Never instruct fixture, ballast, switch or wiring disassembly or DIY electrical repair. Only the bulb route has a simple replaceable bulb; keep landlord or technician contact conditional on safe replacement being impractical or not resolving the symptom. For inspection, request an inspection and an itemized scope without diagnosing a failed component. If repair is already complete, ask about the work performed, remaining symptoms and relevant evidence instead of repeating the replacement. The lighting type does not establish cost responsibility.",
+          }
+        : undefined,
       reportedSituation: {
         issue: i.issue,
         contact: i.contact,

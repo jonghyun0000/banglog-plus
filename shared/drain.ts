@@ -1,6 +1,7 @@
 import { hasReply } from "./questions.js";
 import { defaultDrain, type Intake, type Analysis } from "./schema.js";
 import { hasDanger, intakeContext } from "./safety.js";
+import { isLightingIssue, lightingStep } from "./lighting.js";
 
 export const drainOptions = {
   location: [
@@ -85,6 +86,7 @@ export function questionSteps(i: Intake): number[] {
   return [
     0,
     5,
+    ...(isLightingIssue(i) ? [lightingStep] : []),
     ...(i.issue === "drain"
       ? [
           7,

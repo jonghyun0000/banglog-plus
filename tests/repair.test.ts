@@ -1,6 +1,7 @@
 import { passesRepairTeamReview } from "../server/sources/team-review";
 import { expect, it } from "vitest";
 import {
+  moveOutMessage,
   newRepair,
   repairMissing,
   repairSchema,
@@ -24,6 +25,33 @@ it("keeps delivery time empty and permits solo records without entry photos", ()
   expect(repairMissing(r)).toContain(
     "입주 사진이 없으면 기존 메시지·점검표 등 대체 자료",
   );
+});
+it("opens legacy records and separates move-out deductions from actual spending", () => {
+  const r = newRepair();
+  const { moveOutCosts, ...legacy } = r;
+  expect(moveOutCosts).toEqual({});
+  expect(repairSchema.parse(legacy).moveOutCosts).toEqual({});
+  r.entryUnavailable = true;
+  r.existingDamage = "입주 당시 벽지 얼룩";
+  r.specialTerms = "청소비는 계약서에 정한 범위";
+  r.moveOutCosts = {
+    wallpaper: { amount: "120,000", reason: "얼룩" },
+    flooring: { amount: "", reason: "긁힘" },
+    cleaning: { amount: "0", reason: "" },
+  };
+  r.paidAmount = "30,000원";
+  expect(repairText(r)).toContain("도배 · 공제 요청액: 120,000원");
+  expect(repairText(r)).toContain("청소비 · 공제 요청액: 0원");
+  expect(repairText(r)).toContain("지출: 30,000원");
+  const before = moveOutMessage({ ...r, repairStage: "before" });
+  expect(before).toContain("장판 · 공제 요청액 확인 필요");
+  expect(before).toContain("입주 당시 벽지 얼룩");
+  expect(before).toContain(r.specialTerms);
+  expect(before).toContain("항목별 견적을 먼저");
+  expect(before).not.toContain(r.paidAmount);
+  const after = moveOutMessage({ ...r, repairStage: "after" });
+  expect(after).toContain("작업 전후 사진과 영수증");
+  expect(after).not.toContain("아직 작업 전");
 });
 it("awareness exception asks for evidence without inventing delivery", () => {
   const r = newRepair();
