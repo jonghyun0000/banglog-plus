@@ -62,11 +62,25 @@ export function EnglishGuide({
     ? t(repairGuidance(intake).record)
     : englishActions[intake.issue];
   const drain = result.drainGuide;
+  const plan =
+    result.mode === "live" &&
+    !result.fallback &&
+    result.responseLanguage === "en"
+      ? result.tailoredResponse
+      : undefined;
   return (
     <>
       <h1 tabIndex={-1}>{t(intakeIssueName(intake))} repair guide</h1>
       <p>{t(observationLabel(intake))}</p>
-      <p className="small">English next steps based on your answers.</p>
+      {result.fallback ? (
+        <p className="notice">
+          {result.fallback.reason.startsWith("KNOWLEDGE_")
+            ? "We couldn’t verify enough sources for this situation. Here’s the basic repair guide."
+            : "GPT couldn’t complete this request. Here’s the basic repair guide."}
+        </p>
+      ) : !plan ? (
+        <p className="small">Basic repair guidance based on your answers.</p>
+      ) : null}
       <section className="result-card" aria-labelledby="english-next-action">
         <h2 id="english-next-action">What to do next</h2>
         {drain ? (
@@ -97,6 +111,60 @@ export function EnglishGuide({
           </ul>
         )}
       </section>
+      {plan && (
+        <section
+          className="result-card tailored-response"
+          aria-labelledby="english-gpt-guidance"
+        >
+          <h2 id="english-gpt-guidance">
+            GPT guidance based on verified sources
+          </h2>
+          <p>{result.aiExplanation}</p>
+          <p>{plan.summary}</p>
+          <ol className="response-steps">
+            {plan.steps.map((step, index) => (
+              <li key={index}>
+                <h3>{step.title}</h3>
+                <p>{step.action}</p>
+                {step.missingEvidence.length > 0 && (
+                  <div className="notice">
+                    <strong>What to gather</strong>
+                    <ul>
+                      {step.missingEvidence.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="response-evidence">
+                  <h4>Legal basis and limits</h4>
+                  <p>{step.reason}</p>
+                  {step.citations.map((citation) => {
+                    const source = result.sources.find(
+                      (item) =>
+                        item.id === citation.sourceId &&
+                        item.version === citation.sourceVersion,
+                    );
+                    return (
+                      source && (
+                        <a
+                          key={source.id}
+                          href={source.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Read the Korean original{" "}
+                          <span lang="ko">· {source.title}</span>
+                        </a>
+                      )
+                    );
+                  })}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       <section className="result-card">
         <h2>Who to contact</h2>
         <p>Contact your {englishRecipients[result.repairRequest.recipient]}.</p>
@@ -106,12 +174,6 @@ export function EnglishGuide({
           any relevant lease terms before agreeing on costs.
         </p>
       </section>
-      {result.fallback && (
-        <p className="notice">
-          The AI analysis could not be completed. This is the basic repair
-          guide.
-        </p>
-      )}
       <Button onClick={onMessage}>Edit and copy a repair message</Button>
       <div className="actions">
         <Button secondary onClick={onSave}>
@@ -121,7 +183,9 @@ export function EnglishGuide({
           Add to repair log
         </Button>
         <Button secondary onClick={onEdit}>
-          Edit answers
+          {result.mode === "live" && !plan && result.aiExplanation
+            ? "Review answers for English GPT guidance"
+            : "Edit answers"}
         </Button>
       </div>
     </>

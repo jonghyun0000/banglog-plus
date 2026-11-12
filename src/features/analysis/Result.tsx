@@ -129,7 +129,7 @@ export function Result({
             {result.aiExplanation && !result.fallback && (
               <section className="result-card">
                 <h3>GPT가 정리한 안내</h3>
-                <p>{result.aiExplanation}</p>
+                <p lang={result.responseLanguage}>{result.aiExplanation}</p>
               </section>
             )}
             <details className="result-section result-card">

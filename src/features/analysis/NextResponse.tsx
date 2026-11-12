@@ -122,7 +122,7 @@ function NextResponseBody({ result }: { result: Analysis }) {
     <section className="next-response tailored-response">
       <p className="eyebrow">GPT 맞춤 대응 · DB 근거 연결</p>
       <h2>내 상황에서는 이렇게 대응해요</h2>
-      <p>{plan.summary}</p>
+      <p lang={result.responseLanguage}>{plan.summary}</p>
       <p className="small">
         입력한 내용과 DB에서 찾은 자료를 바탕으로 제안했어요. 사실관계와 법률
         적용은 추가 확인이 필요해요.
@@ -130,23 +130,25 @@ function NextResponseBody({ result }: { result: Analysis }) {
       <ol className="response-steps">
         {plan.steps.map((step, index) => (
           <li key={index}>
-            <h3>{step.title}</h3>
+            <h3 lang={result.responseLanguage}>{step.title}</h3>
             <p>
               <strong>이렇게 해보세요</strong>
               <br />
-              {step.action}
+              <span lang={result.responseLanguage}>{step.action}</span>
             </p>
             <p>
               <strong>이유와 적용 한계</strong>
               <br />
-              {step.reason}
+              <span lang={result.responseLanguage}>{step.reason}</span>
             </p>
             {step.missingEvidence.length > 0 && (
               <div className="notice">
                 <strong>먼저 확인할 내용</strong>
                 <ul>
                   {step.missingEvidence.map((item) => (
-                    <li key={item}>{item}</li>
+                    <li key={item} lang={result.responseLanguage}>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
