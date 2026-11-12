@@ -2,7 +2,11 @@ import { buildingFacts, buildingGuide } from "./building.js";
 import { isLightingIssue, lightingRoute } from "./lighting.js";
 import { drainGuide, drainFacts, drainMessage } from "./drain.js";
 import type { Analysis, Direction, Intake } from "./schema.js";
-import { analysisSchema, intakeIssueName } from "./schema.js";
+import {
+  analysisSchema,
+  intakeIssueName,
+  repairScopeLabels,
+} from "./schema.js";
 import {
   answerLabel,
   observationLabel,
@@ -329,14 +333,23 @@ export function repairMessage(
       ? "점검 결과와 필요한 수리 범위를 알려주시면 집주인과도 공유하고 비용 부담을 확인하겠습니다."
       : "원인과 수리 범위를 확인한 뒤 비용 부담을 협의하고 싶습니다.";
   const details = i.details;
+  const lightingScope = i.lightingWork?.scope;
   const workRequest = repaired
     ? `${i.contact === "cost" ? "안내받은 비용의 산정 기준과 " : ""}실제 작업 범위와 비용 내역을 함께 확인하고 싶습니다. 확인 가능한 영수증이나 점검 내역이 있다면 공유 부탁드립니다.`
     : lightRoute === "bulb" && messageKind === "initial" && !ownFixture
       ? "전구만 교체할 수 있는 형태로 확인했습니다. 사용 가능한 전구 규격과 교체 방법을 알려주실 수 있을까요? 교체 후에도 켜지지 않으면 점검을 부탁드립니다."
       : requestMessage;
   const scopeRequest =
-    !repaired && lightRoute === "inspection"
-      ? "등기구·스위치·배선 중 어느 부분을 점검해야 하는지 알려주세요. 등기구 전체 교체가 필요하다면 이유와 항목별 견적도 부탁드립니다."
+    lightRoute && (lightRoute === "inspection" || lightingScope)
+      ? [
+          "고장 난 조명의 위치와 개수, 문제가 확인된 부품을 알려주세요.",
+          lightingScope === "whole"
+            ? "문제가 있는 부품만 보수하기 어려운 이유와 전체 교체가 필요한 범위를 알려주세요."
+            : "문제가 있는 부품만 보수할 수 있을까요? 전체 교체가 필요하다면 이유와 범위를 알려주세요.",
+          repaired
+            ? "교체한 조명의 개수와 부품비·공임·출장비가 구분된 작업 내역을 부탁드립니다."
+            : "교체할 조명의 개수와 부품비·공임·출장비를 구분한 항목별 견적을 부탁드립니다.",
+        ].join(" ")
       : !repaired && i.repairStage === "before" && !lightRoute
         ? "수리 전에 필요한 작업 범위와 항목별 견적을 먼저 확인하고 싶습니다."
         : "";
@@ -346,6 +359,11 @@ export function repairMessage(
       : "";
   const actual = [
     details?.location && `문제가 보이는 곳은 ${details.location}입니다.`,
+    i.lightingWork?.count &&
+      `제가 확인한 고장 조명은 ${i.lightingWork.count}개입니다.`,
+    lightingScope &&
+      lightingScope !== "unknown" &&
+      `제가 안내받은 작업 범위는 ${repairScopeLabels[lightingScope]}입니다.`,
     details?.discoveredAt &&
       `제가 발견한 시각은 ${details.discoveredAt.replace("T", " ")}입니다.`,
     details?.impact && `사용 중 불편한 점: ${details.impact}`,

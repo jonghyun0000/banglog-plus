@@ -1035,6 +1035,20 @@ select,
 .question-screen fieldset {
   margin-top: 24px;
 }
+.lighting-work-fields .field-label {
+  display: grid;
+  gap: 6px;
+}
+.lighting-work-fields input,
+.lighting-work-fields select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #aab3c2;
+  border-radius: 10px;
+  background: var(--surface);
+  font-weight: 400;
+}
 .question-screen .compact-answers .choices {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
