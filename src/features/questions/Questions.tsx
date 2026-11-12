@@ -43,9 +43,11 @@ import {
 } from "../../components/ui/Elements";
 export function SafetyNotice() {
   return (
-    <aside className="safety-notice" role="alert">
-      <strong>지금은 안전 확인이 먼저예요</strong>
-      <p>{safetyText}</p>
+    <aside className="safety-notice" aria-label="안전 안내">
+      <div role="alert">
+        <strong>지금은 안전 확인이 먼저예요</strong>
+        <p>{safetyText}</p>
+      </div>
       <a href="tel:119">119에 전화하기</a>
       <a href={safetyUrl} target="_blank" rel="noreferrer">
         소방청 안전 안내 ↗
