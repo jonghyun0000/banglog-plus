@@ -1,3 +1,4 @@
+import { useLanguage } from "../../app/language";
 import { useRef, useState } from "react";
 
 async function resizePhoto(file: File): Promise<string> {
@@ -44,6 +45,7 @@ export function PhotoUpload({
   onBusy: (busy: boolean) => void;
 }) {
   const [error, setError] = useState("");
+  const { t, language } = useLanguage();
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
   async function select(files: FileList | null) {
@@ -76,16 +78,18 @@ export function PhotoUpload({
   return (
     <section className="photo-upload result-card" aria-labelledby="photo-title">
       <h2 id="photo-title">
-        문제 부위 사진 <small>선택 · 최대 3장</small>
+        {t("문제 부위 사진")}
+        <small>{t("선택 · 최대 3장")}</small>
       </h2>
       <p className="small">
-        전체 모습과 가까이 찍은 사진을 넣어 주세요. 위험한 곳에 접근하거나
-        기기를 분해해 촬영하지 마세요.
+        {t(
+          "전체 모습과 가까이 찍은 사진을 넣어 주세요. 위험한 곳에 접근하거나 기기를 분해해 촬영하지 마세요.",
+        )}
       </p>
       <label className="photo-file-label">
-        앨범에서 선택
+        {t("앨범에서 선택")}
         <input
-          aria-label="문제 사진 선택"
+          aria-label={t("문제 사진 선택")}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
@@ -97,9 +101,9 @@ export function PhotoUpload({
         />
       </label>
       <label className="photo-file-label">
-        카메라로 촬영
+        {t("카메라로 촬영")}
         <input
-          aria-label="문제 사진 촬영"
+          aria-label={t("문제 사진 촬영")}
           type="file"
           accept="image/*"
           capture="environment"
@@ -110,33 +114,47 @@ export function PhotoUpload({
           }}
         />
       </label>
-      {busy && <p role="status">사진 크기를 줄이고 있어요…</p>}
+      {busy && <p role="status">{t("사진 크기를 줄이고 있어요…")}</p>}
       {error && (
         <p role="alert" className="error">
-          {error}
+          {t(error)}
         </p>
       )}
       {images.length > 0 && !busy && (
-        <p role="status">사진 {images.length}장 첨부 완료</p>
+        <p role="status">
+          {language === "en"
+            ? `${images.length} photo(s) attached`
+            : `사진 ${images.length}장 첨부 완료`}
+        </p>
       )}
       <div className="photo-previews">
         {images.map((src, index) => (
           <div key={index}>
-            <img src={src} alt={`첨부한 문제 사진 ${index + 1}`} />
+            <img
+              src={src}
+              alt={
+                language === "en"
+                  ? `Attached photo ${index + 1}`
+                  : `첨부한 문제 사진 ${index + 1}`
+              }
+            />
             <button
               type="button"
               className="text-button"
               disabled={busy}
               onClick={() => onChange(images.filter((_, n) => n !== index))}
             >
-              사진 {index + 1} 삭제
+              {language === "en"
+                ? `Remove photo ${index + 1}`
+                : `사진 ${index + 1} 삭제`}
             </button>
           </div>
         ))}
       </div>
       <p className="small">
-        사진을 선택하기 전에 얼굴·이름·주소·연락처·제품번호·QR을 가리거나
-        잘라내세요. 기기 라벨은 제조연월만 보이게 찍어 주세요.
+        {t(
+          "사진을 선택하기 전에 얼굴·이름·주소·연락처·제품번호·QR을 가리거나 잘라내세요. 기기 라벨은 제조연월만 보이게 찍어 주세요.",
+        )}
       </p>
     </section>
   );

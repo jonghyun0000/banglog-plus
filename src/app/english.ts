@@ -1,0 +1,475 @@
+export const english: Readonly<Record<string, string>> = {
+  "전체 사진": "Wide photo",
+  "근접 사진": "Close-up",
+  "오류 표시 사진": "Error display photo",
+  "제조연월 사진": "Manufacturing date label photo",
+  "배수구 주변 사진": "Photo around the drain",
+  "입주 당시 사진·점검표": "Move-in photo or checklist",
+  "지금 보이는 증상은 무엇인가요?": "What do you notice?",
+  "언제부터 있었던 문제인가요?": "When did the problem start?",
+  "누가 설치하거나 제공한 시설인가요?": "Who provided or installed it?",
+  "원인에 대해 들은 내용이 있나요?": "Has anyone suggested a cause?",
+  "이미 연락하셨나요?": "Have you contacted anyone?",
+  "지금 위험 신호가 있나요?": "Are there any immediate hazards?",
+  "추가로 설명할 내용이 있나요?": "Anything else to add?",
+  "지금 위험 신호는 없어요": "No immediate hazards",
+  "가스 냄새가 나요": "I smell gas",
+  "연기·불꽃·타는 냄새가 나요": "I see smoke or sparks, or smell burning",
+  "물과 전기가 닿거나 감전이 의심돼요":
+    "Water is touching electrical equipment, or someone may have been shocked",
+  "잘 모르겠어요": "I’m not sure",
+  모르겠어요: "I’m not sure",
+  "오늘 발견했어요": "I noticed it today",
+  "일주일 안에 발견했어요": "I noticed it within the past week",
+  "일주일보다 오래됐어요": "More than a week ago",
+  "입주 때도 있었어요": "It was already there when I moved in",
+  "입주 후 처음 생겼어요": "It first appeared after I moved in",
+  "해당 없어요": "Not applicable",
+  "집에 원래 있던 시설이에요": "It came with the rental",
+  "제가 설치한 시설이에요": "I installed or brought it",
+  "아직 원인을 몰라요": "The cause is unknown",
+  "노후·시설 또는 건물 문제라는 설명": "Age, equipment, or a building issue",
+  "일상적인 사용에 따른 마모라는 설명": "Wear from everyday use",
+  "사용 중 파손·관리 문제라는 설명": "Damage or maintenance during use",
+  "여러 원인이 함께 있다는 설명": "More than one possible cause",
+  "윗집·공용 배관 등 외부 원인 가능성":
+    "A possible external cause, such as an upstairs unit or shared pipe",
+  "제가 관찰하거나 추측했어요": "My own observation or guess",
+  "집주인이 말했어요": "The landlord told me",
+  "점검 기사에게 들었어요": "A technician told me",
+  "출처가 분명하지 않아요": "I’m unsure who said this",
+  "다른 설명은 없어요": "No other explanation",
+  "노후·시설 문제라고 해요": "They mentioned age or an equipment issue",
+  "일상적인 사용에 따른 마모라고 해요": "They mentioned everyday wear",
+  "사용·관리 문제라고 해요": "They mentioned use or maintenance",
+  "복합 원인이라고 해요": "They mentioned multiple causes",
+  "외부 원인이라고 해요": "They mentioned an external cause",
+  "아직 연락하지 않았어요": "I haven’t contacted anyone",
+  "연락했지만 답변을 기다려요": "I contacted them and am waiting for a reply",
+  "비용을 부담하라는 답을 받았어요": "I was asked to pay",
+  "답변을 받았어요": "I received a reply",
+  "별도 설명 없음": "No additional details",
+  "에어컨이 작동하지 않아요": "The air conditioner isn’t working",
+  "보일러가 작동하지 않아요": "The boiler isn’t working",
+  "세탁기가 작동하지 않아요": "The washing machine isn’t working",
+  "냉장고가 작동하지 않아요": "The refrigerator isn’t working",
+  "인덕션/가스레인지가 작동하지 않아요": "The cooktop isn’t working",
+  "수납장이 고장 났어요": "A cabinet is broken",
+  "침대가 파손됐어요": "The bed is damaged",
+  "다른 옵션 제품에 문제가 있어요":
+    "There’s a problem with another provided item",
+  "벽·천장에 곰팡이가 보여요": "I can see mold on a wall or ceiling",
+  "창문·벽에 물방울이 맺혀요": "Water droplets form on a window or wall",
+  "가구·물건 주변에 생겼어요": "It appeared around furniture or belongings",
+  "천장·벽에서 물이 나와요": "Water is coming from a ceiling or wall",
+  "배관·설비 주변에서 새요": "Water is leaking near a pipe or fixture",
+  "비가 올 때 물이 들어와요": "Water comes in when it rains",
+  "온수가 나오지 않아요": "There’s no hot water",
+  "난방이 되지 않아요": "The heating isn’t working",
+  "전원이 안 켜지거나 오류가 보여요": "It won’t turn on or shows an error",
+  "벽지가 찢어졌어요": "The wallpaper is torn",
+  "벽지에 찍힘이 있어요": "The wallpaper is dented",
+  "장판이 찢어졌어요": "The vinyl flooring is torn",
+  "장판에 찍힘이 있어요": "The vinyl flooring is dented",
+  "물이 잘 내려가지 않아요": "Water won’t drain properly",
+  "물이 천천히 내려가요": "Water drains slowly",
+  "물이 역류해요": "Water is backing up",
+  "배수구가 막힌 것 같아요": "The drain seems blocked",
+  "곰팡이가 생겼어요": "Mold or condensation",
+  "벽·천장의 곰팡이, 창문의 결로":
+    "Mold on walls or ceilings, or condensation on windows",
+  "물이 새요": "Water leak",
+  "천장·벽·배관 주변의 물 샘": "Leaks near ceilings, walls, or pipes",
+  "벽지·장판이 손상됐어요": "Wallpaper or flooring damage",
+  "찢어짐·찍힘, 입주 당시 상태 비교": "Tears, dents, and move-in condition",
+  "배수가 안 돼요": "Drain problem",
+  "느린 배수·역류·막힘": "Slow drains, backups, and blockages",
+  "전구가 안 켜짐·깜빡임·여러 조명 꺼짐":
+    "A light won’t turn on, flickers, or several lights are out",
+  "집에 설치된 옵션에 문제가 있어요":
+    "Problem with a provided appliance or fixture",
+  "에어컨·냉장고·세탁기·침대 등":
+    "Air conditioner, fridge, washer, bed, and more",
+  "보일러가 고장 났어요": "Boiler problem",
+  "난방·온수·작동 문제": "Heating, hot water, or power",
+  세면대: "Bathroom sink",
+  "주방 싱크대": "Kitchen sink",
+  "욕실 바닥 배수구": "Bathroom floor drain",
+  변기: "Toilet",
+  "직접 입력하기": "Enter another location",
+  "이곳 한 군데만 그래요": "Only this drain is affected",
+  "여러 배수구가 함께 그래요": "Several drains are affected",
+  "다른 곳은 아직 확인하지 못했어요": "I haven’t checked the other drains",
+  "넘치거나 주변으로 새지는 않아요": "It isn’t overflowing or leaking nearby",
+  "물이 넘치거나 주변으로 새고 있어요":
+    "Water is overflowing or leaking nearby",
+  "배수구 약품은 넣지 않았어요": "I haven’t used a drain chemical",
+  "배수구 약품을 넣었어요": "I used a drain chemical",
+  "약품 사용 여부를 모르겠어요": "I don’t know whether a chemical was used",
+  "아직 해본 조치는 없어요": "I haven’t tried anything yet",
+  "보이는 이물질을 치웠지만 그대로예요":
+    "I cleared visible debris, but the problem persists",
+  "압축기·제거 도구를 써도 그대로예요":
+    "I tried a plunger or tool, but it didn’t help",
+  "업체가 점검했지만 해결되지 않았어요":
+    "A professional checked it, but it still isn’t fixed",
+  "어디의 배수가 안 되나요?": "Which drain is affected?",
+  "다른 배수구도 함께 막혔나요?": "Are other drains affected?",
+  "물이 넘치거나 주변으로 새나요?": "Is water overflowing or leaking nearby?",
+  "배수구에 약품을 넣었나요?": "Have you used a drain chemical?",
+  "이미 해본 조치가 있나요?": "What have you already tried?",
+  "기타 배수 위치 (상세 미입력)": "Other drain (no location entered)",
+  "전구가 고장났어요": "A light isn’t working",
+  "전구 한 개가 켜지지 않아요": "One bulb won’t turn on",
+  "조명이 깜빡여요": "A light is flickering",
+  "전구를 바꿔도 켜지지 않아요":
+    "It still won’t turn on after replacing the bulb",
+  "여러 조명이 함께 꺼졌어요": "Several lights went out together",
+  "어떤 형태의 조명인가요?": "What type of light is it?",
+  "전구·형광등만 바꿀 수 있어요": "It has a replaceable bulb or tube",
+  "전구를 분리할 수 없는 일체형 조명이에요":
+    "It’s an integrated fixture without a removable bulb",
+  "어떤 형태인지 잘 모르겠어요": "I’m not sure what type it is",
+  "곰팡이·결로": "Mold or condensation",
+  누수: "Water leak",
+  "보일러 고장": "Boiler problem",
+  "벽지·장판 손상": "Wallpaper or flooring damage",
+  "배수 문제": "Drain problem",
+  "옵션 제품 고장": "Provided appliance or fixture",
+  "전구·조명": "Lighting",
+  "문제 부위만 보수·교체": "Repair or replace only the affected part",
+  "전체 교체·시공": "Full replacement or installation",
+  "범위를 아직 모름": "Work scope unknown",
+  "조명 형태": "Light type",
+  "수리 진행 상태": "Repair status",
+  "문제 위치": "Location",
+  "고장 난 조명 개수": "Number of affected lights",
+  "안내받은 조명 작업 범위": "Suggested lighting work",
+  "발견 시각": "Date and time noticed",
+  "사용 지장": "Impact on use",
+  "기사 점검 여부": "Professional inspection",
+  받았어요: "Inspected",
+  "받지 않았어요": "No inspection yet",
+  "사용자가 전한 기사 소견": "Technician’s findings as reported by you",
+  "사용자가 전한 상대방 답변": "Reply as reported by you",
+  "수리 전": "Before repair",
+  "수리 후": "After repair",
+  "전·월세 세입자를 위한 집 수리 가이드":
+    "Home repair guidance for renters in Korea",
+  "집 수리비,": "Home repairs.",
+  "누가 부담하나요?": "Who pays?",
+  "증상 몇 가지를 고르면, 수리 요청부터":
+    "Answer a few questions to plan your next step,",
+  "비용 협의·집주인에게 보낼 문구까지 정리해요.":
+    "check costs, and draft a message to your landlord.",
+  "곰팡이·누수·보일러·벽지·장판·배수·옵션 제품":
+    "Mold, leaks, boilers, flooring, drains, and appliances",
+  "방로그에서 확인할 내용": "What you can do",
+  누구에게: "Find who",
+  "수리 요청할지": "to contact",
+  "비용 협의 전": "Check the facts",
+  "확인할 근거": "before discussing costs",
+  집주인에게: "To the landlord",
+  "보낼 문구": "Message",
+  "우리 집 수리 문제 확인하기": "Check a repair problem",
+  "회원가입 없이 바로 확인할 수 있어요": "Start without an account",
+  "AI 안내이며, 법적 판단을 확정하지 않아요.":
+    "General guidance. It does not determine legal responsibility.",
+  "수리 전 참고 판례 보기": "Reference cases (Korean)",
+  "개인정보·이용 안내": "Privacy and use",
+  "상황 확인": "Your situation",
+  "어떤 문제가 생겼나요?": "What needs attention?",
+  "가장 먼저 확인하고 싶은 문제를 골라주세요.":
+    "Choose the problem you want to check first.",
+  "사진이나 입주 기록이 없어도 괜찮아요.":
+    "Photos and move-in records are optional.",
+  "지금 알고 있는 내용부터 함께 확인해요.": "Start with what you know.",
+  "안전 안내": "Safety alert",
+  "지금은 안전 확인이 먼저예요": "Get to safety first",
+  "119에 전화하기": "Call 119 in Korea",
+  "소방청 안전 안내 ↗": "Official safety guidance (Korean) ↗",
+  "위험이 계속되면 질문을 중단하세요. 이 화면은 위험 여부를 진단하지 않아요.":
+    "Stop if danger continues. This screen cannot assess the hazard for you.",
+  "증상·안전": "Symptoms and safety",
+  "자료·검토": "Details and review",
+  "질문 진행 상황": "Question progress",
+  "문제가 생긴 곳은 어떤 시설인가요?": "What is affected?",
+  "보이는 증상을 누르면 다음으로 넘어가요.": "Select a symptom to continue.",
+  "답을 바꿔 선택할 수 있어요. 확인한 뒤 다음을 눌러주세요.":
+    "You can change your answer. Tap Next when ready.",
+  "두 항목을 선택한 뒤 다음을 눌러주세요. 몰라도 괜찮아요.":
+    "Answer both questions, then tap Next. It’s fine to be unsure.",
+  "원인을 몰라도 괜찮아요. 추측과 점검 결과를 구분해요.":
+    "It’s fine if you don’t know. Separate guesses from inspection findings.",
+  "위험 신호가 있으면 진행을 중단해요.":
+    "The questions stop if you select a hazard.",
+  "없으면 바로 넘어가도 괜찮아요.": "You can skip optional details.",
+  "선택하면 다음으로 넘어가요.": "Select an answer to continue.",
+  "선택 후 바로 이동": "Continue automatically after a selection",
+  "마지막에 답변을 확인하고 수정할 수 있어요.":
+    "You can review and edit your answers before submitting.",
+  "배수가 안 되는 곳": "Drain location",
+  "예: 베란다 배수구, 세탁실 바닥": "Example: laundry room floor drain",
+  "주소·동호수·연락처는 적지 마세요. 위치를 적고 다음을 눌러주세요.":
+    "Enter the area, then tap Next. Leave out addresses, unit numbers and contact details.",
+  "약품을 사용한 뒤에는 압축기나 제거 도구를 쓰지 마세요. 제품명·사용 시점은 마지막 설명란에 적을 수 있어요.":
+    "If you used a drain chemical, avoid plungers and removal tools. You can note the product and time in the final details.",
+  "가장 최근에 해본 조치를 골라주세요. 이미 해본 방법을 반복해서 권하지 않도록 확인해요.":
+    "Choose your most recent attempt so the guide can account for it.",
+  "지금 보이는 증상": "Visible symptom",
+  "처음 발견한 시점": "When you first noticed it",
+  "입주 당시에도 있었나요?": "Was it present at move-in?",
+  "벽·천장·창문은 원래 있던 시설, 직접 가져온 가구는 제가 설치한 시설을 선택해요.":
+    "For walls, ceilings and windows, select “It came with the rental.” For your own furniture, select “I installed or brought it.”",
+  "문제가 있는 제품의 제공 주체": "Who provided the item?",
+  "문제가 있는 시설": "Who provided the fixture?",
+  "알고 있는 원인": "Reported cause",
+  "누구에게 들었나요?": "Who told you?",
+  "기사에게 들은 소견 (선택)": "Technician’s findings (optional)",
+  "집주인·관리 담당자 답변 추가": "Add the landlord or manager’s reply",
+  "상대방 답변 (선택)": "Their reply (optional)",
+  "집주인이 말한 다른 원인": "A different cause mentioned by the landlord",
+  "수리 기사에게 점검받았나요?": "Has a technician inspected it?",
+  "아직 선택하지 않았어요": "Not selected",
+  "점검받지 않았어요": "No inspection yet",
+  점검받았어요: "Yes, it was inspected",
+  "집주인·관리 담당자에게 연락한 상태":
+    "Contact with your landlord or building manager",
+  "지금 확인되는 위험 신호": "Immediate hazards",
+  "고장 난 조명과 작업 범위 (선택)":
+    "Affected lights and work scope (optional)",
+  "고장 위치": "Where is the affected light?",
+  "예: 거실 천장 가운데 등": "Example: middle ceiling light in the living room",
+  "어떤 작업을 안내받았나요?": "What work was suggested?",
+  "안내받은 작업 없음": "No work has been suggested",
+  "발견 기록·계약 특약 (선택)": "Discovery details and lease terms (optional)",
+  "수리 진행 상태 (선택)": "Repair status (optional)",
+  "선택 안 함": "Leave blank",
+  "문제 위치 (선택)": "Location (optional)",
+  "발견 시각 (선택)": "Date and time noticed (optional)",
+  "사용에 지장이 생긴 부분 (선택)": "How it affects use (optional)",
+  "관련 계약 특약 (선택)": "Relevant lease terms (optional)",
+  "추가로 설명할 내용": "Additional details",
+  선택: "Optional",
+  "주소·연락처·주민번호·계좌번호는 적지 마세요.":
+    "Leave out addresses, contact details, ID and bank account numbers.",
+  "적어주신 설명은 선택한 답변과 함께 정리해요. 원인이나 비용 부담이 확정된 사실로 취급하지 않아요.":
+    "We use your description alongside your selections. The cause and responsibility still require confirmation.",
+  "개인정보로 보이는 일부 내용은 분석 전에 가려져요. 탐지가 완벽하지 않으니 직접 확인해 주세요.":
+    "Some personal details may be masked before analysis. Check your text yourself before submitting.",
+  "위험 신호가 있어 진행을 중단했어요": "Paused because of a safety hazard",
+  "입력한 내용 확인하기": "Review my answers",
+  다음: "Next",
+  "보이는 증상": "Visible symptom",
+  "추가 설명": "Additional details",
+  "건물 정보": "Building information",
+  "발견 시점": "First noticed",
+  "입주 당시": "At move-in",
+  시설: "Fixture or equipment",
+  "원인 설명": "Reported cause",
+  "다른 주장": "Other explanation",
+  "계약 특약": "Lease terms",
+  "시설 교체·수리 이력": "Replacement or repair history",
+  "이력을 알고 있어요": "I know the history",
+  "아는 이력이 없어요": "I have no known repair history",
+  모름: "Unknown",
+  "관리 담당자": "Building manager",
+  "연락 가능한 담당자가 있어요": "I know who to contact",
+  "아는 담당자가 없어요": "I don’t know who to contact",
+  "위험 신호": "Safety hazards",
+  "연락 상태": "Contact status",
+  "3 / 3 · 자료·검토": "3 / 3 · Review",
+  "추가 안내에 보낼 내용을 확인해 주세요": "Review your follow-up details",
+  "이 내용으로 확인할까요?": "Review your answers",
+  "· 답변을 확인하고 필요한 부분을 수정하세요.":
+    "· Check your answers and edit anything you need to.",
+  "아래 답변과 선택한 건물 정보로 다시 안내받아요. 이 화면에서 수정하고 처리 안내를 확인하세요. 기록장 첨부·연락 일지·문구는 기기에 보관돼요.":
+    "Review the details you want to send for follow-up. Repair-log files, contact history and drafts stay on this device.",
+  수정: "Edit",
+  "이미 찍었거나 갖고 있는 자료 표시 (선택)":
+    "Mark evidence you already have (optional)",
+  "실제 AI 처리 전 확인해 주세요": "Before requesting AI analysis",
+  "데모: 가상 결과로 확인해요": "Demo: rule-based sample result",
+  "가린 상황 설명·선택 답변·계약 문구와 확인한 점검 소견·상대방 답변을 OpenAI에 전송해요. store:false를 사용하며, 제공자의 악용 모니터링 기록은 기본 최대 30일 보관될 수 있어요. 학습용 사용은 기본 비활성화되어 있어요.":
+    "Your masked description, selected answers, lease excerpt, reported findings and replies are sent to OpenAI. Response storage is disabled (store:false). Abuse monitoring logs may be kept for up to 30 days by default. Training use is off by default.",
+  "외부 AI를 호출하지 않고 규칙에 따른 가상 결과를 만들어요.":
+    "The demo generates a sample result using rules, without contacting an AI provider.",
+  "입력·결과·피드백은 현재 페이지의 메모리에만 보관하며 서버로 전송하지 않아요.":
+    "Inputs, results and feedback stay in this page’s memory.",
+  "입력·결과·피드백을 서버 DB에 최대 24시간 임시 보관해요.":
+    "Inputs, results and feedback are stored in the server database for up to 24 hours.",
+  "입력·결과·피드백은 서버 메모리에 최대 24시간, 또는 서버를 끌 때까지 임시 보관해요.":
+    "Inputs, results and feedback stay in server memory for up to 24 hours or until the server stops.",
+  "이용 중 직접 삭제할 수 있어요.": "You can delete this session during use.",
+  "새로고침하거나 페이지를 닫으면 기록이 사라져요. 피드백은 체험용이며 운영자에게 전달되지 않아요.":
+    "Reloading or closing this page clears the demo record. Demo feedback stays in the demo.",
+  "새로고침하면 기록에 다시 접근할 수 없어요. 새로고침 자체가 서버 기록을 삭제하지는 않아요. 원문을 연구·학습용으로 따로 저장하지 않아요.":
+    "Reloading removes your access to this session. The server record remains until deletion or expiry. Your original text is not separately collected for research or training.",
+  "문제 유형·선택 증상·결과 분류별 일일 완료 건수를 집계해요. 집계에는 식별자와 자유 입력 원문을 넣지 않으며 개별 기록 삭제 후에도 건수는 남아요. v1.5 팀 체험 기간에는 이 익명 집계를 공개 관리자 화면에서 누구나 볼 수 있어요.":
+    "We count completed sessions by problem, symptom and result category. Public pilot counts contain no identifiers or free text and remain after individual records are deleted.",
+  "위 처리 안내를 확인했어요": "I’ve read this data processing notice",
+  필수: "Required",
+  "세션을 준비하고 있어요…": "Starting your session…",
+  "수리 가이드 확인하기": "Get repair guidance",
+  미확인: "Unconfirmed",
+  "연락 문구": "Message draft",
+  "기본 안내 · 연락 문구": "Basic guide · Message draft",
+  "데모: 가상 결과 · 연락 문구": "Demo · Message draft",
+  "수정하고, 복사해서 보내세요": "Edit and copy your message",
+  "연락 문구 종류": "Message type",
+  "첫 수선 요청": "First repair request",
+  "점검 후 비용 협의": "Discuss costs after inspection",
+  "답변 지연·거절 후 재요청": "Follow up on a delay or refusal",
+  "문구와 결과를 내 기록에 저장": "Save this guide and message",
+  "로그인 후 동의하면 수정한 문구도 함께 보관해요.":
+    "Sign in and choose to save your edited message with this result.",
+  "수선 기록에 이 문구 가져오기": "Add this message to the repair log",
+  "도움이 됐는지 알려주기": "Leave feedback",
+  "자동 복사가 되지 않았어요. 전체 선택한 뒤 직접 복사해 주세요.":
+    "Couldn’t copy automatically. Select the text and copy it manually.",
+  "보내는 사람 · 선택": "Sender details (optional)",
+  "내 이름 (선택)": "Your name (optional)",
+  "예: 김민수": "Example: Alex Kim",
+  "거주지 호수 (선택)": "Your unit (optional)",
+  "예: 101동 302호": "Example: Building 101, Unit 302",
+  "비워도 괜찮아요. 이름·호수는 아래 복사할 문구에만 반영하며 AI나 서버에 보내지 않아요. 화면을 나가면 지워져요.":
+    "These details are added to the copy preview only and cleared when you leave.",
+  "요청 내용은 여기서 수정하세요. 이름·호수는 위 선택란에 입력하고 본문에는 개인정보를 적지 마세요.":
+    "Edit the request below. Use the separate fields above for your name or unit.",
+  "전체 선택": "Select all",
+  "처음 문구로 되돌리기": "Reset draft",
+  "수정한 내용을 지우고 처음 문구로 되돌릴까요?":
+    "Discard your edits and restore the original?",
+  "되돌리기 확인": "Restore original",
+  "수정 유지": "Keep edits",
+  "복사할 최종 문구": "Final text to copy",
+  "아래 복사 버튼으로 이름·호수가 포함된 문구를 복사해요. 기록에는 위 요청 본문만 저장해요.":
+    "Copy includes your sender details. Saved records contain only the request body.",
+  "복사됐어요. 메시지 앱에 붙여넣어 보내주세요.":
+    "Copied. Paste the text into your messaging app to send it.",
+  "자동 발송되지 않아요. 복사한 뒤 직접 보내주세요.":
+    "Copy and send it yourself when ready.",
+  "복사 중…": "Copying…",
+  "문구 복사하기": "Copy message",
+  "본문으로 건너뛰기": "Skip to main content",
+  "로그인 · 내 기록": "My records",
+  데모: "Demo",
+  "연결 검증": "Connection check",
+  뒤로가기: "Go back",
+  이전: "Back",
+  "내용 검토": "Review",
+  결과: "Result",
+  "수선 요청·퇴실 기록장": "Repair and move-out log",
+  "수선 기록을 준비하고 있어요…": "Loading repair records…",
+  "내 기록을 준비하고 있어요…": "Loading your records…",
+  "연결 다시 시도": "Retry connection",
+  "분석 요청 중": "Request in progress",
+  "데모 가이드를 만들고 있어요": "Preparing a demo guide",
+  "입력한 내용을 확인하고 있어요": "Checking your answers",
+  "완료되면 결과를 보여드릴게요.": "Your result will appear when ready.",
+  "사진 분석과 수리 안내를 요청했어요.": "Photo and repair guidance requested.",
+  "요청한 분석의 응답을 기다리고 있어요.": "Waiting for the analysis.",
+  "분석 취소하기": "Cancel analysis",
+  "입력이 변경됐어요": "Your answers have changed",
+  "현재 입력으로 다시 확인해 주세요.":
+    "Review your latest answers to continue.",
+  "입력 확인하기": "Review answers",
+  "홈으로 돌아가기": "Back to home",
+  "로그인해서 기록을 확인해 보세요": "Save and revisit your guides",
+  "저장한 수리 안내와 집주인에게 보낼 문구를 다시 볼 수 있어요. 처음 이용할 때는 로그인 없이 시작해도 괜찮아요.":
+    "Sign in to revisit saved guides and landlord messages. You can start without an account.",
+  "로그인하고 기록 보기": "Sign in to see records",
+  "현재 세션 관리": "Current session",
+  "현재 세션의 입력·결과·피드백을 삭제할까요? 삭제 후에는 복구할 수 없어요.":
+    "Delete this session’s answers, result and feedback? This cannot be undone.",
+  "삭제 중…": "Deleting…",
+  "기록 삭제 확인": "Confirm deletion",
+  취소: "Cancel",
+  "현재 세션 기록 삭제": "Delete this session",
+  "하단 메뉴": "Footer menu",
+  "공개 관리자 화면": "Public dashboard (Korean)",
+  "개인정보 안내": "Privacy notice",
+  "브라우저 임시 보관 · 새로고침하면 삭제":
+    "Stored in this browser until refresh",
+  "예: 창문 옆 벽에 곰팡이가 생겼고, 아침에 물방울이 맺혀요.":
+    "Example: Mold appeared next to the window, and droplets form in the morning.",
+  "예: 비가 오는 날 천장에서 물이 떨어져요.":
+    "Example: The ceiling drips when it rains.",
+  "예: 보일러 전원은 켜지는데 온수가 나오지 않아요.":
+    "Example: The boiler turns on, but there is no hot water.",
+  "예: 방문 옆 벽지가 찢어졌어요. 입주 사진과 비교하고 싶어요.":
+    "Example: Wallpaper by the door is torn. I want to compare it with my move-in photos.",
+  "예: 욕실 물이 천천히 내려가고, 다른 배수구에서도 소리가 나요.":
+    "Example: The bathroom drains slowly, and another drain makes a noise.",
+  "예: 집에 있던 냉장고의 전원은 켜지는데 냉장이 안 돼요.":
+    "Example: The provided refrigerator has power but isn’t cooling.",
+  "예: 거실 조명이 깜빡여요. 전구를 바꿨는데도 같은 증상이 있어요.":
+    "Example: The living-room light still flickers after replacing the bulb.",
+  "문제가 있는 조명의 위치를 알리고 조명 설비 점검을 요청하기":
+    "Report where the lights failed and request a fixture inspection.",
+  "기존 전구 규격을 확인하고 전구만 교체해 보기":
+    "Check the existing bulb’s specifications and consider replacing just the bulb.",
+  "조명의 위치와 입주 당시 상태를 기록하고 교체 가능한 형태인지 문의하기":
+    "Note the location and its condition at move-in, and ask whether the bulb can be replaced separately.",
+  "수리 후에도 증상이 남는지 확인하고 작업 내역 기록하기":
+    "Check whether the problem remains and record the completed work.",
+  "교체한 부품과 작업 범위, 증상이 남아 있다면 재점검 가능 여부 확인하기":
+    "Confirm what parts were replaced and ask about a follow-up inspection if the problem persists.",
+  "전원을 끄고 안전하게 손이 닿는 경우에만 제품 안내에 따라 같은 규격의 전구로 교체하고, 그래도 안 켜지면 점검 요청하기":
+    "Turn off the power. Only replace an easily reachable bulb with a compatible one according to the manufacturer’s instructions. Ask for an inspection if it still fails.",
+  "등기구·스위치·배선을 분해하지 않고 점검 범위를 문의하기":
+    "Ask what needs inspecting. Leave the fixture, switch and wiring intact.",
+  "등기구 전체 교체를 제안받으면 필요한 이유와 항목별 견적 확인하기":
+    "If full replacement is suggested, ask why and request an itemized quote.",
+  "물 사용을 멈추고 점검을 요청해요":
+    "Stop using the water and request an inspection",
+  "역류·넘침 또는 여러 곳의 막힘은 직접 뚫으려 하지 마세요. 물 사용을 멈추고, 오염수와 젖은 전기기기를 피한 뒤 안전한 곳에서 집주인·관리 담당자에게 연락하세요.":
+    "Stop using water. Leave the blockage alone and keep clear of wastewater and wet electrical equipment. Contact the landlord or building manager from a safe place.",
+  "눈에 보이는 이물질부터 확인해요": "Check only visible debris first",
+  "머리카락·비누 찌꺼기 등이 원인일 수 있어요. 장갑을 끼고, 분해하지 않고 닿는 거름망 표면의 이물질만 제거해 보세요. 배관이나 고정된 마개를 풀거나 도구를 억지로 밀어 넣지 마세요.":
+    "Wear gloves and remove debris only from a reachable strainer surface. Leave pipes and fixed stoppers in place and avoid pushing tools into the drain.",
+  "이미 한 청소는 반복하지 않아도 돼요":
+    "You can skip the cleaning you already tried",
+  "표면 청소 후에도 그대로라면 더 깊이 분해하거나 같은 작업을 반복하지 마세요. 해결되지 않은 증상과 이미 해본 청소를 집주인·관리 담당자에게 알리고 점검을 요청하세요.":
+    "Tell your landlord or building manager what you cleaned and what still happens. Ask for an inspection instead of repeating the cleaning or taking the drain apart.",
+  "약품을 더 넣거나 도구를 쓰지 마세요":
+    "Avoid adding chemicals or using drain tools",
+  "직접 작업보다 점검이 먼저예요": "Ask for an inspection first",
+  "약품을 사용했거나 사용 여부를 모르면 다른 세제·약품을 섞지 말고 압축기나 제거 도구도 사용하지 마세요. 제품 용기·설명서를 보관하고 점검 담당자에게 제품명과 사용 시점을 알려주세요.":
+    "If a chemical may have been used, avoid mixing cleaners or using plungers or other tools. Keep the container or instructions and tell the technician what was used and when.",
+  "입주 때부터 있었던 문제라면 당시 사진과 연락 기록을 확인하세요. 직접 분해하기보다 집주인에게 상태와 점검 필요성을 알려주세요.":
+    "If it was already there at move-in, review your photos and messages. Tell the landlord what you noticed and request an inspection.",
+  "이미 도구·업체 점검을 시도했거나 막힌 범위·안전 상태가 분명하지 않아요. 같은 조치를 반복하거나 배관을 분해하지 말고 현재 상태를 전달해 점검을 요청하세요.":
+    "When the scope is unclear or prior attempts failed, report what happened and request an inspection. Avoid repeated attempts or dismantling pipes.",
+  "그대로라면 집주인에게 연락해요": "Contact the landlord if it persists",
+  "점검에 필요한 내용을 전달해요": "Share the details needed for an inspection",
+  "원인 확인 후 비용을 협의해요": "Discuss costs after the cause is checked",
+  "입주 후 발생했거나 간단한 조치로 해결되지 않았다는 이유만으로 사용자 과실·배관 하자·비용 부담을 확정할 수 없어요. 점검 결과와 계약 조건을 확인하세요.":
+    "Review the inspection findings and lease terms before agreeing on costs. Timing or a failed cleaning alone cannot determine the cause.",
+  "집주인·관리 담당자에게 현재도 해결되지 않았다는 점과 해본 조치를 전달하고 점검 일정·결과를 확인하세요. 비용 요구를 받았다면 원인과 항목별 견적을 먼저 요청하세요.":
+    "Tell the landlord or building manager the problem persists and describe what you tried. Ask about inspection timing, findings and an itemized quote if asked to pay.",
+  "집주인·관리 담당자에게 증상과 발견 시점, 이미 해본 조치를 알리고 점검 일정을 요청하세요.":
+    "Tell the landlord or building manager what happened, when you noticed it, and what you tried. Ask for an inspection date.",
+  "문제 부위 사진": "Photos of the affected area",
+  "선택 · 최대 3장": "Optional · up to 3",
+  "전체 모습과 가까이 찍은 사진을 넣어 주세요. 위험한 곳에 접근하거나 기기를 분해해 촬영하지 마세요.":
+    "Include a wide photo and a close-up when safe. Keep clear of hazards and leave equipment intact.",
+  "앨범에서 선택": "Choose photos",
+  "문제 사진 선택": "Choose issue photos",
+  "카메라로 촬영": "Take a photo",
+  "문제 사진 촬영": "Take an issue photo",
+  "사진 크기를 줄이고 있어요…": "Preparing photos…",
+  "사진을 선택하기 전에 얼굴·이름·주소·연락처·제품번호·QR을 가리거나 잘라내세요. 기기 라벨은 제조연월만 보이게 찍어 주세요.":
+    "Cover or crop out faces, names, addresses, contact details, serial numbers and QR codes. If sharing a device label, show only the manufacturing date.",
+  "사진은 최대 3장까지 첨부할 수 있어요.": "You can attach up to three photos.",
+  "사진을 읽지 못했어요. 사진 없이 계속할 수 있어요.":
+    "Couldn’t read the photo. You can continue without it.",
+  "JPG·PNG·WebP 사진을 15MB 이하로 선택해 주세요. HEIC 사진은 JPG로 변환해 주세요.":
+    "Choose JPG, PNG or WebP photos up to 15 MB. Convert HEIC photos to JPG first.",
+  "사진 크기가 너무 커요. 작은 사진으로 다시 선택해 주세요.":
+    "Choose a smaller photo.",
+  "사진을 준비하지 못했어요. 사진 없이 계속할 수 있어요.":
+    "Couldn’t prepare the photo. You can continue without it.",
+  "사진 용량을 줄이지 못했어요. 더 작은 사진으로 다시 선택해 주세요.":
+    "Couldn’t shrink the photo. Choose a smaller one.",
+};

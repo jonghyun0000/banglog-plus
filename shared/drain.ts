@@ -114,7 +114,7 @@ export function drainGuide(i: Intake): Analysis["drainGuide"] {
   const d = i.drain ?? defaultDrain;
   // Unstructured reports can override reassuring selections. Uncertainty never enables DIY.
   const uncertainText =
-    /약품|세정제|락스|뚫어뻥|역류|넘치|누수|새고|여러\s*(곳|배수구)/u.test(
+    /약품|세정제|락스|뚫어뻥|역류|넘치|누수|새고|여러\s*(곳|배수구)|\b(?:bleach|drain\s+(?:cleaner|chemical)|plunger|backflow|backing\s+up|overflow(?:ing)?|multiple\s+drains)\b/iu.test(
       intakeContext(i),
     );
   const canTry =

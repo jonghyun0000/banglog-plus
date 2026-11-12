@@ -10,10 +10,11 @@ export function hasDanger(
     Partial<Pick<Intake, "drain" | "details" | "contact">>,
 ) {
   if (["gas", "fire", "electric"].includes(input.safety)) return true;
-  return dangerPattern.test(
-    `${input.description} ${input.contract} ${input.details?.technicianNote ?? ""} ${input.details?.reply ?? ""} ${input.details?.location ?? ""} ${input.details?.impact ?? ""} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`,
-  );
+  const context = `${input.description} ${input.contract} ${input.details?.technicianNote ?? ""} ${input.details?.reply ?? ""} ${input.details?.location ?? ""} ${input.details?.impact ?? ""} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`;
+  return dangerPattern.test(context) || englishDangerPattern.test(context);
 }
+const englishDangerPattern =
+  /\b(?:smell(?:ing)?\s+(?:of\s+)?gas|gas\s+(?:is\s+)?leak(?:ing)?|burning\s+smell|smoke\s+(?:is\s+)?(?:coming|rising)|(?:outlet|socket|wiring|fixture|wire)\s+(?:is\s+)?(?:sparking|wet)|sparks?\s+(?:from|coming)|(?:got|was)\s+(?:an?\s+)?(?:electric\s+)?shock(?:ed)?|electric\s+shock|carbon\s+monoxide\s+alarm)\b/iu;
 // 단어만 겹치는 일상 표현(일정 연기, 화재보험, 연기 감지기)은 위험으로 보지 않는다.
 const dangerPattern = new RegExp(
   [

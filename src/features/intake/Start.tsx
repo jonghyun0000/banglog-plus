@@ -1,3 +1,4 @@
+import { useLanguage } from "../../app/language";
 import { issueChoices } from "../../../shared/questions";
 import { lightingTitle } from "../../../shared/lighting";
 import type { Intake, Issue } from "../../../shared/schema";
@@ -13,67 +14,76 @@ export function Home({
   onPrivacy: () => void;
   onReferences: () => void;
 }) {
+  const { t, language } = useLanguage();
   return (
     <div className="home">
       <div className="home-copy">
         <p className="eyebrow home-audience">
-          전·월세 세입자를 위한 집 수리 가이드
+          {t("전·월세 세입자를 위한 집 수리 가이드")}
         </p>
         <h1 tabIndex={-1}>
-          집 수리비,
+          {t("집 수리비,")}
           <br />
-          누가 부담하나요?
+          {t("누가 부담하나요?")}
         </h1>
         <p className="home-description">
-          증상 몇 가지를 고르면, 수리 요청부터
+          {t("증상 몇 가지를 고르면, 수리 요청부터")}
           <br />
-          비용 협의·집주인에게 보낼 문구까지 정리해요.
+          {t("비용 협의·집주인에게 보낼 문구까지 정리해요.")}
         </p>
         <p className="home-issues">
-          곰팡이·누수·보일러·벽지·장판·배수·옵션 제품{" · "}
+          {t("곰팡이·누수·보일러·벽지·장판·배수·옵션 제품")}
+          {" · "}
           <button type="button" className="home-lighting" onClick={onLighting}>
-            {lightingTitle}
+            {t(lightingTitle)}
           </button>
         </p>
-        <section className="home-benefits" aria-label="방로그에서 확인할 내용">
-          <div>
-            <span aria-hidden="true">01</span>
-            <strong>
-              누구에게
-              <br />
-              수리 요청할지
-            </strong>
-          </div>
-          <div>
-            <span aria-hidden="true">02</span>
-            <strong>
-              비용 협의 전<br />
-              확인할 근거
-            </strong>
-          </div>
-          <div>
-            <span aria-hidden="true">03</span>
-            <strong>
-              집주인에게
-              <br />
-              보낼 문구
-            </strong>
-          </div>
-        </section>
+        {language === "ko" && (
+          <section
+            className="home-benefits"
+            aria-label={t("방로그에서 확인할 내용")}
+          >
+            <div>
+              <span aria-hidden="true">01</span>
+              <strong>
+                {t("누구에게")}
+                <br />
+                {t("수리 요청할지")}
+              </strong>
+            </div>
+            <div>
+              <span aria-hidden="true">02</span>
+              <strong>
+                {t("비용 협의 전")}
+                <br />
+                {t("확인할 근거")}
+              </strong>
+            </div>
+            <div>
+              <span aria-hidden="true">03</span>
+              <strong>
+                {t("집주인에게")}
+                <br />
+                {t("보낼 문구")}
+              </strong>
+            </div>
+          </section>
+        )}
       </div>
       <div className="home-action">
         <Button onClick={onStart}>
-          우리 집 수리 문제 확인하기 <ArrowIcon />
+          {t("우리 집 수리 문제 확인하기")}
+          <ArrowIcon />
         </Button>
-        <p className="home-guest">회원가입 없이 바로 확인할 수 있어요</p>
+        <p className="home-guest">{t("회원가입 없이 바로 확인할 수 있어요")}</p>
         <p className="small disclaimer">
-          AI 안내이며, 법적 판단을 확정하지 않아요.
+          {t("AI 안내이며, 법적 판단을 확정하지 않아요.")}
         </p>
         <button className="text-button" onClick={onReferences}>
-          수리 전 참고 판례 보기
+          {t("수리 전 참고 판례 보기")}
         </button>
         <button className="text-button muted" onClick={onPrivacy}>
-          개인정보·이용 안내
+          {t("개인정보·이용 안내")}
         </button>
       </div>
     </div>
@@ -157,10 +167,11 @@ export function IssuePicker({
 }: {
   onPick: (issue: Issue, observation?: Intake["observation"]) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <>
-      <SectionTitle eyebrow="상황 확인" title="어떤 문제가 생겼나요?">
-        <p>가장 먼저 확인하고 싶은 문제를 골라주세요.</p>
+      <SectionTitle eyebrow={t("상황 확인")} title={t("어떤 문제가 생겼나요?")}>
+        <p>{t("가장 먼저 확인하고 싶은 문제를 골라주세요.")}</p>
       </SectionTitle>
       <div className="issue-list">
         {issueChoices.map(({ issue, title, detail, observation }) => (
@@ -177,17 +188,17 @@ export function IssuePicker({
               )}
             </span>
             <span>
-              <strong>{title}</strong>
-              <small>{detail}</small>
+              <strong>{t(title)}</strong>
+              <small>{t(detail)}</small>
             </span>
             <ArrowIcon />
           </button>
         ))}
       </div>
       <p className="small quiet-note">
-        사진이나 입주 기록이 없어도 괜찮아요.
+        {t("사진이나 입주 기록이 없어도 괜찮아요.")}
         <br />
-        지금 알고 있는 내용부터 함께 확인해요.
+        {t("지금 알고 있는 내용부터 함께 확인해요.")}
       </p>
     </>
   );

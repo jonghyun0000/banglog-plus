@@ -2,6 +2,7 @@ import { publicDashboardAllowed } from "../shared/release";
 import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./app/App";
+import { LanguageProvider } from "./app/language";
 import "./styles/tokens.css";
 const PublicAdmin = lazy(() => import("./features/admin/PublicAdmin"));
 const Admin = lazy(() => import("./features/admin/Admin"));
@@ -17,7 +18,9 @@ createRoot(document.getElementById("root")!).render(
           <Admin />
         )
       ) : (
-        <App />
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
       )}
     </Suspense>
   </StrictMode>,

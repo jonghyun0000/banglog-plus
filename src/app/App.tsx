@@ -1,3 +1,4 @@
+import { useLanguage } from "./language";
 import type {
   PhotoDevice,
   PhotoFollowup,
@@ -6,7 +7,9 @@ import type {
 } from "../../shared/photo";
 import { supportsPhotoDeviceDetails } from "../../shared/photo";
 import { releaseLabel } from "../../shared/release";
-import { repairMessage } from "../../shared/analysis";
+import { localizedRepairMessage } from "./localized-message";
+import { EnglishGuide } from "../features/analysis/EnglishGuide";
+import { EnglishPrivacy } from "./EnglishPrivacy";
 import { canLinkGuide, type RepairImport } from "../../shared/repair-guide";
 import type { InspectionKey } from "../features/repair/InspectionChecklist";
 import { applyQuestionPatch } from "../../shared/questions";
@@ -57,6 +60,7 @@ type Screen =
   | "references";
 type Location = { screen: Screen; step: number };
 export default function App() {
+  const { language, setLanguage, t } = useLanguage();
   const [location, setLocation] = useState<Location>({
     screen: new URLSearchParams(window.location.search).has("account")
       ? "account"
@@ -73,7 +77,7 @@ export default function App() {
   const [draft, setDraft] = useState<{
     id: string;
     kind: Analysis["messageKind"];
-    edits: Partial<Record<Analysis["messageKind"], string>>;
+    edits: Partial<Record<`${"ko" | "en"}:${Analysis["messageKind"]}`, string>>;
   } | null>(null);
   const [repairImport, setRepairImport] = useState<RepairImport | null>(null);
   const [followupId, setFollowupId] = useState<string>();
@@ -389,12 +393,14 @@ export default function App() {
   }
   const currentDraft = draft?.id === result?.analysisId ? draft : null;
   const messageKind = currentDraft?.kind ?? result?.messageKind ?? "initial";
+  const draftKey = `${language}:${messageKind}` as const;
   const messageText = result
-    ? (currentDraft?.edits[messageKind] ??
-      repairMessage(
+    ? (currentDraft?.edits[draftKey] ??
+      localizedRepairMessage(
         sanitizeIntake(input),
         result.repairRequest.recipient,
         messageKind,
+        language,
       ))
     : "";
   function openRepair(request: RepairImport | null = null) {
@@ -430,39 +436,79 @@ export default function App() {
   const showResult =
     ["result", "message", "feedback"].includes(screen) &&
     result?.inputVersion === input.inputVersion;
+  const koreanGuide =
+    showResult && screen === "result" ? (
+      <Result
+        result={result!}
+        intake={input}
+        photoBusy={photoBusy}
+        onPhotoConfirm={
+          supportsPhotoDeviceDetails(input)
+            ? (device) => void updatePhoto(device)
+            : undefined
+        }
+        onPhotoRetry={
+          result?.photoAnalysis?.status === "failed" &&
+          !result.photoAnalysis.retryAttempted &&
+          photoPayload()
+            ? () => void updatePhoto()
+            : undefined
+        }
+        onRepair={linkRepair}
+        onOpenRepair={() => openRepair()}
+        inspectionQuestions={inspectionQuestions}
+        onInspectionQuestions={setInspectionQuestions}
+        onMessage={() => go("message")}
+        onEdit={() => {
+          setResult(null);
+          go("review");
+        }}
+        onFeedback={() => go("feedback")}
+        onSave={() => go("account")}
+      />
+    ) : null;
   return (
     <div
-      className={`app-shell ${screen === "questions" ? "question-shell" : screen === "result" && showResult ? "result-shell" : ""}`}
+      className={`app-shell ${language === "en" ? "english-shell " : ""}${screen === "questions" ? "question-shell" : screen === "result" && showResult ? "result-shell" : ""}`}
     >
       <a className="skip-link" href="#main">
-        본문으로 건너뛰기
+        {t("본문으로 건너뛰기")}
       </a>
       <header className="app-header">
         <span className="brand">
-          방로그 <span>Plus</span>
+          {language === "en" ? "Banglog" : "방로그"} <span>Plus</span>
         </span>
         <button
           className="text-button account-entry"
           onClick={() => go("account")}
         >
-          로그인 · 내 기록
+          {t("로그인 · 내 기록")}
         </button>
         {config && (
           <span className="mode-label">
             {config.publicLaunch
               ? releaseLabel
               : config.ai === "mock"
-                ? "데모"
-                : "연결 검증"}
+                ? t("데모")
+                : t("연결 검증")}
           </span>
         )}
+        <button
+          className="text-button language-switch"
+          type="button"
+          lang={language === "en" ? "ko" : "en"}
+          aria-label={language === "en" ? "한국어로 전환" : "Switch to English"}
+          onClick={() => setLanguage(language === "en" ? "ko" : "en")}
+        >
+          {language === "en" ? "한국어" : "English"}
+        </button>
       </header>
       <main id="main">
         <div className="top-nav">
           {screen !== "home" && screen !== "loading" && (
             <button
               className="back-button"
-              aria-label="뒤로가기"
+              aria-label={t("뒤로가기")}
               onClick={() => {
                 if (screen === "questions" && editingQuestion.current) {
                   editingQuestion.current = false;
@@ -486,7 +532,7 @@ export default function App() {
                 else go("home");
               }}
             >
-              ← <span>이전</span>
+              ← <span>{t("이전")}</span>
             </button>
           )}
           {![
@@ -500,7 +546,7 @@ export default function App() {
           ].includes(screen) && (
             <p className="flow-indicator">
               <span className={screen === "questions" ? "current" : ""}>
-                상황 확인
+                {t("상황 확인")}
               </span>
               <span aria-hidden="true">›</span>
               <span
@@ -508,22 +554,24 @@ export default function App() {
                   ["review", "loading"].includes(screen) ? "current" : ""
                 }
               >
-                내용 검토
+                {t("내용 검토")}
               </span>
               <span aria-hidden="true">›</span>
-              <span className={showResult ? "current" : ""}>결과</span>
+              <span className={showResult ? "current" : ""}>{t("결과")}</span>
             </p>
           )}
         </div>
         {["home", "account"].includes(screen) && (
           <button className="text-button" onClick={() => openRepair()}>
-            수선 요청·퇴실 기록장
+            {t("수선 요청·퇴실 기록장")}
           </button>
         )}
         {repairOpened && (
           <div hidden={screen !== "repair"}>
             <Suspense
-              fallback={<p role="status">수선 기록을 준비하고 있어요…</p>}
+              fallback={
+                <p role="status">{t("수선 기록을 준비하고 있어요…")}</p>
+              }
             >
               <RepairWorkspace
                 request={repairImport}
@@ -534,18 +582,33 @@ export default function App() {
           </div>
         )}
         {screen === "account" && (
-          <Suspense fallback={<p role="status">내 기록을 준비하고 있어요…</p>}>
+          <Suspense
+            fallback={<p role="status">{t("내 기록을 준비하고 있어요…")}</p>}
+          >
             <Account
               config={config}
               analysisId={result?.analysisId}
-              editedMessage={currentDraft ? messageText : undefined}
+              editedMessage={
+                currentDraft || language === "en"
+                  ? messageText || undefined
+                  : undefined
+              }
               onHome={() => go("home")}
             />
           </Suspense>
         )}
+        {language === "en" &&
+          ["account", "repair", "references", "feedback"].includes(screen) && (
+            <p className="small notice">
+              This section is currently in Korean. Use Back to return to the
+              English guide.
+            </p>
+          )}
         {error && (
           <div className="error" role="alert">
-            {error}
+            {language === "en"
+              ? "Something went wrong. Check your connection or try again shortly."
+              : error}
             {!config && (
               <button
                 className="text-button"
@@ -554,14 +617,14 @@ export default function App() {
                   setConfigAttempt((c) => c + 1);
                 }}
               >
-                연결 다시 시도
+                {t("연결 다시 시도")}
               </button>
             )}
           </div>
         )}
         {notice && (
           <p className="notice" role="status">
-            {notice}
+            {language === "en" ? "Your latest action is complete." : notice}
           </p>
         )}
         {screen === "home" && (
@@ -636,55 +699,50 @@ export default function App() {
           <div className="loading-screen">
             <span className="loading-ring" aria-hidden="true" />
             <SectionTitle
-              eyebrow="분석 요청 중"
+              eyebrow={t("분석 요청 중")}
               title={
                 config?.ai === "mock"
-                  ? "데모 가이드를 만들고 있어요"
-                  : "입력한 내용을 확인하고 있어요"
+                  ? t("데모 가이드를 만들고 있어요")
+                  : t("입력한 내용을 확인하고 있어요")
               }
             >
-              <p>완료되면 결과를 보여드릴게요.</p>
+              <p>{t("완료되면 결과를 보여드릴게요.")}</p>
             </SectionTitle>
             <p role="status" className="small">
               {photoConsent && photos.length && config?.ai === "live"
-                ? "사진 분석과 수리 안내를 요청했어요."
-                : "요청한 분석의 응답을 기다리고 있어요."}
+                ? t("사진 분석과 수리 안내를 요청했어요.")
+                : t("요청한 분석의 응답을 기다리고 있어요.")}
             </p>
             <Button secondary onClick={() => void cancel()}>
-              분석 취소하기
+              {t("분석 취소하기")}
             </Button>
           </div>
         )}
-        {showResult && screen === "result" && (
-          <Result
-            result={result!}
-            intake={input}
-            photoBusy={photoBusy}
-            onPhotoConfirm={
-              supportsPhotoDeviceDetails(input)
-                ? (device) => void updatePhoto(device)
-                : undefined
-            }
-            onPhotoRetry={
-              result?.photoAnalysis?.status === "failed" &&
-              !result.photoAnalysis.retryAttempted &&
-              photoPayload()
-                ? () => void updatePhoto()
-                : undefined
-            }
-            onRepair={linkRepair}
-            onOpenRepair={() => openRepair()}
-            inspectionQuestions={inspectionQuestions}
-            onInspectionQuestions={setInspectionQuestions}
-            onMessage={() => go("message")}
-            onEdit={() => {
-              setResult(null);
-              go("review");
-            }}
-            onFeedback={() => go("feedback")}
-            onSave={() => go("account")}
-          />
-        )}
+        {showResult &&
+          screen === "result" &&
+          (language === "ko" ? (
+            koreanGuide
+          ) : (
+            <>
+              <EnglishGuide
+                result={result!}
+                intake={input}
+                onMessage={() => go("message")}
+                onEdit={() => {
+                  setResult(null);
+                  go("review");
+                }}
+                onSave={() => go("account")}
+                onRepair={linkRepair}
+              />
+              {["complete", "needs_information"].includes(result!.status) && (
+                <details>
+                  <summary>Full result and sources (Korean)</summary>
+                  <div lang="ko">{koreanGuide}</div>
+                </details>
+              )}
+            </>
+          ))}
         {showResult && screen === "message" && (
           <Message
             key={result!.analysisId}
@@ -703,7 +761,7 @@ export default function App() {
               setDraft({
                 id: result!.analysisId,
                 kind: messageKind,
-                edits: { ...currentDraft?.edits, [messageKind]: text },
+                edits: { ...currentDraft?.edits, [draftKey]: text },
               })
             }
             onRepair={linkRepair}
@@ -720,16 +778,25 @@ export default function App() {
         )}
         {["result", "message", "feedback"].includes(screen) && !showResult && (
           <>
-            <SectionTitle title="입력이 변경됐어요">
-              <p>현재 입력으로 다시 확인해 주세요.</p>
+            <SectionTitle title={t("입력이 변경됐어요")}>
+              <p>{t("현재 입력으로 다시 확인해 주세요.")}</p>
             </SectionTitle>
-            <Button onClick={() => go("review")}>입력 확인하기</Button>
+            <Button onClick={() => go("review")}>{t("입력 확인하기")}</Button>
           </>
         )}
-        {screen === "privacy" && (
+        {screen === "privacy" && language === "en" && (
+          <>
+            <SectionTitle title="Privacy and use" />
+            <EnglishPrivacy />
+            <Button secondary onClick={() => go("home")}>
+              Back to home
+            </Button>
+          </>
+        )}
+        {screen === "privacy" && language === "ko" && (
           <>
             <SectionTitle
-              eyebrow="개인정보·이용 안내"
+              eyebrow={t("개인정보·이용 안내")}
               title="필요한 내용만 잠시 보관해요"
             />
             <div className="prose">
@@ -838,43 +905,45 @@ export default function App() {
               <p className="small">안내 버전 2026-11-11 · v1.5</p>
             </div>
             <Button secondary onClick={() => go("home")}>
-              홈으로 돌아가기
+              {t("홈으로 돌아가기")}
             </Button>
           </>
         )}
         {screen === "home" && (
           <section className="history-invite">
-            <h2>로그인해서 기록을 확인해 보세요</h2>
+            <h2>{t("로그인해서 기록을 확인해 보세요")}</h2>
             <p>
-              저장한 수리 안내와 집주인에게 보낼 문구를 다시 볼 수 있어요. 처음
-              이용할 때는 로그인 없이 시작해도 괜찮아요.
+              {t(
+                "저장한 수리 안내와 집주인에게 보낼 문구를 다시 볼 수 있어요. 처음 이용할 때는 로그인 없이 시작해도 괜찮아요.",
+              )}
             </p>
             <Button secondary onClick={() => go("account")}>
-              로그인하고 기록 보기
+              {t("로그인하고 기록 보기")}
             </Button>
           </section>
         )}
       </main>
       {api.hasSession() && (
-        <section className="session-footer" aria-label="현재 세션 관리">
+        <section className="session-footer" aria-label={t("현재 세션 관리")}>
           {deleteConfirm ? (
             <div className="delete-confirm">
               <p>
-                현재 세션의 입력·결과·피드백을 삭제할까요? 삭제 후에는 복구할 수
-                없어요.
+                {t(
+                  "현재 세션의 입력·결과·피드백을 삭제할까요? 삭제 후에는 복구할 수 없어요.",
+                )}
               </p>
               <button
                 className="text-button danger"
                 disabled={deleting}
                 onClick={() => void remove()}
               >
-                {deleting ? "삭제 중…" : "기록 삭제 확인"}
+                {deleting ? t("삭제 중…") : t("기록 삭제 확인")}
               </button>
               <button
                 className="text-button"
                 onClick={() => setDeleteConfirm(false)}
               >
-                취소
+                {t("취소")}
               </button>
             </div>
           ) : (
@@ -882,25 +951,41 @@ export default function App() {
               className="text-button muted"
               onClick={() => setDeleteConfirm(true)}
             >
-              현재 세션 기록 삭제
+              {t("현재 세션 기록 삭제")}
             </button>
           )}
           <p className="small">
             {config?.storage === "browser"
-              ? "브라우저 임시 보관 · 새로고침하면 삭제"
-              : `${config?.storage === "database" ? "서버 DB" : "서버 메모리"} 임시 보관 · 최대 24시간`}
+              ? t("브라우저 임시 보관 · 새로고침하면 삭제")
+              : language === "en"
+                ? "Temporary server storage · up to 24 hours"
+                : `${config?.storage === "database" ? "서버 DB" : "서버 메모리"} 임시 보관 · 최대 24시간`}
           </p>
         </section>
       )}
       <footer className="app-footer">
-        <nav aria-label="하단 메뉴">
-          <a href="/admin">공개 관리자 화면</a>
+        <nav aria-label={t("하단 메뉴")}>
+          <a href="/admin">{t("공개 관리자 화면")}</a>
           <button className="text-button" onClick={() => go("privacy")}>
-            개인정보 안내
+            {t("개인정보 안내")}
           </button>
         </nav>
-        <small>방로그 Plus {releaseLabel} · 팀 체험 버전</small>
-        {config?.publicLaunch && <Status compact />}
+        <small>
+          {language === "en"
+            ? `Banglog Plus ${releaseLabel} · Pilot`
+            : `방로그 Plus ${releaseLabel} · 팀 체험 버전`}
+        </small>
+        {config?.publicLaunch &&
+          (language === "en" ? (
+            <details>
+              <summary>Service status (Korean)</summary>
+              <div lang="ko">
+                <Status compact />
+              </div>
+            </details>
+          ) : (
+            <Status compact />
+          ))}
       </footer>
     </div>
   );
