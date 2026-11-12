@@ -14,6 +14,7 @@ import {
 } from "../../../shared/photo";
 import type { Analysis, Intake, Issue } from "../../../shared/schema";
 import { Responsibility } from "./Responsibility";
+import { RepairCostExamples } from "./RepairCostExamples";
 import { Button, SectionTitle } from "../../components/ui/Elements";
 import { SafetyNotice } from "../questions/Questions";
 export function Result({
@@ -286,6 +287,7 @@ export function Result({
           <ReferenceCards issue={issue} />
         </details>
       )}
+      <RepairCostExamples input={intake} status={result.status} />
       <div className="cautions">
         {result.cautions.map((c) => (
           <p className="small" key={c}>
