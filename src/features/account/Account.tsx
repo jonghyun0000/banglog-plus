@@ -17,6 +17,9 @@ import { DraftEditor } from "../message/DraftEditor";
 import { NextResponse } from "../analysis/NextResponse";
 import { guestProof } from "../../app/api";
 import { Button, SectionTitle } from "../../components/ui/Elements";
+
+const historyDateFormat = new Intl.DateTimeFormat("sv-SE");
+
 let authClient:
   | {
       key: string;
@@ -565,20 +568,24 @@ export function Account({
             <div className="history-grid">
               {entries.map((entry) => (
                 <section className="result-card history-card" key={entry.id}>
-                  <p className="eyebrow">
-                    {entry.result.fallback
-                      ? "기본 안내 · AI 분석 아님"
-                      : entry.result.mode === "mock"
-                        ? "데모 결과"
-                        : "AI 보조 안내"}{" "}
-                    · {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
-                  </p>
+                  <div className="history-meta">
+                    <span className="eyebrow">
+                      {entry.result.fallback
+                        ? "기본 안내 · AI 분석 아님"
+                        : entry.result.mode === "mock"
+                          ? "데모 결과"
+                          : "AI 보조 안내"}
+                    </span>
+                    <time className="history-date" dateTime={entry.createdAt}>
+                      {historyDateFormat.format(new Date(entry.createdAt))}
+                    </time>
+                  </div>
                   <h3>{intakeIssueName(entry.input)}</h3>
                   <p>
                     {directionNames[entry.result.costResponsibility.direction]}
                   </p>
                   <details>
-                    <summary>결과와 근거 펼쳐보기</summary>
+                    <summary>결과·근거 보기</summary>
                     {entry.result.fallback && (
                       <p className="notice">{entry.result.fallback.notice}</p>
                     )}
@@ -630,9 +637,11 @@ export function Account({
                     </summary>
                     <NextResponse result={entry.result} />
                   </details>
-                  <p className="small">
-                    {new Date(entry.expiresAt).toLocaleDateString("ko-KR")}까지
-                    보관
+                  <p className="small history-retention">
+                    만료일{" "}
+                    <time className="history-date" dateTime={entry.expiresAt}>
+                      {historyDateFormat.format(new Date(entry.expiresAt))}
+                    </time>
                   </p>
                   {confirmDelete === entry.id ? (
                     <>

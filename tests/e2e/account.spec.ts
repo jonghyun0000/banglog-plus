@@ -149,7 +149,32 @@ test("saved history renders, deletion requires confirmation and logout clears re
   const first = cards.filter({
     has: page.getByRole("heading", { name: "곰팡이·결로", exact: true }),
   });
-  await first.getByText("결과와 근거 펼쳐보기", { exact: true }).click();
+  const dates = first.locator("time");
+  await expect(dates).toHaveText([
+    /^\d{4}-\d{2}-\d{2}$/,
+    /^\d{4}-\d{2}-\d{2}$/,
+  ]);
+  const resultSummary = first.getByText("결과·근거 보기", { exact: true });
+  const textRows = await first
+    .locator(
+      ".history-date, .history-retention, details:first-of-type > summary",
+    )
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        const rows = new Set<number>();
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (!node.textContent?.trim()) continue;
+          range.selectNodeContents(node);
+          for (const rect of range.getClientRects())
+            rows.add(Math.round(rect.top));
+        }
+        return rows.size;
+      }),
+    );
+  expect(textRows).toEqual([1, 1, 1, 1]);
+  await resultSummary.click();
   await expect(
     first.locator(".saved-message").filter({ hasText: result.messageDraft }),
   ).toBeVisible();
