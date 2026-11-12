@@ -17,7 +17,7 @@ import { Responsibility } from "./Responsibility";
 import { RepairCostExamples } from "./RepairCostExamples";
 import { Button } from "../../components/ui/Elements";
 import { ResultOverview } from "./ResultOverview";
-import { repairCostCases } from "./repair-cost-cases";
+import { repairCostCases, repairCostPreview } from "./repair-cost-cases";
 import "./result.css";
 export function Result({
   result,
@@ -68,7 +68,7 @@ export function Result({
       <ResultOverview
         result={result}
         intake={intake}
-        showCosts={costCases !== null}
+        costPreview={costCases ? repairCostPreview(costCases) : null}
         onMessage={onMessage}
         onEdit={onEdit}
       />
@@ -88,6 +88,7 @@ export function Result({
             확인해야 해요.
           </p>
         )}
+      <RepairCostExamples examples={costCases} />
       {supported ? (
         <section className="result-detail-grid" aria-labelledby="result-steps">
           <h2 id="result-steps" className="result-group-heading" tabIndex={-1}>
@@ -165,7 +166,6 @@ export function Result({
       ) : (
         photo
       )}
-      <RepairCostExamples examples={costCases} />
       <section
         className="result-detail-grid result-footer-grid"
         aria-label="결과 근거와 기록"

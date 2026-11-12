@@ -52,10 +52,29 @@ export function Choice({
         onChange={() => onChange(value)}
       />
       <span>{label}</span>
-      <span aria-hidden="true" className="radio-mark">
-        {current === value ? "✓" : ""}
-      </span>
+      <span aria-hidden="true" className="radio-mark" />
     </label>
+  );
+}
+export function ChoiceButton({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`choice ${selected ? "selected" : ""}`}
+      aria-pressed={selected}
+      onClick={onClick}
+    >
+      <span>{label}</span>
+      <span aria-hidden="true" className="radio-mark" />
+    </button>
   );
 }
 export function ArrowIcon() {

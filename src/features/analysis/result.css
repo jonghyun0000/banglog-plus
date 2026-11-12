@@ -91,6 +91,46 @@
   line-height: 1.45;
 }
 
+.result-price-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1748b0;
+  text-decoration: none;
+}
+
+.result-price-preview-value {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0 8px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.result-price-preview-value strong {
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.result-price-preview-link {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .result-overview-actions {
   display: flex;
   flex-direction: column;
@@ -166,8 +206,78 @@
   justify-self: start;
 }
 
+.result-screen .repair-cost-examples {
+  padding: 16px;
+}
+
 .result-screen #repair-cost-title {
+  margin: 0 0 6px;
   scroll-margin-top: 16px;
+}
+
+.repair-cost-note {
+  margin: 0 0 12px;
+}
+
+.repair-cost-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repair-cost-list li {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.repair-cost-item-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0 12px;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.repair-cost-amount {
+  color: #1748b0;
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.repair-cost-list li p {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.repair-cost-list li .small {
+  font-size: 0.8125rem;
+}
+
+.repair-cost-list a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: #1748b0;
+  font-size: 0.8125rem;
+  text-underline-offset: 3px;
+}
+
+.result-screen .repair-cost-other-heading {
+  margin: 18px 0 8px;
+  font-size: 1rem;
+}
+
+.repair-cost-other-heading span {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 @media (min-width: 800px) {

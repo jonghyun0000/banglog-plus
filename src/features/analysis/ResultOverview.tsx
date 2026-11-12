@@ -1,12 +1,14 @@
 import { observationLabel } from "../../../shared/questions";
+import type { MouseEvent } from "react";
 import {
-  issueNames,
+  intakeIssueName,
   type Analysis,
   type Direction,
   type Intake,
 } from "../../../shared/schema";
 import { Button } from "../../components/ui/Elements";
 import { SafetyNotice } from "../questions/Questions";
+import type { repairCostPreview } from "./repair-cost-cases";
 
 const costOverview: Record<Direction, [string, string]> = {
   undetermined: ["점검 후 협의", "원인과 계약 확인이 필요해요."],
@@ -29,16 +31,26 @@ const messageLabels = {
   emergency: "연락 문구 보기",
 } as const;
 
+function moveToResultSection(event: MouseEvent<HTMLAnchorElement>) {
+  const destination = document.getElementById(
+    event.currentTarget.hash.slice(1),
+  );
+  if (!destination) return;
+  event.preventDefault();
+  destination.focus({ preventScroll: true });
+  destination.scrollIntoView({ block: "start" });
+}
+
 export function ResultOverview({
   result,
   intake,
-  showCosts,
+  costPreview,
   onMessage,
   onEdit,
 }: {
   result: Analysis;
   intake: Intake;
-  showCosts: boolean;
+  costPreview: ReturnType<typeof repairCostPreview> | null;
   onMessage: () => void;
   onEdit: () => void;
 }) {
@@ -72,7 +84,6 @@ export function ResultOverview({
   const links = [
     { id: "result-steps", title: "자세한 대응" },
     { id: "result-evidence", title: "판단 근거" },
-    ...(showCosts ? [{ id: "repair-cost-title", title: "수리비 사례" }] : []),
   ];
 
   return (
@@ -92,11 +103,12 @@ export function ResultOverview({
               ? "이 문제는 지원 범위 밖이에요"
               : unavailable
                 ? "수리 안내를 불러오지 못했어요"
-                : `${issueNames[intake.issue]} 수리 가이드`}
+                : `${intakeIssueName(intake)} 수리 가이드`}
         </h1>
         {active && (
           <p className="result-symptom">
-            {intake.observation === "unknown"
+            {intake.observation === "unknown" ||
+            intake.observation === "light-unknown"
               ? "증상이 아직 분명하지 않아요."
               : observationLabel(intake)}
           </p>
@@ -137,23 +149,29 @@ export function ResultOverview({
               <p className="result-summary-note">{costNote}</p>
             </section>
           </div>
+          {costPreview && (
+            <a
+              className="result-price-preview"
+              href="#repair-cost-title"
+              onClick={moveToResultSection}
+            >
+              <span className="result-price-preview-value">
+                <span>{costPreview.label}</span>
+                {costPreview.amount && <strong>{costPreview.amount}</strong>}
+              </span>
+              <span className="result-price-preview-link">
+                전체 {costPreview.count}건 보기
+                <span aria-hidden="true"> ›</span>
+              </span>
+            </a>
+          )}
           <div className="result-overview-actions">
             {result.messageDraft && (
               <Button onClick={onMessage}>{messageLabels[recipient]}</Button>
             )}
             <nav aria-label="수리 결과 바로가기">
               {links.map(({ id, title }) => (
-                <a
-                  key={id}
-                  href={`#${id}`}
-                  onClick={(event) => {
-                    const destination = document.getElementById(id);
-                    if (!destination) return;
-                    event.preventDefault();
-                    destination.focus({ preventScroll: true });
-                    destination.scrollIntoView({ block: "start" });
-                  }}
-                >
+                <a key={id} href={`#${id}`} onClick={moveToResultSection}>
                   {title}
                 </a>
               ))}

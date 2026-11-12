@@ -6,7 +6,7 @@ import {
   type SupabaseClient,
 } from "@supabase/supabase-js";
 import type { AppConfig } from "../../../shared/schema";
-import { issueNames, directionNames } from "../../../shared/schema";
+import { intakeIssueName, directionNames } from "../../../shared/schema";
 import {
   historySchema,
   historyConsentVersion,
@@ -561,101 +561,108 @@ export function Account({
               </p>
             )
           )}
-          {entries.map((entry) => (
-            <section className="result-card history-card" key={entry.id}>
-              <p className="eyebrow">
-                {entry.result.fallback
-                  ? "기본 안내 · AI 분석 아님"
-                  : entry.result.mode === "mock"
-                    ? "데모 결과"
-                    : "AI 보조 안내"}{" "}
-                · {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
-              </p>
-              <h2>{issueNames[entry.input.issue]}</h2>
-              <p>{directionNames[entry.result.costResponsibility.direction]}</p>
-              <details>
-                <summary>결과와 근거 펼쳐보기</summary>
-                {entry.result.fallback && (
-                  <p className="notice">{entry.result.fallback.notice}</p>
-                )}
-                {entry.result.aiExplanation && (
-                  <p>{entry.result.aiExplanation}</p>
-                )}
-                <PhotoResult photo={entry.result.photoAnalysis} />
-                <p>{entry.result.repairRequest.reason}</p>
-                {entry.result.costResponsibility.conditions.map((c, i) => (
-                  <p key={i}>{c}</p>
-                ))}
-                <p>{entry.result.costResponsibility.uncertainty}</p>
-                <h3>지금 확인할 내용</h3>
-                <ul>
-                  {entry.result.nextActions.map((c, i) => (
-                    <li key={i}>{c}</li>
-                  ))}
-                </ul>
-                <h3>저장한 연락 문구</h3>
-                <p className="saved-message">
-                  {entry.result.savedMessage ?? entry.result.messageDraft}
-                </p>
-                <h3>참고 근거</h3>
-                {entry.result.citedClaims.map((c, i) => (
-                  <p key={i}>{c.claim}</p>
-                ))}
-                {entry.result.sources.map((s) => (
-                  <p key={s.id}>
-                    <a href={s.url} target="_blank" rel="noreferrer">
-                      {s.title} ↗
-                    </a>
+          {entries.length > 0 && (
+            <div className="history-grid">
+              {entries.map((entry) => (
+                <section className="result-card history-card" key={entry.id}>
+                  <p className="eyebrow">
+                    {entry.result.fallback
+                      ? "기본 안내 · AI 분석 아님"
+                      : entry.result.mode === "mock"
+                        ? "데모 결과"
+                        : "AI 보조 안내"}{" "}
+                    · {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
                   </p>
-                ))}
-                {entry.result.cautions.map((c, i) => (
-                  <p className="small" key={i}>
-                    {c}
+                  <h3>{intakeIssueName(entry.input)}</h3>
+                  <p>
+                    {directionNames[entry.result.costResponsibility.direction]}
                   </p>
-                ))}
-              </details>
-              <details className="saved-editor">
-                <summary>문구 수정·복사하기</summary>
-                <SavedDraft entry={entry} />
-              </details>
-              <details>
-                <summary>
-                  {entry.result.tailoredResponse
-                    ? "내 상황에 맞는 다음 대응과 근거"
-                    : "법률을 참고한 다음 대응"}
-                </summary>
-                <NextResponse result={entry.result} />
-              </details>
-              <p className="small">
-                {new Date(entry.expiresAt).toLocaleDateString("ko-KR")}까지 보관
-              </p>
-              {confirmDelete === entry.id ? (
-                <>
-                  <p>이 기록을 삭제할까요? 복구할 수 없어요.</p>
-                  <button
-                    className="text-button danger"
-                    disabled={busy}
-                    onClick={() => void remove(entry.id)}
-                  >
-                    삭제 확인
-                  </button>
-                  <button
-                    className="text-button"
-                    onClick={() => setConfirmDelete(null)}
-                  >
-                    취소
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="text-button danger"
-                  onClick={() => setConfirmDelete(entry.id)}
-                >
-                  기록 삭제
-                </button>
-              )}
-            </section>
-          ))}
+                  <details>
+                    <summary>결과와 근거 펼쳐보기</summary>
+                    {entry.result.fallback && (
+                      <p className="notice">{entry.result.fallback.notice}</p>
+                    )}
+                    {entry.result.aiExplanation && (
+                      <p>{entry.result.aiExplanation}</p>
+                    )}
+                    <PhotoResult photo={entry.result.photoAnalysis} />
+                    <p>{entry.result.repairRequest.reason}</p>
+                    {entry.result.costResponsibility.conditions.map((c, i) => (
+                      <p key={i}>{c}</p>
+                    ))}
+                    <p>{entry.result.costResponsibility.uncertainty}</p>
+                    <h4>지금 확인할 내용</h4>
+                    <ul>
+                      {entry.result.nextActions.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))}
+                    </ul>
+                    <h4>저장한 연락 문구</h4>
+                    <p className="saved-message">
+                      {entry.result.savedMessage ?? entry.result.messageDraft}
+                    </p>
+                    <h4>참고 근거</h4>
+                    {entry.result.citedClaims.map((c, i) => (
+                      <p key={i}>{c.claim}</p>
+                    ))}
+                    {entry.result.sources.map((s) => (
+                      <p key={s.id}>
+                        <a href={s.url} target="_blank" rel="noreferrer">
+                          {s.title} ↗
+                        </a>
+                      </p>
+                    ))}
+                    {entry.result.cautions.map((c, i) => (
+                      <p className="small" key={i}>
+                        {c}
+                      </p>
+                    ))}
+                  </details>
+                  <details className="saved-editor">
+                    <summary>문구 수정·복사하기</summary>
+                    <SavedDraft entry={entry} />
+                  </details>
+                  <details>
+                    <summary>
+                      {entry.result.tailoredResponse
+                        ? "내 상황에 맞는 다음 대응과 근거"
+                        : "법률을 참고한 다음 대응"}
+                    </summary>
+                    <NextResponse result={entry.result} />
+                  </details>
+                  <p className="small">
+                    {new Date(entry.expiresAt).toLocaleDateString("ko-KR")}까지
+                    보관
+                  </p>
+                  {confirmDelete === entry.id ? (
+                    <>
+                      <p>이 기록을 삭제할까요? 복구할 수 없어요.</p>
+                      <button
+                        className="text-button danger"
+                        disabled={busy}
+                        onClick={() => void remove(entry.id)}
+                      >
+                        삭제 확인
+                      </button>
+                      <button
+                        className="text-button"
+                        onClick={() => setConfirmDelete(null)}
+                      >
+                        취소
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="text-button danger"
+                      onClick={() => setConfirmDelete(entry.id)}
+                    >
+                      기록 삭제
+                    </button>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
           <button
             className="text-button"
             disabled={busy}

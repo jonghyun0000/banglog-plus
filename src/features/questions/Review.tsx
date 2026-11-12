@@ -7,7 +7,7 @@ import {
 import { PhotoUpload } from "../photos/PhotoUpload";
 import { drainFacts, drainQuestions } from "../../../shared/drain";
 import type { AppConfig, Intake } from "../../../shared/schema";
-import { issueNames } from "../../../shared/schema";
+import { intakeIssueName } from "../../../shared/schema";
 import {
   answerLabel,
   observationLabel,
@@ -131,7 +131,7 @@ export function Review({
         }
       >
         <p>
-          {issueNames[input.issue]} · 답변을 확인하고 필요한 부분을 수정하세요.
+          {intakeIssueName(input)} · 답변을 확인하고 필요한 부분을 수정하세요.
         </p>
       </SectionTitle>
       {followup && (

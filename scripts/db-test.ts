@@ -338,6 +338,9 @@ try {
     const input = {
       ...defaultIntake,
       issue,
+      ...(issue === "fixture"
+        ? { observation: "light-replaced" as const }
+        : {}),
       ...(issue === "drain"
         ? {
             building: {
@@ -371,13 +374,19 @@ try {
       added.record.id,
       makeAnalysis(input, added.record.id, "mock", "demo"),
     );
-    assert.equal(
-      (await repo.getAnalysis(guest.id, added.record.id))?.input.issue,
-      issue,
-    );
+    const saved: import("../server/repositories/types.js").AnalysisRecord =
+      (await repo.getAnalysis(guest.id, added.record.id))!;
+    assert.equal(saved.input.issue, issue);
+    assert.equal(saved.input.observation, input.observation);
+    if (issue === "fixture") {
+      const lightingMember = randomUUID();
+      await history.save(lightingMember, saved, saved.result!.messageDraft);
+      const [entry] = await history.list(lightingMember);
+      assert.equal(entry.input.observation, "light-replaced");
+      assert.match(entry.result.messageDraft, /전구를 바꿔도 켜지지 않아요/);
+      await history.remove(lightingMember, entry.id);
+    }
     if (issue === "drain") {
-      const saved: import("../server/repositories/types.js").AnalysisRecord =
-        (await repo.getAnalysis(guest.id, added.record.id))!;
       assert.deepEqual(saved.input.drain, input.drain);
       assert.equal(saved.result?.drainGuide?.route, "contact");
       const drainMember = randomUUID();

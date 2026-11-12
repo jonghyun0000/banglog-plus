@@ -368,9 +368,11 @@ fieldset {
   min-height: 56px;
   cursor: pointer;
   line-height: 1.5;
+  text-align: left;
 }
 .choice > span:first-of-type {
   flex: 1;
+  min-width: 0;
 }
 .choice input {
   position: absolute;
@@ -388,19 +390,22 @@ fieldset {
   color: #1748b0;
 }
 .radio-mark {
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border: 1.5px solid #aab3c2;
   border-radius: 50%;
-  font-size: 0.875rem;
 }
 .selected .radio-mark {
   background: var(--blue);
   border-color: var(--blue);
-  color: #fff;
+}
+@media (forced-colors: active) {
+  .selected .radio-mark {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+  }
 }
 .actions {
   margin-top: 32px;
@@ -759,13 +764,6 @@ details p {
   padding: 10px 16px;
   line-height: 1.8;
 }
-button.choice {
-  justify-content: space-between;
-  text-align: left;
-}
-button.choice > span:first-of-type {
-  flex: 0 0 auto;
-}
 .result-lead,
 .result-card {
   background: white;
@@ -908,6 +906,35 @@ select,
   line-height: 1.7;
   word-break: keep-all;
 }
+.home-lighting {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: #1748b0;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.bulb-icon {
+  position: relative;
+  width: 16px;
+  height: 17px;
+  margin-bottom: 5px;
+  border: 1.6px solid currentColor;
+  border-radius: 55% 55% 40% 40%;
+}
+.bulb-icon::after {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 8px;
+  height: 4px;
+  border-block: 1.6px solid currentColor;
+  transform: translateX(-50%);
+  content: "";
+}
 .home-benefits {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1016,11 +1043,6 @@ select,
   font-size: 0.9375rem;
   gap: 8px;
 }
-.question-screen .compact-answers .radio-mark {
-  width: 18px;
-  height: 18px;
-}
-
 .question-screen .quiet-note {
   margin-top: 16px;
 }
@@ -1129,8 +1151,20 @@ select,
   color: var(--muted);
   font-size: 1rem;
 }
-.history-card h2 {
+.history-grid {
+  display: grid;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.history-grid .history-card {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.history-card h3 {
   margin: 8px 0;
+  font-weight: 700;
 }
 .history-card details p {
   margin: 12px 0;
@@ -1138,6 +1172,24 @@ select,
 .history-card summary {
   min-height: 48px;
   padding: 12px 0;
+}
+@media (min-width: 360px) {
+  .history-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (360px <= width < 800px) {
+  .account-screen .history-card {
+    padding: 12px;
+  }
+  .history-card:has(> details[open]) {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 800px) {
+  .app-shell:has(.history-grid) {
+    max-width: 1040px;
+  }
 }
 .next-response {
   border: 1px solid var(--line);
@@ -1652,45 +1704,4 @@ select,
   background: var(--surface);
   color: inherit;
   font: inherit;
-}
-
-.repair-cost-examples h2 {
-  margin: 0 0 12px;
-}
-
-.repair-cost-list {
-  display: grid;
-  gap: 12px;
-  padding: 0;
-  list-style: none;
-}
-
-.repair-cost-list li {
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--bg);
-}
-
-.repair-cost-list h3,
-.repair-cost-list p {
-  margin: 0 0 8px;
-}
-
-.repair-cost-amount {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-}
-
-.repair-cost-amount strong {
-  font-size: 1.25rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.repair-cost-list a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
 }

@@ -82,17 +82,39 @@ test("drain: safe sink route, back navigation, input preservation, self-care bef
     overview.getByText("분해 없이 거름망 표면만 확인하세요.", { exact: true }),
   ).toBeInViewport();
   const examples = page.getByRole("region", { name: "비슷한 수리 비용 사례" });
+  const preview = overview.getByRole("link", { name: /전체 48건 보기/ });
+  await expect(preview).toContainText("10만 원");
+  await expect(preview).toBeInViewport();
+  await page.screenshot({ path: ".local/repair-cost-overview.png" });
   await expect(examples).toContainText("세면대 트랩 청소와 배수 마개 교체");
   await expect(examples).toContainText("업체 공개 예산");
   await expect(examples).toContainText("100,000원");
   await expect(examples).toContainText(
     "실제 결제액과 누가 냈는지는 확인되지 않았어요",
   );
-  await expect(examples).not.toContainText("연결 배관 청소");
+  const similar = examples.getByRole("list", { name: "비슷한 수리비 자료" });
+  await expect(similar).not.toContainText("연결 배관 청소");
+  await expect(examples.getByRole("listitem")).toHaveCount(48);
+  const other = examples.getByRole("list", { name: "다른 수리비 자료" });
+  await expect(other).toContainText("원룸 건물의 주방·욕실 연결 배관 청소");
+  await expect(other.getByRole("listitem").first()).toContainText(
+    "아파트 싱크대 배관 막힘 제거",
+  );
   await expect(
     examples.getByRole("link", { name: /세면대.*숨고 원문/ }),
   ).toHaveAttribute("href", /^https:\/\/soomgo\.com\/portfolio\/detail\//);
-  await examples.screenshot({ path: ".local/repair-cost-mobile.png" });
+  expect(
+    await examples.evaluate((section) =>
+      Boolean(
+        section.compareDocumentPosition(
+          document.querySelector(".drain-guide")!,
+        ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ),
+  ).toBe(true);
+  await preview.click();
+  await expect(examples.getByRole("heading", { level: 2 })).toBeFocused();
+  await page.screenshot({ path: ".local/repair-cost-mobile.png" });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -156,9 +178,7 @@ test("drain: multiple backflow skips DIY and prioritizes stopping water", async 
   await expect(
     overview.getByText("물 사용을 멈추고 점검을 요청해요", { exact: true }),
   ).toBeInViewport();
-  await expect(overview.getByRole("link", { name: "수리비 사례" })).toHaveCount(
-    0,
-  );
+  await expect(overview.locator('a[href="#repair-cost-title"]')).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "비슷한 수리 비용 사례" }),
   ).toHaveCount(0);

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { repairGuideSchema } from "./repair-guide.js";
-import { issueNames } from "./schema.js";
+import { intakeIssueName } from "./schema.js";
 import { intakeDetails, observationLabel, answerLabel } from "./questions.js";
 import { drainFacts } from "./drain.js";
 const text = z.string().max(5000);
@@ -152,7 +152,7 @@ export function repairText(r: RepairRecord) {
     ...(r.itemizedCost ? [`항목별 비용 메모: ${r.itemizedCost}`] : []),
     ...r.guides.map((g) =>
       [
-        `연결한 안내 · ${issueNames[g.intake.issue]} · ${g.result.analysisId}`,
+        `연결한 안내 · ${intakeIssueName(g.intake)} · ${g.result.analysisId}`,
         `사용자 진술: ${observationLabel(g.intake)} · ${answerLabel("discovered", g.intake.discovered)} · ${answerLabel("contact", g.intake.contact)}`,
         ...intakeDetails(g.intake).map(
           ([label, value]) => `${label}: ${value}`,

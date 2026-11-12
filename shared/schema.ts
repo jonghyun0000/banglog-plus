@@ -4,6 +4,7 @@ import {
   photoUploadSchema,
 } from "./photo.js";
 import { buildingSchema, buildingGuideSchema } from "./building.js";
+import { isLightingIssue, lightingObservations } from "./lighting.js";
 import { z } from "zod";
 export const issueSchema = z.enum([
   "mold",
@@ -94,6 +95,7 @@ export const intakeSchema = z
         "cabinet",
         "bed",
         "other-fixture",
+        ...lightingObservations,
       ])
       .default("unknown"),
     safety: z.enum(["none", "gas", "fire", "electric", "unknown"]),
@@ -144,6 +146,7 @@ export const intakeSchema = z
         "cabinet",
         "bed",
         "other-fixture",
+        ...lightingObservations,
       ],
     };
     if (!allowed[i.issue].includes(i.observation))
@@ -154,6 +157,9 @@ export const intakeSchema = z
       });
   });
 export type Intake = z.infer<typeof intakeSchema>;
+export function intakeIssueName(input: Pick<Intake, "issue" | "observation">) {
+  return isLightingIssue(input) ? "전구·조명" : issueNames[input.issue];
+}
 export const defaultIntake: Intake = {
   issue: "mold",
   inputVersion: 1,

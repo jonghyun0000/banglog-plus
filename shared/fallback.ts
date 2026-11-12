@@ -1,6 +1,6 @@
 import type { Analysis, Intake } from "./schema.js";
 import { makeAnalysis } from "./analysis.js";
-import { issueGuidance } from "./questions.js";
+import { repairGuidance } from "./questions.js";
 export const fallbackCodes = [
   "PROVIDER_TIMEOUT",
   "PROVIDER_RATE_LIMIT",
@@ -37,12 +37,10 @@ export function makeFallback(
       "기본 안내만으로 집주인이나 세입자의 비용 부담을 결정할 수 없어요.",
   };
   result.status = "needs_information";
+  const guidance = repairGuidance(input);
   result.nextActions = result.drainGuide
     ? result.drainGuide.steps.map((s) => s.body)
-    : [
-        issueGuidance[input.issue].record,
-        ...issueGuidance[input.issue].checks,
-      ].slice(0, 3);
+    : [guidance.record, ...guidance.checks].slice(0, 3);
   result.cautions = [
     "AI 연결 또는 답변 검증이 완료되지 않은 기본 안내예요.",
     "실제 원인과 계약 내용을 확인한 뒤 수리 진행 방법과 비용을 협의하세요.",

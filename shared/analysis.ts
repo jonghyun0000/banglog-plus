@@ -1,12 +1,12 @@
 import { buildingFacts, buildingGuide } from "./building.js";
 import { drainGuide, drainFacts, drainMessage } from "./drain.js";
 import type { Analysis, Direction, Intake } from "./schema.js";
-import { analysisSchema, issueNames } from "./schema.js";
+import { analysisSchema, intakeIssueName } from "./schema.js";
 import {
   answerLabel,
   observationLabel,
   questionVersion,
-  issueGuidance,
+  repairGuidance,
   intakeDetails,
 } from "./questions.js";
 import { hasDanger, outOfScope, safetyText, intakeContext } from "./safety.js";
@@ -67,7 +67,7 @@ export function makeAnalysis(
       danger
         ? "위험을 먼저 해소한 뒤 원인과 비용을 확인하세요."
         : outside
-          ? "이 서비스는 대한민국 주택의 곰팡이·누수·보일러·벽지/장판·배수·옵션 제품 문제를 다뤄요."
+          ? "이 서비스는 대한민국 주택의 곰팡이·누수·보일러·벽지/장판·배수·전구/조명·옵션 제품 문제를 다뤄요."
           : third
             ? "윗집·공용부분 등 원인 위치와 관리 주체를 확인해야 해요."
             : i.contract
@@ -87,7 +87,7 @@ export function makeAnalysis(
       body: buildingCare.contactSteps.slice(0, 2).join(" "),
     };
   }
-  const guidance = issueGuidance[i.issue];
+  const guidance = repairGuidance(i);
   const checks = [
     third
       ? "누수·고장 발생 지점이 전용부분인지 공용부분인지 확인하기"
@@ -285,18 +285,21 @@ export function repairMessage(
         unknown:
           "해당 부위의 교체·수리 이력은 아직 확인하지 못했습니다. 이전 점검이나 수리 기록을 확인할 수 있을까요?\n",
       }[i.building.repairHistory];
+  const subject = intakeIssueName(i);
   const opening = ownFixture
     ? "안녕하세요. 제가 소유한 제품의 점검과 수리 가능 여부를 문의드립니다."
     : managerMessage
-      ? `안녕하세요, 관리 담당자님. ${issueNames[i.issue]} 관련 점검을 문의드립니다.`
+      ? `안녕하세요, 관리 담당자님. ${subject} 관련 점검을 문의드립니다.`
       : messageKind === "followup" &&
           ["waiting", "cost", "replied"].includes(i.contact)
-        ? `안녕하세요. 앞서 연락드린 ${issueNames[i.issue]} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
-        : `안녕하세요. ${issueNames[i.issue]} 때문에 점검이 필요해 연락드립니다.`;
+        ? `안녕하세요. 앞서 연락드린 ${subject} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
+        : `안녕하세요. ${subject} 때문에 점검이 필요해 연락드립니다.`;
   const followup = messageKind === "followup";
   const hasContact = ["waiting", "cost", "replied"].includes(i.contact);
   const symptom =
-    i.observation === "unknown" ? "" : `현재 ${observationLabel(i)}.\n`;
+    i.observation === "unknown" || i.observation === "light-unknown"
+      ? ""
+      : `현재 ${observationLabel(i)}.\n`;
   const requestMessage =
     messageKind === "cost"
       ? i.contact === "cost"
