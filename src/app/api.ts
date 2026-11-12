@@ -5,6 +5,7 @@ import type {
   AppConfig,
   Feedback,
   Intake,
+  ResponseLanguage,
 } from "../../shared/schema";
 import { analysisSchema, consentVersion } from "../../shared/schema";
 const browserOnly =
@@ -46,6 +47,7 @@ const serverApi = {
     signal: AbortSignal,
     photos?: PhotoUpload,
     photoFollowup?: PhotoFollowup,
+    responseLanguage?: ResponseLanguage,
   ) {
     return analysisSchema.parse(
       await request<Analysis>("/analyses", {
@@ -55,6 +57,7 @@ const serverApi = {
           idempotencyKey: key,
           photos,
           photoFollowup,
+          responseLanguage,
         }),
         signal,
       }),

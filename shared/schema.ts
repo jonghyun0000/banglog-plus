@@ -263,7 +263,11 @@ export const responseStepSchema = z.object({
     .min(1)
     .max(3),
 });
+export const responseLanguageSchema = z.enum(["ko", "en"]);
+export type ResponseLanguage = z.infer<typeof responseLanguageSchema>;
+
 export const analysisSchema = z.object({
+  responseLanguage: responseLanguageSchema.optional(),
   photoAnalysis: photoResultSchema.optional(),
   drainGuide: drainGuideSchema.optional(),
   buildingGuide: buildingGuideSchema.optional(),
@@ -358,6 +362,7 @@ export const analyzeRequestSchema = z
   .object({
     intake: intakeSchema,
     idempotencyKey: z.string().uuid(),
+    responseLanguage: responseLanguageSchema.optional(),
     photos: photoUploadSchema.optional(),
     photoFollowup: photoFollowupSchema.optional(),
   })

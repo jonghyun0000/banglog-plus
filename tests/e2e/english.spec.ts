@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { makeAnalysis } from "../../shared/analysis";
+import { makeFallback } from "../../shared/fallback";
 
 test("English mobile guide preserves the intake and separate language drafts", async ({
   page,
@@ -15,16 +15,20 @@ test("English mobile guide preserves the intake and separate language drafts", a
       },
     }),
   );
-  await page.route("**/api/analyses", (route) =>
-    route.fulfill({
-      json: makeAnalysis(
-        route.request().postDataJSON().intake,
-        "00000000-0000-4000-8000-000000000001",
-        "mock",
-        "test",
-      ),
-    }),
-  );
+  await page.route("**/api/analyses", (route) => {
+    const request = route.request().postDataJSON();
+    expect(request.responseLanguage).toBe("en");
+    return route.fulfill({
+      json: {
+        ...makeFallback(
+          request.intake,
+          "00000000-0000-4000-8000-000000000001",
+          "PROVIDER_TIMEOUT",
+        ),
+        responseLanguage: "en",
+      },
+    });
+  });
   const click = (name: string) =>
     page.getByRole("button", { name, exact: true }).click();
   await page.goto("/");
@@ -66,6 +70,14 @@ test("English mobile guide preserves the intake and separate language drafts", a
     page.getByRole("heading", { name: "Lighting repair guide", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Report where the lights failed/)).toBeVisible();
+  await expect(
+    page.getByText(/GPT couldn’t complete this request/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "GPT guidance based on verified sources",
+    }),
+  ).toHaveCount(0);
   await click("Edit and copy a repair message");
   const draft = page.getByRole("textbox", { name: "Message to copy" });
   await expect(draft).toHaveValue(/Living room ceiling/);

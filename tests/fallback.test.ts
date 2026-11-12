@@ -31,7 +31,9 @@ it.each(fallbackCodes)(
         payload: { noticeAccepted: true, consentVersion },
       });
       const headers = { authorization: `Bearer ${session.json().token}` };
+      const english = code === "PROVIDER_TIMEOUT";
       const payload = {
+        ...(english ? { responseLanguage: "en" } : {}),
         intake: { ...defaultIntake, cause: "damage", causeSource: "self" },
         idempotencyKey: randomUUID(),
       };
@@ -51,6 +53,16 @@ it.each(fallbackCodes)(
         citedClaims: [],
       });
       expect(result.json().aiExplanation).toBeUndefined();
+      if (english) {
+        expect(result.json().responseLanguage).toBe("en");
+        const otherLanguage = await app.inject({
+          method: "POST",
+          url: "/api/analyses",
+          headers,
+          payload: { ...payload, responseLanguage: "ko" },
+        });
+        expect(otherLanguage.statusCode).toBe(409);
+      }
       expect(
         (
           await app.inject({

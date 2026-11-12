@@ -237,6 +237,8 @@ export default function App() {
         key,
         controller.signal,
         photoPayload(),
+        undefined,
+        language,
       );
       if (pending.current?.key !== key) return;
       setResult(response);
@@ -286,6 +288,7 @@ export default function App() {
         controller.signal,
         upload,
         action,
+        previous.responseLanguage,
       );
       if (pending.current !== request) return;
       if (
@@ -737,7 +740,7 @@ export default function App() {
               />
               {["complete", "needs_information"].includes(result!.status) && (
                 <details>
-                  <summary>Full result and sources (Korean)</summary>
+                  <summary>More details in Korean</summary>
                   <div lang="ko">{koreanGuide}</div>
                 </details>
               )}

@@ -139,3 +139,65 @@ it("new live responses without tailored actions fail closed", async () => {
     ),
   ).rejects.toMatchObject({ code: "PROVIDER_OUTPUT" });
 });
+
+it("generates English using the same verified claims and retains their canonical links", async () => {
+  const englishPlan = {
+    ...plan,
+    explanation:
+      "The reported symptoms call for an inspection before discussing repair costs.",
+    tailoredResponse: {
+      summary:
+        "The cause is still unclear. Gather the inspection findings first.",
+      steps: tailoredPlan().steps.map((step, index) => ({
+        ...step,
+        title: index === 0 ? "Request an inspection" : "Check move-in records",
+        action:
+          index === 0
+            ? "Ask the landlord to confirm the inspection schedule in writing."
+            : "Compare the current condition with your move-in records.",
+        reason:
+          "The maintenance duty can support an inspection request, but the cause still needs to be checked.",
+      })),
+    },
+  };
+  const client = new OpenAI({
+    apiKey: "test-only",
+    maxRetries: 0,
+    fetch: async (_url, init) => {
+      const body = JSON.parse(init?.body as string);
+      expect(body.instructions).toContain("in plain English only");
+      expect(JSON.parse(body.input).claims).toContainEqual(
+        expect.objectContaining({ id: "maintenance", sourceId: sources[0].id }),
+      );
+      return new Response(
+        JSON.stringify(envelope(JSON.stringify(englishPlan))),
+        {
+          headers: { "content-type": "application/json" },
+        },
+      );
+    },
+  });
+  const provider = new OpenAIAnalysisProvider(config, client, fixtureRetriever);
+  const analyze = () =>
+    provider.analyze(
+      defaultIntake,
+      randomUUID(),
+      new AbortController().signal,
+      undefined,
+      undefined,
+      "en",
+    );
+  const { result } = await analyze();
+  expect(result).toMatchObject({
+    responseLanguage: "en",
+    aiExplanation: englishPlan.explanation,
+    sources: [expect.objectContaining({ url: sources[0].url })],
+  });
+  expect(result.tailoredResponse?.steps[0]).toMatchObject({
+    missingEvidence: ["Original inspection record"],
+    citations: [expect.objectContaining({ sourceId: sources[0].id })],
+  });
+
+  englishPlan.tailoredResponse.steps[0].action = plan.explanation;
+  await expect(analyze()).rejects.toMatchObject({ code: "PROVIDER_OUTPUT" });
+});

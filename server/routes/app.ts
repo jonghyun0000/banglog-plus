@@ -267,6 +267,10 @@ export function createApp(
     const g = await guest(req);
     const body = analyzeRequestSchema.parse(req.body);
     const input = sanitizeIntake(body.intake);
+    const responseLanguage = body.responseLanguage ?? "ko";
+    // Preserve the digest of existing Korean records and photo retries.
+    const languageDigest =
+      responseLanguage === "en" ? { responseLanguage } : {};
     await limit(`analysis:${g.id}`, 20, 3600000);
     let confirmedPhoto: PhotoResult | undefined;
     if (body.photoFollowup) {
@@ -284,13 +288,21 @@ export function createApp(
         ["safety_priority", "out_of_scope"].includes(previous.result!.status)
       )
         throw new AppError("IDEMPOTENCY_CONFLICT", 409);
+      if ((previous.result?.responseLanguage ?? "ko") !== responseLanguage)
+        throw new AppError("IDEMPOTENCY_CONFLICT", 409);
       if (action.action === "retry") {
         if (
           reading.status !== "failed" ||
           reading.retryAttempted ||
           body.idempotencyKey !== previous.id ||
           previous.digest !==
-            hash(JSON.stringify({ input: original, photos: body.photos }))
+            hash(
+              JSON.stringify({
+                input: original,
+                photos: body.photos,
+                ...languageDigest,
+              }),
+            )
         )
           throw new AppError("IDEMPOTENCY_CONFLICT", 409);
       } else {
@@ -322,6 +334,7 @@ export function createApp(
           input,
           photos: body.photos,
           photoFollowup: body.photoFollowup,
+          ...languageDigest,
         }),
       ),
       input,
@@ -465,7 +478,12 @@ export function createApp(
               ? await provider.prepare(input, controller.signal, photo)
               : undefined;
             if (provider.mode === "live") {
-              const tokens = provider.estimate(input, knowledge, photo);
+              const tokens = provider.estimate(
+                input,
+                knowledge,
+                photo,
+                responseLanguage,
+              );
               const usd = config.DAILY_BUDGET_USD
                 ? (tokens *
                     Math.max(
@@ -488,6 +506,7 @@ export function createApp(
               controller.signal,
               knowledge,
               photo,
+              responseLanguage,
             );
           }
         } catch (error) {
@@ -509,6 +528,7 @@ export function createApp(
       if (controller.signal.aborted) throw new AppError("CANCELLED", 409);
       const result = analysisSchema.parse({
         ...output.result,
+        ...languageDigest,
         ...(photo ? { photoAnalysis: photo } : {}),
       });
       if (!(await repo.finish(g.id, record.id, result)))
