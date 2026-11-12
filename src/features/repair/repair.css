@@ -106,6 +106,12 @@
 .move-out-costs select {
   min-height: 44px;
 }
+.move-out-costs input {
+  padding: 8px 12px;
+  border: 1px solid #aab3c2;
+  border-radius: 10px;
+  background: var(--surface);
+}
 .move-out-draft .sticky-actions {
   position: static;
 }

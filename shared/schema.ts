@@ -50,6 +50,12 @@ export const drainGuideSchema = z.object({
   sources: z.array(z.object({ title: z.string(), url: z.string().url() })),
 });
 export const repairStageSchema = z.enum(["before", "after"]);
+export const repairScopeSchema = z.enum(["partial", "whole", "unknown"]);
+export const repairScopeLabels = {
+  partial: "문제 부위만 보수·교체",
+  whole: "전체 교체·시공",
+  unknown: "범위를 아직 모름",
+} satisfies Record<z.infer<typeof repairScopeSchema>, string>;
 export const intakeSchema = z
   .object({
     issue: issueSchema,
@@ -67,6 +73,13 @@ export const intakeSchema = z
     drain: drainSchema.optional(),
     building: buildingSchema.optional(),
     lighting: z.enum(["replaceable", "integrated", "unknown"]).optional(),
+    lightingWork: z
+      .object({
+        count: z.number().int().min(1).max(999).optional(),
+        scope: repairScopeSchema.optional(),
+      })
+      .strict()
+      .optional(),
     repairStage: repairStageSchema.optional(),
     inputVersion: z.number().int().min(1).max(1000),
     description: z.string().max(1000),
@@ -152,10 +165,10 @@ export const intakeSchema = z
         ...lightingObservations,
       ],
     };
-    if (i.lighting && !isLightingIssue(i))
+    if ((i.lighting || i.lightingWork) && !isLightingIssue(i))
       ctx.addIssue({
         code: "custom",
-        path: ["lighting"],
+        path: [i.lighting ? "lighting" : "lightingWork"],
         message: "전구·조명 문제에서만 조명 형태를 선택할 수 있어요.",
       });
     if (!allowed[i.issue].includes(i.observation))

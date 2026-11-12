@@ -8,6 +8,8 @@ import { useState } from "react";
 import {
   defaultDrain,
   intakeIssueName,
+  repairScopeLabels,
+  repairScopeSchema,
   type Intake,
 } from "../../../shared/schema";
 import {
@@ -388,6 +390,61 @@ export function Questions({
       )}
       {step === 6 && (
         <>
+          {isLightingIssue(input) && (
+            <fieldset className="lighting-work-fields">
+              <legend>고장 난 조명과 작업 범위 (선택)</legend>
+              <label className="field-label">
+                고장 위치
+                <input
+                  type="text"
+                  maxLength={120}
+                  placeholder="예: 거실 천장 가운데 등"
+                  value={details.location}
+                  onChange={(e) => updateDetails({ location: e.target.value })}
+                />
+              </label>
+              <label className="field-label">
+                고장 난 조명 개수
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={3}
+                  value={input.lightingWork?.count ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || /^[1-9]\d{0,2}$/.test(value))
+                      onChange({
+                        lightingWork: {
+                          ...input.lightingWork,
+                          count: value ? Number(value) : undefined,
+                        },
+                      });
+                  }}
+                />
+              </label>
+              <label className="field-label">
+                어떤 작업을 안내받았나요?
+                <select
+                  value={input.lightingWork?.scope ?? ""}
+                  onChange={(e) =>
+                    onChange({
+                      lightingWork: {
+                        ...input.lightingWork,
+                        scope: repairScopeSchema.safeParse(e.target.value).data,
+                      },
+                    })
+                  }
+                >
+                  <option value="">안내받은 작업 없음</option>
+                  {repairScopeSchema.options.map((scope) => (
+                    <option key={scope} value={scope}>
+                      {repairScopeLabels[scope]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </fieldset>
+          )}
           {!danger && <BuildingLookup input={input} onChange={onChange} />}
           <details>
             <summary>발견 기록·계약 특약 (선택)</summary>
@@ -409,14 +466,16 @@ export function Questions({
                 <option value="after">{repairStageLabels.after}</option>
               </select>
             </label>
-            <label className="field-label">
-              문제 위치 (선택)
-              <input
-                maxLength={120}
-                value={details.location}
-                onChange={(e) => updateDetails({ location: e.target.value })}
-              />
-            </label>
+            {!isLightingIssue(input) && (
+              <label className="field-label">
+                문제 위치 (선택)
+                <input
+                  maxLength={120}
+                  value={details.location}
+                  onChange={(e) => updateDetails({ location: e.target.value })}
+                />
+              </label>
+            )}
             <label className="field-label">
               발견 시각 (선택)
               <input

@@ -88,6 +88,9 @@ for (const [width, height] of [
       await group.getByLabel(`${label} 공제 요청액 (원)`).fill(amount);
       await group.getByLabel(`${label} 공제 사유`).fill(reason);
     }
+    await page.getByLabel("도배 문제 위치 (선택)").fill("거실 창가 한 면");
+    await page.getByLabel("도배 청구 작업 범위 (선택)").selectOption("whole");
+    await page.getByLabel("장판 청구 작업 범위 (선택)").selectOption("partial");
     await page
       .getByLabel("공제 대상 작업 진행 상태 (선택)")
       .selectOption("before");
@@ -99,6 +102,9 @@ for (const [width, height] of [
       .click();
     const draft = page.getByRole("textbox", { name: "보낼 퇴실 비용 문구" });
     await expect(draft).toHaveValue(/항목별 견적을 먼저/);
+    await expect(draft).toHaveValue(/거실 창가 한 면.*전체 교체·시공/);
+    await expect(draft).toHaveValue(/장판.*문제 부위만 보수·교체/);
+    await expect(draft).toHaveValue(/부분 보수가 가능한지/);
     await page
       .getByLabel("공제 대상 작업 진행 상태 (선택)")
       .selectOption("after");
@@ -140,6 +146,16 @@ for (const [width, height] of [
     await expect(page.getByAltText("leak.png", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "3 퇴실·비용" }).click();
     await expect(page.getByLabel("입주 사진이 없어요")).toBeChecked();
+    await page
+      .locator(".move-out-costs summary")
+      .filter({ hasText: "도배" })
+      .click();
+    await expect(page.getByLabel("도배 문제 위치 (선택)")).toHaveValue(
+      "거실 창가 한 면",
+    );
+    await expect(page.getByLabel("도배 청구 작업 범위 (선택)")).toHaveValue(
+      "whole",
+    );
     for (const amount of ["120,000원", "80,000원", "50,000원"])
       await expect(
         page.locator(".move-out-costs summary").getByText(amount),

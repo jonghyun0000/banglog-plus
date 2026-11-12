@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { repairScopeLabels, repairScopeSchema } from "../../../shared/schema";
 import {
   moveOutCostEntries,
   moveOutCostLabels,
@@ -27,11 +28,23 @@ export function MoveOutCosts({
         ([kind, label]) => {
           const cost = record.moveOutCosts[kind] ?? { amount: "", reason: "" };
           const entry = entries.find((item) => item.kind === kind);
+          function update(
+            patch: Partial<
+              NonNullable<RepairRecord["moveOutCosts"][MoveOutCostKind]>
+            >,
+          ) {
+            onChange({
+              moveOutCosts: {
+                ...record.moveOutCosts,
+                [kind]: { ...cost, ...patch },
+              },
+            });
+          }
           return (
             <details key={kind}>
               <summary>
                 {label}
-                {entry && <span>{entry.amount || "사유 기록됨"}</span>}
+                {entry && <span>{entry.amount || "기록됨"}</span>}
               </summary>
               <label>
                 {label} 공제 요청액 (원)
@@ -39,14 +52,7 @@ export function MoveOutCosts({
                   inputMode="numeric"
                   maxLength={40}
                   value={cost.amount}
-                  onChange={(e) =>
-                    onChange({
-                      moveOutCosts: {
-                        ...record.moveOutCosts,
-                        [kind]: { ...cost, amount: e.target.value },
-                      },
-                    })
-                  }
+                  onChange={(e) => update({ amount: e.target.value })}
                 />
               </label>
               <label>
@@ -54,16 +60,40 @@ export function MoveOutCosts({
                 <textarea
                   maxLength={300}
                   value={cost.reason}
-                  onChange={(e) =>
-                    onChange({
-                      moveOutCosts: {
-                        ...record.moveOutCosts,
-                        [kind]: { ...cost, reason: e.target.value },
-                      },
-                    })
-                  }
+                  onChange={(e) => update({ reason: e.target.value })}
                 />
               </label>
+              {kind !== "cleaning" && (
+                <>
+                  <label>
+                    {label} 문제 위치 (선택)
+                    <input
+                      maxLength={120}
+                      value={cost.location ?? ""}
+                      onChange={(e) => update({ location: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    {label} 청구 작업 범위 (선택)
+                    <select
+                      value={cost.scope ?? ""}
+                      onChange={(e) =>
+                        update({
+                          scope: repairScopeSchema.safeParse(e.target.value)
+                            .data,
+                        })
+                      }
+                    >
+                      <option value="">선택 안 함</option>
+                      {repairScopeSchema.options.map((scope) => (
+                        <option key={scope} value={scope}>
+                          {repairScopeLabels[scope]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
             </details>
           );
         },

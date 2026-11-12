@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { repairGuideSchema } from "./repair-guide.js";
-import { intakeIssueName, repairStageSchema } from "./schema.js";
+import {
+  intakeIssueName,
+  repairStageSchema,
+  repairScopeSchema,
+  repairScopeLabels,
+} from "./schema.js";
 import {
   intakeDetails,
   observationLabel,
@@ -32,6 +37,8 @@ export type MoveOutCostKind = keyof typeof moveOutCostLabels;
 const moveOutCostSchema = z.object({
   amount: z.string().max(40),
   reason: z.string().max(300),
+  location: z.string().max(120).optional(),
+  scope: repairScopeSchema.optional(),
 });
 export const repairSchema = z.object({
   id: z.string().uuid(),
@@ -139,7 +146,9 @@ export function moveOutCostEntries(r: RepairRecord) {
       const cost = r.moveOutCosts[kind];
       const amount = cost?.amount.trim() ?? "";
       const reason = cost?.reason.trim() ?? "";
-      if (!amount && !reason) return [];
+      const location = cost?.location?.trim() ?? "";
+      const scope = cost?.scope;
+      if (!amount && !reason && !location && !scope) return [];
       const digits = amount.replaceAll(",", "");
       const displayAmount =
         /^\d{1,12}$/.test(digits) && /^(?:\d+|\d{1,3}(?:,\d{3})+)$/.test(amount)
@@ -151,6 +160,8 @@ export function moveOutCostEntries(r: RepairRecord) {
           label: moveOutCostLabels[kind],
           amount: displayAmount,
           reason,
+          location,
+          scope,
         },
       ];
     },
@@ -174,17 +185,19 @@ export function moveOutMessage(r: RepairRecord) {
     exit && `제가 기록한 퇴실 상태: ${exit}`,
     reason && `제가 전달받은 공제 사유: ${reason}`,
     ...costs.map(
-      ({ label, amount, reason }) =>
-        `- ${label}${amount ? ` · 공제 요청액 ${amount}` : " · 공제 요청액 확인 필요"}${reason ? ` · 전달받은 사유: ${excerpt(reason)}` : ""}`,
+      ({ label, amount, reason, location, scope }) =>
+        `- ${label}${amount ? ` · 공제 요청액 ${amount}` : " · 공제 요청액 확인 필요"}${location ? ` · 문제 위치: ${excerpt(location, 60)}` : ""}${scope ? ` · 안내받은 범위: ${repairScopeLabels[scope]}` : ""}${reason ? ` · 전달받은 사유: ${excerpt(reason)}` : ""}`,
     ),
     terms && !/^(없음|없어요|모름|모르겠어요|미확인)[.!]?$/u.test(terms)
       ? `제가 확인한 특약은 “${terms}”입니다. 어떤 항목에 어떤 범위로 적용하신 건지 알려주세요.`
       : "공제에 적용하신 계약 조항이나 특약이 있다면 해당 문구를 알려주세요.",
+    costs.some(({ kind }) => kind !== "cleaning") &&
+      "도배·장판 중 청구하신 항목의 손상 위치와 작업 범위를 알려주세요. 부분 보수가 가능한지, 전체 교체·시공이 필요하다면 그 이유와 면적도 부탁드립니다.",
     r.repairStage === "before"
       ? "아직 작업 전이라 필요한 작업 범위와 항목별 견적을 먼저 공유해 주세요. 입주 상태와 퇴실 상태를 함께 확인한 뒤 비용을 협의하고 싶습니다."
       : r.repairStage === "after"
         ? "작업이 끝난 항목은 실제 작업 범위와 항목별 비용을 확인하고 싶습니다. 작업 전후 사진과 영수증 또는 작업 내역서가 있다면 공유해 주세요."
-        : "항목별 공제 사유와 작업 진행 여부를 알려주세요. 진행 전이면 견적을, 완료한 작업이면 작업 내역과 영수증을 부탁드립니다.",
+        : "항목별 공제 사유와 작업 진행 여부를 알려주세요. 진행 전이면 항목별 견적을, 완료한 작업이면 작업 내역과 영수증을 부탁드립니다.",
     "자료를 확인한 뒤 공제 내역을 함께 협의하고 싶습니다.",
   ]
     .filter(Boolean)
@@ -224,8 +237,8 @@ export function repairText(r: RepairRecord) {
     `퇴실 상태: ${r.exitCondition || "미입력"}`,
     `공제 사유(임대인 주장): ${r.deductionReason || "미입력"}`,
     ...moveOutCostEntries(r).map(
-      ({ label, amount, reason }) =>
-        `${label} · 공제 요청액: ${amount || "미입력"} · 전달받은 사유: ${reason || "미입력"}`,
+      ({ label, amount, reason, location, scope }) =>
+        `${label} · 공제 요청액: ${amount || "미입력"} · 전달받은 사유: ${reason || "미입력"}${location ? ` · 문제 위치: ${location}` : ""}${scope ? ` · 안내받은 범위: ${repairScopeLabels[scope]}` : ""}`,
     ),
     ...(r.repairStage
       ? [`작업 진행 상태: ${repairStageLabels[r.repairStage]}`]

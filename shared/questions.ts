@@ -1,4 +1,5 @@
 import type { Intake, Issue } from "./schema.js";
+import { repairScopeLabels } from "./schema.js";
 import {
   isLightingIssue,
   lightingOptions,
@@ -6,7 +7,7 @@ import {
   lightingTitle,
   lightingTypes,
 } from "./lighting.js";
-export const questionVersion = "questions-1.7";
+export const questionVersion = "questions-1.8";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
   "언제부터 있었던 문제인가요?",
@@ -306,6 +307,16 @@ export function intakeDetails(input: Intake) {
       input.repairStage ? repairStageLabels[input.repairStage] : "",
     ],
     ["문제 위치", d?.location ?? ""],
+    [
+      "고장 난 조명 개수",
+      input.lightingWork?.count ? `${input.lightingWork.count}개` : "",
+    ],
+    [
+      "안내받은 조명 작업 범위",
+      input.lightingWork?.scope
+        ? repairScopeLabels[input.lightingWork.scope]
+        : "",
+    ],
     ["발견 시각", d?.discoveredAt ?? ""],
     ["사용 지장", d?.impact ?? ""],
     [
@@ -333,7 +344,10 @@ export function applyQuestionPatch(
   patch: Partial<Intake>,
 ): Intake {
   const next = { ...input, ...patch };
-  if (!isLightingIssue(next)) delete next.lighting;
+  if (!isLightingIssue(next)) {
+    delete next.lighting;
+    delete next.lightingWork;
+  }
   if (!hasReply(next) && ("contact" in patch || next.details)) {
     next.otherClaim = "unknown";
     if (next.causeSource === "landlord") {

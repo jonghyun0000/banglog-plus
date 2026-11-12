@@ -182,6 +182,9 @@ test("lighting can be selected from home or the issue list, and answers use plai
       .getByRole("button", { name: "집에 원래 있던 시설이에요" })
       .click();
     await page.getByRole("button", { name: "아직 연락하지 않았어요" }).click();
+    await page.getByLabel("고장 위치").fill("거실 천장 가운데 등");
+    await page.getByLabel("고장 난 조명 개수").fill("1");
+    await page.getByLabel("어떤 작업을 안내받았나요?").selectOption("whole");
     await page.getByText("발견 기록·계약 특약 (선택)", { exact: true }).click();
     await page.getByLabel("수리 진행 상태 (선택)").selectOption("before");
     await page
@@ -225,6 +228,11 @@ test("lighting can be selected from home or the issue list, and answers use plai
     await expect(
       page.getByRole("textbox", { name: "집주인에게 보낼 문구" }),
     ).toHaveValue(/특약이 이번 작업의 어느 항목과 범위/);
+    const draft = page.getByRole("textbox", { name: "집주인에게 보낼 문구" });
+    await expect(draft).toHaveValue(/거실 천장 가운데 등/);
+    await expect(draft).toHaveValue(/고장 조명은 1개/);
+    await expect(draft).toHaveValue(/부분|부품만 보수하기 어려운 이유/);
+    await expect(draft).toHaveValue(/부품비·공임·출장비를 구분한 항목별 견적/);
   } finally {
     await app.close();
   }
