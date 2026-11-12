@@ -82,7 +82,7 @@ test("drain: safe sink route, back navigation, input preservation, self-care bef
     overview.getByText("분해 없이 거름망 표면만 확인하세요.", { exact: true }),
   ).toBeInViewport();
   const examples = page.getByRole("region", { name: "비슷한 수리 비용 사례" });
-  const preview = overview.getByRole("link", { name: /전체 48건 보기/ });
+  const preview = overview.getByRole("link", { name: /1건 보기/ });
   await expect(preview).toContainText("10만 원");
   await expect(preview).toBeInViewport();
   await page.screenshot({ path: ".local/repair-cost-overview.png" });
@@ -94,11 +94,10 @@ test("drain: safe sink route, back navigation, input preservation, self-care bef
   );
   const similar = examples.getByRole("list", { name: "비슷한 수리비 자료" });
   await expect(similar).not.toContainText("연결 배관 청소");
-  await expect(examples.getByRole("listitem")).toHaveCount(48);
-  const other = examples.getByRole("list", { name: "다른 수리비 자료" });
-  await expect(other).toContainText("원룸 건물의 주방·욕실 연결 배관 청소");
-  await expect(other.getByRole("listitem").first()).toContainText(
-    "아파트 싱크대 배관 막힘 제거",
+  await expect(examples.getByRole("listitem")).toHaveCount(1);
+  await expect(examples).not.toContainText("싱크대 배관 막힘 제거");
+  await expect(examples.getByRole("button", { name: /더 보기/ })).toHaveCount(
+    0,
   );
   await expect(
     examples.getByRole("link", { name: /세면대.*숨고 원문/ }),

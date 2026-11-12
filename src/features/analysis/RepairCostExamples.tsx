@@ -1,8 +1,5 @@
-import {
-  formatRepairBudget,
-  type RepairCostEntry,
-  type repairCostCases,
-} from "./repair-cost-cases";
+import { useRef } from "react";
+import { formatRepairBudget, type RepairCostEntry } from "./repair-cost-cases";
 
 function RepairCostList({
   items,
@@ -17,7 +14,7 @@ function RepairCostList({
         const portfolio = "publishedBudget" in item;
         const sourceName = portfolio ? "숨고" : item.sourceName;
         return (
-          <li key={`${item.source}:${item.title}`}>
+          <li key={`${item.source}:${item.title}`} className="repair-cost-item">
             <div className="repair-cost-item-heading">
               <strong>{item.title}</strong>
               <strong className="repair-cost-amount">
@@ -50,9 +47,12 @@ function RepairCostList({
 export function RepairCostExamples({
   examples,
 }: {
-  examples: ReturnType<typeof repairCostCases>;
+  examples: RepairCostEntry[];
 }) {
-  if (examples === null) return null;
+  const dialog = useRef<HTMLDialogElement>(null);
+  const more = useRef<HTMLButtonElement>(null);
+  if (!examples.length) return null;
+  const additional = examples.slice(3);
 
   return (
     <section
@@ -66,20 +66,31 @@ export function RepairCostExamples({
         공개 예산·참고 견적은 작업 범위에 따라 달라요. 실제 결제액과 누가
         냈는지는 확인되지 않았어요.
       </p>
-      {examples.similar.length ? (
-        <RepairCostList items={examples.similar} label="비슷한 수리비 자료" />
-      ) : (
-        <p>
-          이 상황과 가까운 자료는 아직 없어요. 점검 후 작업 범위와 견적을 확인해
-          보세요.
-        </p>
-      )}
-      {examples.other.length > 0 && (
+      <RepairCostList items={examples.slice(0, 3)} label="비슷한 수리비 자료" />
+      {additional.length > 0 && (
         <>
-          <h3 className="repair-cost-other-heading">
-            다른 수리비 자료 <span>{examples.other.length}건</span>
-          </h3>
-          <RepairCostList items={examples.other} label="다른 수리비 자료" />
+          <button
+            ref={more}
+            className="text-button repair-cost-more"
+            aria-haspopup="dialog"
+            onClick={() => dialog.current?.showModal()}
+          >
+            관련 견적·사례 더 보기 ({additional.length}건)
+          </button>
+          <dialog
+            ref={dialog}
+            onClose={() => more.current?.focus({ preventScroll: true })}
+            className="repair-cost-dialog"
+            aria-labelledby="repair-cost-dialog-title"
+          >
+            <div className="repair-cost-dialog-heading">
+              <h2 id="repair-cost-dialog-title">추가 수리비 자료</h2>
+              <form method="dialog">
+                <button className="text-button">닫기</button>
+              </form>
+            </div>
+            <RepairCostList items={additional} label="추가 관련 견적과 사례" />
+          </dialog>
         </>
       )}
     </section>

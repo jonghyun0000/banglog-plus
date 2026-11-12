@@ -9,7 +9,7 @@ import {
 } from "../../../shared/schema";
 import { Button } from "../../components/ui/Elements";
 import { SafetyNotice } from "../questions/Questions";
-import type { repairCostPreview } from "./repair-cost-cases";
+import type { CostPreview } from "./repair-cost-cases";
 
 const costOverview: Record<Direction, [string, string]> = {
   undetermined: ["점검 후 협의", "원인과 계약 확인이 필요해요."],
@@ -51,7 +51,7 @@ export function ResultOverview({
 }: {
   result: Analysis;
   intake: Intake;
-  costPreview: ReturnType<typeof repairCostPreview> | null;
+  costPreview: CostPreview | null;
   onMessage: () => void;
   onEdit: () => void;
 }) {
@@ -165,7 +165,7 @@ export function ResultOverview({
                 {costPreview.amount && <strong>{costPreview.amount}</strong>}
               </span>
               <span className="result-price-preview-link">
-                전체 {costPreview.count}건 보기
+                {costPreview.action}
                 <span aria-hidden="true"> ›</span>
               </span>
             </a>

@@ -227,7 +227,7 @@
   list-style: none;
 }
 
-.repair-cost-list li {
+.repair-cost-item {
   min-width: 0;
   padding: 12px;
   border: 1px solid var(--line);
@@ -251,16 +251,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-.repair-cost-list li p {
+.repair-cost-item p {
   margin: 4px 0 0;
   font-size: 0.875rem;
 }
 
-.repair-cost-list li .small {
+.repair-cost-item .small {
   font-size: 0.8125rem;
 }
 
-.repair-cost-list a {
+.repair-cost-item a {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -269,15 +269,69 @@
   text-underline-offset: 3px;
 }
 
-.result-screen .repair-cost-other-heading {
-  margin: 18px 0 8px;
-  font-size: 1rem;
+.repair-cost-more {
+  min-height: 44px;
+  margin-top: 8px;
 }
 
-.repair-cost-other-heading span {
-  color: var(--muted);
-  font-size: 0.875rem;
-  font-weight: 500;
+.repair-cost-dialog {
+  width: min(calc(100% - 32px), 580px);
+  max-height: min(75vh, 600px);
+  margin: auto;
+  padding: 0 16px 16px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.repair-cost-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.repair-cost-dialog-heading {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  background: var(--surface);
+}
+
+.repair-cost-dialog-heading h2 {
+  margin: 0;
+}
+
+.repair-cost-dialog-heading button {
+  min-height: 44px;
+}
+
+.result-screen .repair-cost-dialog .repair-cost-list {
+  grid-template-columns: 1fr;
+}
+
+.lighting-price-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.lighting-price-field select {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-weight: 400;
+}
+
+.lighting-price-item {
+  margin-top: 12px;
+}
+
+.lighting-price-item a {
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 800px) {
