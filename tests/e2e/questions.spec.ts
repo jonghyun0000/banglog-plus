@@ -199,6 +199,23 @@ test("lighting can be selected from home or the issue list, and answers use plai
     await expect(page.getByRole("group", { name: "핵심 요약" })).toContainText(
       "조명 설비 점검을 요청하기",
     );
+    await page.getByRole("link", { name: /조명 규격·제품 가격/ }).click();
+    const prices = page.getByRole("region", { name: "조명 규격·제품 가격" });
+    const product = prices.getByRole("combobox", { name: "내 조명 종류" });
+    await expect(product.locator("option")).toHaveText([
+      "조명 종류 선택",
+      "일반 LED 전구",
+      "FPL 형광등",
+    ]);
+    await expect(prices).not.toContainText("1,900원");
+    await product.selectOption("led-bulb");
+    await expect(prices).toContainText("약 1,900원");
+    await expect(prices).toContainText("E26 소켓");
+    await expect(prices).not.toContainText("2,950원");
+    await product.selectOption("fpl");
+    await expect(prices).toContainText("약 2,950원");
+    await expect(prices).not.toContainText("1,900원");
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page
       .getByRole("button", { name: "집주인에게 보낼 문구 보기" })
       .click();
@@ -251,7 +268,7 @@ test("mobile choices, back navigation and result actions stay clear", async ({
     fullPage: true,
   });
   await page
-    .getByRole("button", { name: "장판에 찍힘이 있어요", exact: true })
+    .getByRole("button", { name: "벽지에 찍힘이 있어요", exact: true })
     .click();
   await page
     .getByRole("button", { name: "지금 위험 신호는 없어요", exact: true })
@@ -292,6 +309,27 @@ test("mobile choices, back navigation and result actions stay clear", async ({
   });
   const request = await page.locator(".result-contact").boundingBox();
   expect(request!.y + request!.height).toBeLessThan(844);
+  await page.getByRole("link", { name: /6건 보기/ }).click();
+  const costs = page.getByRole("region", { name: "비슷한 수리 비용 사례" });
+  await expect(costs.getByRole("listitem")).toHaveCount(3);
+  await expect(costs).not.toContainText("장판");
+  const more = costs.getByRole("button", {
+    name: "관련 견적·사례 더 보기 (3건)",
+  });
+  const dialog = page.getByRole("dialog", { name: "추가 수리비 자료" });
+  await expect(dialog).toHaveCount(0);
+  await more.click();
+  await expect(dialog).toBeInViewport();
+  await expect(dialog.getByRole("listitem")).toHaveCount(3);
+  await expect(dialog).not.toContainText("장판");
+  await expect(dialog.getByRole("button", { name: "닫기" })).toBeFocused();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: ".local/screenshots/related-cost-dialog-390.png",
+  });
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(more).toBeFocused();
   await page
     .getByRole("button", { name: "내 기록에 저장", exact: true })
     .click();

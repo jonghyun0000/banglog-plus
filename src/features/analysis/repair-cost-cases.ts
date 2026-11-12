@@ -18,6 +18,7 @@ type CaseGroup =
   | "balcony-backflow"
   | "shared-drain"
   | "boiler"
+  | "heating-distributor"
   | "aircon";
 
 type RepairWork = {
@@ -41,9 +42,10 @@ export type RepairPriceReference = RepairWork & {
 
 export type RepairCostEntry = RepairCostCase | RepairPriceReference;
 
-type RepairCostCatalog = {
-  similar: RepairCostEntry[];
-  other: RepairCostEntry[];
+export type CostPreview = {
+  label: string;
+  amount?: string;
+  action: string;
 };
 
 const krw = new Intl.NumberFormat("ko-KR");
@@ -232,19 +234,22 @@ const cases: readonly RepairCostCase[] = [
 function matchingGroups(input: Intake): readonly CaseGroup[] {
   switch (input.issue) {
     case "mold":
-      if (input.observation === "furniture") return [];
       if (input.observation === "condensation") return ["condensation"];
       if (input.observation === "wall") return ["mold-removal"];
-      return ["mold-removal", "condensation"];
+      return [];
     case "leak":
-      if (input.observation === "rain") return [];
-      return input.observation === "pipe" ? ["pipe-leak"] : ["ceiling-leak"];
+      if (input.observation === "pipe") return ["pipe-leak"];
+      if (input.observation === "ceiling") return ["ceiling-leak"];
+      return [];
     case "surface":
       if (input.observation.startsWith("floor-")) return ["flooring-patch"];
       if (input.observation.startsWith("wall-")) return ["wallpaper-patch"];
-      return ["wallpaper", "wallpaper-patch", "flooring", "flooring-patch"];
+      return [];
     case "boiler":
-      return input.observation === "power" ? [] : ["boiler"];
+      if (input.observation === "heating")
+        return ["boiler", "heating-distributor"];
+      if (input.observation === "hotwater") return ["boiler"];
+      return [];
     case "fixture":
       switch (input.observation) {
         case "option-boiler":
@@ -281,76 +286,50 @@ function matchingGroups(input: Intake): readonly CaseGroup[] {
   }
 }
 
-const groupsByIssue: Partial<Record<Intake["issue"], readonly CaseGroup[]>> = {
-  mold: ["mold-removal", "condensation"],
-  leak: ["ceiling-leak", "pipe-leak"],
-  surface: ["wallpaper", "wallpaper-patch", "flooring", "flooring-patch"],
-  boiler: ["boiler"],
-  drain: [
-    "sink",
-    "basin",
-    "toilet",
-    "floor-drain",
-    "sink-backflow",
-    "balcony-backflow",
-    "shared-drain",
-  ],
-};
-
 export function repairCostCases(
   input: Intake,
   resultStatus: Analysis["status"],
-): RepairCostCatalog | null {
+): RepairCostEntry[] {
   if (
     resultStatus === "safety_priority" ||
     resultStatus === "out_of_scope" ||
     resultStatus === "failed" ||
     input.drain?.overflow === "yes"
   )
-    return null;
+    return [];
   const groups = matchingGroups(input);
-  const catalog: RepairCostCatalog = { similar: [], other: [] };
-  const related: RepairCostEntry[] = [];
-  const issueGroups = groupsByIssue[input.issue] ?? [];
-  for (const item of [...cases, ...repairPriceReferences]) {
-    if (item.groups.some((group) => groups.includes(group))) {
-      catalog.similar.push(item);
-    } else if (item.groups.some((group) => issueGroups.includes(group))) {
-      related.push(item);
-    } else {
-      catalog.other.push(item);
-    }
-  }
-  catalog.other.unshift(...related);
-  return catalog;
+  return [...cases, ...repairPriceReferences].filter((item) =>
+    item.groups.some((group) => groups.includes(group)),
+  );
 }
 
-export function repairCostPreview(catalog: RepairCostCatalog) {
-  const count = catalog.similar.length + catalog.other.length;
-  const budgets = catalog.similar.flatMap((item) =>
+export function repairCostPreview(
+  items: RepairCostEntry[],
+): CostPreview | null {
+  if (!items.length) return null;
+  const action = `${items.length}건 보기`;
+  const budgets = items.flatMap((item) =>
     "publishedBudget" in item ? [item.publishedBudget] : [],
   );
   if (budgets.length) {
     const low = Math.min(...budgets);
     const high = Math.max(...budgets);
     return {
-      count,
-      label: "비슷한 시공 사례의 공개 예산",
+      action,
+      label: "시공 사례 공개 예산",
       amount:
         low === high
           ? `${compactKrw.format(low)} 원`
           : `${compactKrw.format(low)}~${compactKrw.format(high)} 원`,
     };
   }
-  const references = catalog.similar.filter((item) => "referencePrice" in item);
+  const references = items.filter((item) => "referencePrice" in item);
   const reference =
     references.find((item) => item.priceLabel !== "의뢰 게시 금액") ??
     references[0];
   return {
-    count,
-    label: reference
-      ? `${reference.title} · ${reference.priceLabel}`
-      : "등록된 수리비 자료",
+    action,
+    label: reference?.priceLabel ?? "관련 수리비",
     amount: reference?.referencePrice,
   };
 }

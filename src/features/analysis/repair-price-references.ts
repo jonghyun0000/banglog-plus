@@ -94,13 +94,13 @@ const references: (Source & { works: Work[] })[] = [
         work: "업체가 공개한 변기 단순 막힘 작업 기준이에요.",
       },
       {
-        groups: ["boiler"],
+        groups: ["heating-distributor"],
         title: "보일러 분배기 밸브 교체",
         referencePrice: "개당 15만~20만 원",
         work: "분배기에서 문제 있는 밸브만 바꾸는 작업이에요.",
       },
       {
-        groups: ["boiler"],
+        groups: ["heating-distributor"],
         title: "보일러 분배기 본체 교체",
         referencePrice: "40만~80만 원",
         work: "난방 배관 분배기 본체와 연결부 작업을 포함해요.",

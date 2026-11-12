@@ -92,7 +92,7 @@ for (const [width, height] of [
     expect(costBox.x).toBeGreaterThan(contactBox.x);
     if (width >= 800) expect(actionBox.y).toBe(contactBox.y);
     else expect(actionBox.y + actionBox.height).toBeLessThan(contactBox.y);
-    const pricePreview = overview.getByRole("link", { name: /전체 48건 보기/ });
+    const pricePreview = overview.getByRole("link", { name: /2건 보기/ });
     await expect(pricePreview).toBeInViewport();
     await expect(pricePreview).toContainText("50만~75만 원");
     await page.screenshot({
@@ -105,7 +105,8 @@ for (const [width, height] of [
     const costCard = page.getByRole("region", {
       name: "비슷한 수리 비용 사례",
     });
-    await expect(costCard.getByRole("listitem")).toHaveCount(48);
+    await expect(costCard.getByRole("listitem")).toHaveCount(2);
+    await expect(costCard).not.toContainText("분배기");
     const similar = costCard.getByRole("list", { name: "비슷한 수리비 자료" });
     await expect(similar.getByText("500,000원", { exact: true })).toBeVisible();
     const boxes = await similar.locator("li").evaluateAll((items) =>
@@ -114,7 +115,7 @@ for (const [width, height] of [
         y: item.getBoundingClientRect().y,
       })),
     );
-    expect(boxes).toHaveLength(4);
+    expect(boxes).toHaveLength(2);
     if (width >= 800) {
       expect(boxes[0].y).toBe(boxes[1].y);
       expect(boxes[0].x).toBeLessThan(boxes[1].x);

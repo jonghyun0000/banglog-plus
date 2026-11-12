@@ -13,8 +13,10 @@ import {
   type PhotoDevice,
 } from "../../../shared/photo";
 import type { Analysis, Intake } from "../../../shared/schema";
+import { isLightingIssue } from "../../../shared/lighting";
 import { Responsibility } from "./Responsibility";
 import { RepairCostExamples } from "./RepairCostExamples";
+import { LightingPriceGuide } from "./LightingPriceGuide";
 import { Button } from "../../components/ui/Elements";
 import { ResultOverview } from "./ResultOverview";
 import { repairCostCases, repairCostPreview } from "./repair-cost-cases";
@@ -54,6 +56,10 @@ export function Result({
   const clarification =
     supported && photoClarification(intake, result.photoAnalysis);
   const costCases = repairCostCases(intake, result.status);
+  const showLightingPrices = supported && isLightingIssue(intake);
+  const costPreview = showLightingPrices
+    ? { label: "조명 규격·제품 가격", action: "확인하기" }
+    : repairCostPreview(costCases);
   const photo = result.photoAnalysis && (
     <PhotoResult
       key={result.analysisId}
@@ -68,7 +74,7 @@ export function Result({
       <ResultOverview
         result={result}
         intake={intake}
-        costPreview={costCases ? repairCostPreview(costCases) : null}
+        costPreview={costPreview}
         onMessage={onMessage}
         onEdit={onEdit}
       />
@@ -88,7 +94,14 @@ export function Result({
             확인해야 해요.
           </p>
         )}
-      <RepairCostExamples examples={costCases} />
+      {showLightingPrices ? (
+        <LightingPriceGuide
+          key={result.analysisId}
+          lighting={intake.lighting}
+        />
+      ) : (
+        <RepairCostExamples examples={costCases} />
+      )}
       {supported ? (
         <section className="result-detail-grid" aria-labelledby="result-steps">
           <h2 id="result-steps" className="result-group-heading" tabIndex={-1}>
