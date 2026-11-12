@@ -7,6 +7,7 @@ import {
   missingPhotoViews,
   photoDanger,
   photoResultSchema,
+  supportsPhotoDeviceDetails,
   type PhotoResult,
 } from "../../shared/photo.js";
 import { lookupBuilding, lotSchema } from "../building.js";
@@ -293,13 +294,9 @@ export function createApp(
         )
           throw new AppError("IDEMPOTENCY_CONFLICT", 409);
       } else {
-        const deviceIssue =
-          input.issue === "boiler" ||
-          (input.issue === "fixture" &&
-            !["cabinet", "bed"].includes(input.observation));
         const year = action.device.detectedManufactureYear;
         if (
-          !deviceIssue ||
+          !supportsPhotoDeviceDetails(input) ||
           reading.source !== "openai" ||
           !["analyzed", "unclear"].includes(reading.status) ||
           (year !== null && year > new Date(now()).getUTCFullYear())

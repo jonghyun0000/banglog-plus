@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { defaultIntake, intakeSchema, issueSchema } from "../shared/schema.js";
 import { observations } from "../shared/questions.js";
 import { makeAnalysis, directionFor } from "../shared/analysis.js";
+import { makeFallback } from "../shared/fallback.js";
+import { missingPhotoViews } from "../shared/photo.js";
 import { searchSources, sources } from "../server/sources/catalog.js";
 import { validatePlan } from "./helpers/knowledge.js";
 
@@ -19,8 +21,9 @@ for (const issue of ["surface", "drain", "fixture"] as const) {
       expect(
         result.userReportedFacts.find((f) => f.key === "observation")?.value,
       ).toBe(label);
-      if (observation !== "unknown")
+      if (observation !== "unknown" && observation !== "light-unknown")
         expect(result.messageDraft).toContain(label);
+      else expect(result.messageDraft).not.toContain(label);
       expect(result.citedClaims).toEqual([]);
     }
     for (const other of issueSchema.options.filter((x) => x !== issue)) {
@@ -80,6 +83,21 @@ for (const issue of ["surface", "drain", "fixture"] as const) {
     ).toHaveLength(1);
   });
 }
+it("lighting symptoms keep inspection, photo evidence and fallback guidance specific", () => {
+  const input = intakeSchema.parse({
+    ...defaultIntake,
+    issue: "fixture",
+    observation: "light-replaced",
+  });
+  const result = makeFallback(input, randomUUID(), "PROVIDER_TIMEOUT");
+  expect(result.nextActions[0]).toContain("조명 설비 점검");
+  expect(result.messageDraft).toContain("전구·조명");
+  expect(result.costResponsibility.direction).toBe("undetermined");
+  expect(missingPhotoViews(input)).toEqual(["overview", "closeup"]);
+  expect(intakeSchema.safeParse({ ...input, issue: "boiler" }).success).toBe(
+    false,
+  );
+});
 it("shared drain cause routes to the manager and asks about common pipes", () => {
   const result = makeAnalysis(
     {

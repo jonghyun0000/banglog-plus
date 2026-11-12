@@ -1,5 +1,6 @@
 import type { Intake, Issue } from "./schema.js";
-export const questionVersion = "questions-1.5";
+import { isLightingIssue, lightingOptions, lightingTitle } from "./lighting.js";
+export const questionVersion = "questions-1.6";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
   "언제부터 있었던 문제인가요?",
@@ -9,7 +10,7 @@ export const titles = [
   "지금 위험 신호가 있나요?",
   "추가로 설명할 내용이 있나요?",
 ];
-export const descriptionHints: Record<Issue, string> = {
+const descriptionHints: Record<Issue, string> = {
   mold: "예: 창문 옆 벽에 곰팡이가 생겼고, 아침에 물방울이 맺혀요.",
   leak: "예: 비가 오는 날 천장에서 물이 떨어져요.",
   boiler: "예: 보일러 전원은 켜지는데 온수가 나오지 않아요.",
@@ -17,6 +18,11 @@ export const descriptionHints: Record<Issue, string> = {
   drain: "예: 욕실 물이 천천히 내려가고, 다른 배수구에서도 소리가 나요.",
   fixture: "예: 집에 있던 냉장고의 전원은 켜지는데 냉장이 안 돼요.",
 };
+export function descriptionHint(input: Intake) {
+  return isLightingIssue(input)
+    ? "예: 거실 조명이 깜빡여요. 전구를 바꿨는데도 같은 증상이 있어요."
+    : descriptionHints[input.issue];
+}
 export const options = {
   safety: [
     ["none", "지금 위험 신호는 없어요"],
@@ -95,6 +101,18 @@ export function summarize(input: Intake) {
   ];
 }
 
+const fixtureObservations = [
+  ["aircon", "에어컨이 작동하지 않아요"],
+  ["option-boiler", "보일러가 작동하지 않아요"],
+  ["washer", "세탁기가 작동하지 않아요"],
+  ["fridge", "냉장고가 작동하지 않아요"],
+  ["stove", "인덕션/가스레인지가 작동하지 않아요"],
+  ["cabinet", "수납장이 고장 났어요"],
+  ["bed", "침대가 파손됐어요"],
+  ["other-fixture", "다른 옵션 제품에 문제가 있어요"],
+  ["unknown", "잘 모르겠어요"],
+] as const;
+
 export const observations: Record<
   Issue,
   readonly (readonly [Intake["observation"], string])[]
@@ -131,18 +149,14 @@ export const observations: Record<
     ["blocked-drain", "배수구가 막힌 것 같아요"],
     ["unknown", "잘 모르겠어요"],
   ],
-  fixture: [
-    ["aircon", "에어컨이 작동하지 않아요"],
-    ["option-boiler", "보일러가 작동하지 않아요"],
-    ["washer", "세탁기가 작동하지 않아요"],
-    ["fridge", "냉장고가 작동하지 않아요"],
-    ["stove", "인덕션/가스레인지가 작동하지 않아요"],
-    ["cabinet", "수납장이 고장 났어요"],
-    ["bed", "침대가 파손됐어요"],
-    ["other-fixture", "다른 옵션 제품에 문제가 있어요"],
-    ["unknown", "잘 모르겠어요"],
-  ],
+  fixture: [...fixtureObservations, ...lightingOptions],
 };
+export function observationChoices(input: Intake) {
+  if (isLightingIssue(input)) return lightingOptions;
+  return input.issue === "fixture"
+    ? fixtureObservations
+    : observations[input.issue];
+}
 export function observationLabel(i: Intake) {
   return (
     observations[i.issue].find(([key]) => key === i.observation)?.[1] ??
@@ -150,7 +164,12 @@ export function observationLabel(i: Intake) {
   );
 }
 
-export const issueChoices: { issue: Issue; title: string; detail: string }[] = [
+export const issueChoices: {
+  issue: Issue;
+  title: string;
+  detail: string;
+  observation?: Intake["observation"];
+}[] = [
   {
     issue: "mold",
     title: "곰팡이가 생겼어요",
@@ -165,6 +184,12 @@ export const issueChoices: { issue: Issue; title: string; detail: string }[] = [
   { issue: "drain", title: "배수가 안 돼요", detail: "느린 배수·역류·막힘" },
   {
     issue: "fixture",
+    title: lightingTitle,
+    detail: "전구가 안 켜짐·깜빡임·여러 조명 꺼짐",
+    observation: "light-unknown",
+  },
+  {
+    issue: "fixture",
     title: "집에 설치된 옵션에 문제가 있어요",
     detail: "에어컨·냉장고·세탁기·침대 등",
   },
@@ -174,7 +199,7 @@ export const issueChoices: { issue: Issue; title: string; detail: string }[] = [
     detail: "난방·온수·작동 문제",
   },
 ];
-export const issueGuidance: Record<
+const issueGuidance: Record<
   Issue,
   { note: string; record: string; checks: string[] }
 > = {
@@ -227,6 +252,25 @@ export const issueGuidance: Record<
     ],
   },
 };
+
+export function repairGuidance(input: Intake) {
+  if (!isLightingIssue(input)) return issueGuidance[input.issue];
+  const needsInspection =
+    input.observation === "light-replaced" ||
+    input.observation === "light-multiple";
+  return {
+    note: "어느 조명이 안 켜지는지, 전구를 바꾼 뒤에도 같은 증상인지 확인해요.",
+    record: needsInspection
+      ? "문제가 있는 조명의 위치를 알리고 조명 설비 점검을 요청하기"
+      : "문제가 있는 조명의 위치·개수와 전구 교체 여부를 기록하기",
+    checks: [
+      input.observation === "light-out"
+        ? "교체형 전구인지 조명 기구 전체를 점검해야 하는지 확인하기"
+        : "조명 기구·스위치·배선 중 어디를 점검해야 하는지 문의하기",
+      "전구 교체와 조명 기구 수리 중 필요한 작업 범위와 견적 확인하기",
+    ],
+  };
+}
 
 export const emptyDetails: NonNullable<Intake["details"]> = {
   inspection: "unknown",

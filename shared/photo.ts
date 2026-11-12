@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Intake, Issue } from "./schema.js";
+import { isLightingIssue } from "./lighting.js";
 
 export const photoSigns = {
   discoloration: "표면의 변색·얼룩",
@@ -178,14 +179,24 @@ export function photoGuidance(keys: PhotoView[]) {
     reason: views[key][1],
   }));
 }
+export function supportsPhotoDeviceDetails(
+  input: Pick<Intake, "issue" | "observation">,
+) {
+  return (
+    input.issue === "boiler" ||
+    (input.issue === "fixture" &&
+      !isLightingIssue(input) &&
+      !["cabinet", "bed"].includes(input.observation))
+  );
+}
 export function missingPhotoViews(
   input: Pick<Intake, "issue" | "drain" | "observation">,
   covered: PhotoView[] = [],
 ) {
   if (input.issue === "drain" && input.drain?.overflow === "yes") return [];
   const choices =
-    input.issue === "fixture" && ["cabinet", "bed"].includes(input.observation)
-      ? photoViewsByIssue.surface.filter((key) => key !== "before")
+    input.issue === "fixture" && !supportsPhotoDeviceDetails(input)
+      ? (["overview", "closeup"] as const)
       : photoViewsByIssue[input.issue];
   return choices.filter((key) => !covered.includes(key)).slice(0, 3);
 }

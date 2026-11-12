@@ -5,12 +5,13 @@ import {
   missingPhotoViews,
   photoDeviceSchema,
   photoReadingSchema,
+  supportsPhotoDeviceDetails,
   type PhotoObservation,
   type PhotoResult,
   type PhotoView,
 } from "../../shared/photo.js";
 import type { Config } from "../config.js";
-import type { Intake } from "../../shared/schema.js";
+import { intakeIssueName, type Intake } from "../../shared/schema.js";
 
 export const photoTokenBudget = 16000;
 const outputTokens = 2200;
@@ -77,7 +78,7 @@ export function photoReader(config: Config, client?: OpenAI): PhotoReader {
             content: [
               {
                 type: "input_text",
-                text: `Selected issue (not a diagnosis): ${input.issue}. Review these ${images.length} images individually.`,
+                text: `Selected issue (not a diagnosis): ${intakeIssueName(input)}. Review these ${images.length} images individually.`,
               },
               ...images.map((image_url) => ({
                 type: "input_image" as const,
@@ -101,10 +102,7 @@ export function photoReader(config: Config, client?: OpenAI): PhotoReader {
     const { readings } = photoReadingSchema.parse(response.output_parsed);
     if (readings.length !== images.length) throw Error("PHOTO_INCOMPLETE");
     const usable = new Set(covered);
-    const canReadDevice =
-      input.issue === "boiler" ||
-      (input.issue === "fixture" &&
-        !["cabinet", "bed"].includes(input.observation));
+    const canReadDevice = supportsPhotoDeviceDetails(input);
     const observations = readings.map((reading): PhotoObservation => {
       const signs = [...new Set(reading.signs)];
       const danger = signs.filter(

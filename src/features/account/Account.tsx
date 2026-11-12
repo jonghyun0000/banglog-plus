@@ -6,7 +6,7 @@ import {
   type SupabaseClient,
 } from "@supabase/supabase-js";
 import type { AppConfig } from "../../../shared/schema";
-import { issueNames, directionNames } from "../../../shared/schema";
+import { intakeIssueName, directionNames } from "../../../shared/schema";
 import {
   historySchema,
   historyConsentVersion,
@@ -571,7 +571,7 @@ export function Account({
                     : "AI 보조 안내"}{" "}
                 · {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
               </p>
-              <h2>{issueNames[entry.input.issue]}</h2>
+              <h2>{intakeIssueName(entry.input)}</h2>
               <p>{directionNames[entry.result.costResponsibility.direction]}</p>
               <details>
                 <summary>결과와 근거 펼쳐보기</summary>

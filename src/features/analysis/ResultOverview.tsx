@@ -1,6 +1,6 @@
 import { observationLabel } from "../../../shared/questions";
 import {
-  issueNames,
+  intakeIssueName,
   type Analysis,
   type Direction,
   type Intake,
@@ -92,11 +92,12 @@ export function ResultOverview({
               ? "이 문제는 지원 범위 밖이에요"
               : unavailable
                 ? "수리 안내를 불러오지 못했어요"
-                : `${issueNames[intake.issue]} 수리 가이드`}
+                : `${intakeIssueName(intake)} 수리 가이드`}
         </h1>
         {active && (
           <p className="result-symptom">
-            {intake.observation === "unknown"
+            {intake.observation === "unknown" ||
+            intake.observation === "light-unknown"
               ? "증상이 아직 분명하지 않아요."
               : observationLabel(intake)}
           </p>

@@ -5,13 +5,18 @@ import {
   questionSteps,
 } from "../../../shared/drain";
 import { useState } from "react";
-import { defaultDrain, issueNames, type Intake } from "../../../shared/schema";
+import {
+  defaultDrain,
+  intakeIssueName,
+  type Intake,
+} from "../../../shared/schema";
+import { isLightingIssue } from "../../../shared/lighting";
 import {
   options,
   titles,
-  descriptionHints,
-  observations,
-  issueGuidance,
+  descriptionHint,
+  observationChoices,
+  repairGuidance,
   emptyDetails,
   hasReply,
   applyQuestionPatch,
@@ -22,7 +27,12 @@ import {
   safetyUrl,
   maskPersonalData,
 } from "../../../shared/safety";
-import { Button, Choice, SectionTitle } from "../../components/ui/Elements";
+import {
+  Button,
+  Choice,
+  ChoiceButton,
+  SectionTitle,
+} from "../../components/ui/Elements";
 export function SafetyNotice() {
   return (
     <aside className="safety-notice" role="alert">
@@ -74,11 +84,10 @@ export function Questions({
             )
             .map(([value, label]) =>
               quick ? (
-                <button
-                  type="button"
+                <ChoiceButton
                   key={value}
-                  className={`choice ${input[key] === value ? "selected" : ""}`}
-                  aria-pressed={input[key] === value}
+                  label={label}
+                  selected={input[key] === value}
                   onClick={() =>
                     choose(
                       { [key]: value },
@@ -86,10 +95,7 @@ export function Questions({
                         !["gas", "fire", "electric"].includes(value),
                     )
                   }
-                >
-                  {label}
-                  <span aria-hidden="true">→</span>
-                </button>
+                />
               ) : (
                 <Choice
                   key={value}
@@ -123,7 +129,7 @@ export function Questions({
   return (
     <div className="question-screen">
       <div className="question-context">
-        <span>{issueNames[input.issue]}</span>
+        <span>{intakeIssueName(input)}</span>
         <span>
           {phase} / 3 · {["증상·안전", "상황 확인", "자료·검토"][phase - 1]}
         </span>
@@ -177,11 +183,10 @@ export function Questions({
       {drainQuestion && (
         <div className="choices" role="group" aria-label={drainQuestion.title}>
           {drainOptions[drainQuestion.key].map(([value, label]) => (
-            <button
-              type="button"
+            <ChoiceButton
               key={value}
-              className={`choice ${(input.drain ?? defaultDrain)[drainQuestion.key] === value ? "selected" : ""}`}
-              aria-pressed={
+              label={label}
+              selected={
                 (input.drain ?? defaultDrain)[drainQuestion.key] === value
               }
               onClick={() =>
@@ -203,10 +208,7 @@ export function Questions({
                   value !== "other",
                 )
               }
-            >
-              {label}
-              <span aria-hidden="true">→</span>
-            </button>
+            />
           ))}
         </div>
       )}
@@ -249,20 +251,16 @@ export function Questions({
       {step === 0 && (
         <>
           <div className="choices" role="group" aria-label="지금 보이는 증상">
-            {observations[input.issue].map(([value, label]) => (
-              <button
-                type="button"
+            {observationChoices(input).map(([value, label]) => (
+              <ChoiceButton
                 key={value}
-                className={`choice ${input.observation === value ? "selected" : ""}`}
-                aria-pressed={input.observation === value}
+                label={label}
+                selected={input.observation === value}
                 onClick={() => choose({ observation: value }, true)}
-              >
-                {label}
-                <span aria-hidden="true">→</span>
-              </button>
+              />
             ))}
           </div>
-          <p className="small quiet-note">{issueGuidance[input.issue].note}</p>
+          <p className="small quiet-note">{repairGuidance(input).note}</p>
         </>
       )}
       {step === 1 && (
@@ -281,7 +279,7 @@ export function Questions({
           )}
           {choices(
             "installed",
-            input.issue === "fixture"
+            input.issue === "fixture" && !isLightingIssue(input)
               ? "문제가 있는 제품의 제공 주체"
               : "문제가 있는 시설",
             true,
@@ -294,11 +292,10 @@ export function Questions({
             <legend>알고 있는 원인</legend>
             <div className="choices">
               {options.cause.map(([value, label]) => (
-                <button
-                  type="button"
+                <ChoiceButton
                   key={value}
-                  className={`choice ${input.cause === value ? "selected" : ""}`}
-                  aria-pressed={input.cause === value}
+                  label={label}
+                  selected={input.cause === value}
                   onClick={() =>
                     choose(
                       {
@@ -308,9 +305,7 @@ export function Questions({
                       false,
                     )
                   }
-                >
-                  {label}
-                </button>
+                />
               ))}
             </div>
           </fieldset>
@@ -418,7 +413,7 @@ export function Questions({
             maxLength={1000}
             rows={6}
             value={input.description}
-            placeholder={`${descriptionHints[input.issue]}\n그 밖에 확인이 필요한 내용을 적을 수 있어요.`}
+            placeholder={`${descriptionHint(input)}\n그 밖에 확인이 필요한 내용을 적을 수 있어요.`}
             onChange={(e) => onChange({ description: e.target.value })}
           />
           <p className="small field-help">

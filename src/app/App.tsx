@@ -4,6 +4,7 @@ import type {
   PhotoUpload,
   PhotoView,
 } from "../../shared/photo";
+import { supportsPhotoDeviceDetails } from "../../shared/photo";
 import { releaseLabel } from "../../shared/release";
 import { repairMessage } from "../../shared/analysis";
 import { canLinkGuide, type RepairImport } from "../../shared/repair-guide";
@@ -177,7 +178,7 @@ export default function App() {
     }));
     setResult(null);
   }
-  function pick(issue: Issue) {
+  function pick(issue: Issue, observation = defaultIntake.observation) {
     setFollowupId(undefined);
     setRepairImport(null);
     setInspectionQuestions([]);
@@ -192,6 +193,7 @@ export default function App() {
     setInput({
       ...defaultIntake,
       issue,
+      observation,
       otherClaim: "unknown",
       contact: "unknown",
       inputVersion: version.current,
@@ -565,6 +567,7 @@ export default function App() {
         {screen === "home" && (
           <Home
             onStart={() => go("issue")}
+            onLighting={() => pick("fixture", "light-unknown")}
             onPrivacy={() => go("privacy")}
             onReferences={() => go("references")}
           />
@@ -658,9 +661,7 @@ export default function App() {
             intake={input}
             photoBusy={photoBusy}
             onPhotoConfirm={
-              input.issue === "boiler" ||
-              (input.issue === "fixture" &&
-                !["cabinet", "bed"].includes(input.observation))
+              supportsPhotoDeviceDetails(input)
                 ? (device) => void updatePhoto(device)
                 : undefined
             }

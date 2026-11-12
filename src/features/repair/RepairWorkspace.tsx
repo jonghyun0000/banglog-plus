@@ -4,7 +4,7 @@ import {
   prepareRepairFollowup,
   type RepairImport,
 } from "../../../shared/repair-guide";
-import { issueNames, type Intake } from "../../../shared/schema";
+import { intakeIssueName, type Intake } from "../../../shared/schema";
 import {
   intakeDetails,
   observationLabel,
@@ -431,7 +431,7 @@ export function RepairWorkspace({
           <section className="repair-import" aria-labelledby="import-title">
             <h2 id="import-title">기록장에 가져올 내용</h2>
             <p>
-              {issueNames[request.guide.intake.issue]} ·{" "}
+              {intakeIssueName(request.guide.intake)} ·{" "}
               {observationLabel(request.guide.intake)}
             </p>
             <p>{answerLabel("contact", request.guide.intake.contact)}</p>
@@ -892,7 +892,7 @@ export function RepairWorkspace({
                 {record.guides.map((guide, index) => (
                   <details key={guide.result.analysisId}>
                     <summary>
-                      안내 {index + 1} · {issueNames[guide.intake.issue]} ·{" "}
+                      안내 {index + 1} · {intakeIssueName(guide.intake)} ·{" "}
                       {observationLabel(guide.intake)}
                     </summary>
                     <p className="small">

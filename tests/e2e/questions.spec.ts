@@ -1,5 +1,8 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import { makeAnalysis } from "../../shared/analysis";
+import { loadConfig } from "../../server/config";
+import { createApp } from "../../server/routes/app";
 test("quick answers persist, free text is last, and review edits return directly", async ({
   page,
 }) => {
@@ -103,6 +106,93 @@ test("danger selection stops automatic navigation before situation questions", a
     page.getByRole("link", { name: "119에 전화하기" }),
   ).toHaveAttribute("href", "tel:119");
   await expect(page.getByLabel("추가로 설명할 내용")).toHaveCount(0);
+});
+
+test("lighting can be selected from home or the issue list, and answers use plain dots", async ({
+  page,
+}) => {
+  const { app } = createApp({ config: loadConfig({}) });
+  try {
+    const address = await app.listen({ host: "127.0.0.1", port: 0 });
+    await page.route("**/api/{sessions,analyses}", async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      const response = await route.fetch({
+        url: new URL(path, address).href,
+      });
+      await route.fulfill({ response });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page
+      .getByRole("button", { name: "전구가 고장났어요", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "전구 한 개가 켜지지 않아요" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "뒤로가기" }).click();
+    await page.getByRole("button", { name: "전구가 고장났어요" }).click();
+    await page.getByRole("checkbox", { name: "선택 후 바로 이동" }).uncheck();
+    const symptom = page.getByRole("button", {
+      name: "전구를 바꿔도 켜지지 않아요",
+    });
+    await symptom.click();
+    await expect(symptom).toHaveAttribute("aria-pressed", "true");
+    await expect(symptom.locator(".radio-mark")).toBeEmpty();
+    await expect(symptom.locator(".radio-mark")).toHaveCSS(
+      "background-color",
+      "rgb(37, 99, 235)",
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: ".local/screenshots/lighting-choices-390x844.png",
+    });
+    await page.getByRole("button", { name: "다음", exact: true }).click();
+    await page
+      .getByRole("button", { name: "연기·불꽃·타는 냄새가 나요" })
+      .click();
+    await expect(
+      page.getByRole("link", { name: "119에 전화하기" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "위험 신호가 있어 진행을 중단했어요" }),
+    ).toBeDisabled();
+    await page.getByRole("checkbox", { name: "선택 후 바로 이동" }).check();
+    await page.getByRole("button", { name: "지금 위험 신호는 없어요" }).click();
+    await page.getByRole("radio", { name: "오늘 발견했어요" }).check();
+    const timingDot = page
+      .locator("label.choice")
+      .filter({ hasText: "오늘 발견했어요" })
+      .locator(".radio-mark");
+    await expect(timingDot).toBeEmpty();
+    await expect(timingDot).toHaveCSS("background-color", "rgb(37, 99, 235)");
+    await page.getByRole("button", { name: "다음", exact: true }).click();
+    await page
+      .getByRole("button", { name: "집에 원래 있던 시설이에요" })
+      .click();
+    await page.getByRole("button", { name: "아직 연락하지 않았어요" }).click();
+    await page.getByRole("button", { name: "입력한 내용 확인하기" }).click();
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
+    await expect(
+      page.getByRole("heading", { name: "전구·조명 수리 가이드" }),
+    ).toBeVisible();
+    await expect(page.getByRole("group", { name: "핵심 요약" })).toContainText(
+      "조명 설비 점검을 요청하기",
+    );
+    await page
+      .getByRole("button", { name: "집주인에게 보낼 문구 보기" })
+      .click();
+    await expect(
+      page.getByRole("textbox", { name: "집주인에게 보낼 문구" }),
+    ).toHaveValue(/전구를 바꿔도 켜지지 않아요/);
+  } finally {
+    await app.close();
+  }
 });
 
 test("mobile choices, back navigation and result actions stay clear", async ({
