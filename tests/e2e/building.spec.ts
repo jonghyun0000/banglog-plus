@@ -149,7 +149,7 @@ for (const manager of ["yes", "no"] as const)
     expect(JSON.stringify(payload)).not.toContain("테스트 주소");
     expect(JSON.stringify(payload)).not.toContain("역삼동 737");
     await expect(
-      page.getByRole("heading", { name: "지금은 이렇게 시작해요" }),
+      page.getByRole("heading", { name: /수리 가이드$/ }),
     ).toBeVisible();
     await page
       .getByRole("button", {

@@ -61,7 +61,7 @@ for (const issue of [
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
     await expect(
-      page.getByRole("heading", { name: "지금은 이렇게 시작해요" }),
+      page.getByRole("heading", { name: /수리 가이드$/ }),
     ).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page
@@ -161,7 +161,9 @@ test("own fridge goes to service support and keeps the expanded reference access
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
   await expect(
-    page.getByRole("heading", { name: "제조사·수리업체에 문의해요" }),
+    page
+      .locator(".result-contact")
+      .getByText("제조사·수리업체", { exact: true }),
   ).toBeVisible();
   await page.getByText("관련 판례 원문과 적용 한계", { exact: true }).click();
   await expect(

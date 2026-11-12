@@ -74,6 +74,13 @@ test("drain: safe sink route, back navigation, input preservation, self-care bef
     "눈에 보이는 이물질부터",
   );
   await expect(page.locator(".drain-guide")).toContainText("그대로라면 집주인");
+  const overview = page.locator(".result-overview");
+  await expect(
+    overview.getByText("눈에 보이는 이물질부터 확인해요", { exact: true }),
+  ).toBeInViewport();
+  await expect(
+    overview.getByText("분해 없이 거름망 표면만 확인하세요.", { exact: true }),
+  ).toBeInViewport();
   const examples = page.getByRole("region", { name: "비슷한 수리 비용 사례" });
   await expect(examples).toContainText("세면대 트랩 청소와 배수 마개 교체");
   await expect(examples).toContainText("업체 공개 예산");
@@ -145,6 +152,13 @@ test("drain: multiple backflow skips DIY and prioritizes stopping water", async 
   ).toBeVisible();
   await finish(page);
   await expect(page.locator(".drain-guide")).toContainText("물 사용을 멈추고");
+  const overview = page.locator(".result-overview");
+  await expect(
+    overview.getByText("물 사용을 멈추고 점검을 요청해요", { exact: true }),
+  ).toBeInViewport();
+  await expect(overview.getByRole("link", { name: "수리비 사례" })).toHaveCount(
+    0,
+  );
   await expect(
     page.getByRole("region", { name: "비슷한 수리 비용 사례" }),
   ).toHaveCount(0);

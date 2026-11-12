@@ -71,6 +71,49 @@ for (const [width, height] of [
     await tap(page, "입력한 내용 확인하기");
     await approve(page);
     await tap(page, "수리 가이드 확인하기");
+    const overview = page.locator(".result-overview");
+    await expect(
+      overview.getByRole("heading", { name: "보일러 고장 수리 가이드" }),
+    ).toBeInViewport();
+    for (const name of ["지금 할 일", "연락할 곳", "비용 부담"]) {
+      await expect(
+        overview.getByRole("heading", { name, exact: true }),
+      ).toBeInViewport();
+    }
+    await expect(
+      overview.getByRole("button", { name: "집주인에게 보낼 문구 보기" }),
+    ).toBeInViewport({ ratio: 1 });
+    const actionBox = (await overview.locator(".result-first").boundingBox())!;
+    const contactBox = (await overview
+      .locator(".result-contact")
+      .boundingBox())!;
+    const costBox = (await overview.locator(".result-cost").boundingBox())!;
+    expect(contactBox.y).toBe(costBox.y);
+    expect(costBox.x).toBeGreaterThan(contactBox.x);
+    if (width >= 800) expect(actionBox.y).toBe(contactBox.y);
+    else expect(actionBox.y + actionBox.height).toBeLessThan(contactBox.y);
+    await page.screenshot({
+      path: `.local/result-review/${width}-overview.png`,
+    });
+    await overview.getByRole("link", { name: "수리비 사례" }).click();
+    await expect(
+      page.getByRole("heading", { name: "비슷한 수리 비용 사례" }),
+    ).toBeFocused();
+    const costCard = page.getByRole("region", {
+      name: "비슷한 수리 비용 사례",
+    });
+    await expect(costCard.getByText("500,000원")).toBeVisible();
+    const boxes = await costCard.locator("li").evaluateAll((items) =>
+      items.map((item) => ({
+        x: item.getBoundingClientRect().x,
+        y: item.getBoundingClientRect().y,
+      })),
+    );
+    expect(boxes).toHaveLength(2);
+    if (width >= 800) {
+      expect(boxes[0].y).toBe(boxes[1].y);
+      expect(boxes[0].x).toBeLessThan(boxes[1].x);
+    } else expect(boxes[0].y).toBeLessThan(boxes[1].y);
     await expect(page.locator(".condition-cards details[open]")).toContainText(
       "원인을 모르면",
     );

@@ -430,7 +430,7 @@ export default function App() {
     result?.inputVersion === input.inputVersion;
   return (
     <div
-      className={`app-shell ${screen === "questions" ? "question-shell" : ""}`}
+      className={`app-shell ${screen === "questions" ? "question-shell" : screen === "result" && showResult ? "result-shell" : ""}`}
     >
       <a className="skip-link" href="#main">
         본문으로 건너뛰기
@@ -494,6 +494,7 @@ export default function App() {
             "references",
             "account",
             "repair",
+            "result",
           ].includes(screen) && (
             <p className="flow-indicator">
               <span className={screen === "questions" ? "current" : ""}>
@@ -512,7 +513,7 @@ export default function App() {
             </p>
           )}
         </div>
-        {["home", "result", "account"].includes(screen) && (
+        {["home", "account"].includes(screen) && (
           <button className="text-button" onClick={() => openRepair()}>
             수선 요청·퇴실 기록장
           </button>
@@ -654,7 +655,6 @@ export default function App() {
         {showResult && screen === "result" && (
           <Result
             result={result!}
-            issue={input.issue}
             intake={input}
             photoBusy={photoBusy}
             onPhotoConfirm={
@@ -672,6 +672,7 @@ export default function App() {
                 : undefined
             }
             onRepair={linkRepair}
+            onOpenRepair={() => openRepair()}
             inspectionQuestions={inspectionQuestions}
             onInspectionQuestions={setInspectionQuestions}
             onMessage={() => go("message")}

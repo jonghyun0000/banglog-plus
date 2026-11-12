@@ -24,7 +24,7 @@ async function analyze(page: Page) {
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
   await expect(
-    page.getByRole("heading", { name: "지금은 이렇게 시작해요" }),
+    page.getByRole("heading", { name: /수리 가이드$/ }),
   ).toBeVisible();
 }
 async function noOverflow(page: Page) {
@@ -226,7 +226,7 @@ test("loading, cancellation, provider error and retry", async ({ page }) => {
   await page.unroute("**/api/analyses");
   await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
   await expect(
-    page.getByRole("heading", { name: "지금은 이렇게 시작해요" }),
+    page.getByRole("heading", { name: /수리 가이드$/ }),
   ).toBeVisible();
 });
 test("cancel returns to review and stale output is hidden", async ({
@@ -301,7 +301,7 @@ for (const [width, height] of [
     await page.unroute("**/api/analyses");
     await page.getByRole("button", { name: "수리 가이드 확인하기" }).click();
     await expect(
-      page.getByRole("heading", { name: "지금은 이렇게 시작해요" }),
+      page.getByRole("heading", { name: /수리 가이드$/ }),
     ).toBeVisible();
     await page.getByText("입력한 내용 보기", { exact: true }).click();
     await page.evaluate(

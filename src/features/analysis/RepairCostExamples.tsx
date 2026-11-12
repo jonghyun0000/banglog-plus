@@ -1,16 +1,12 @@
-import type { Analysis, Intake } from "../../../shared/schema";
-import { repairCostCases } from "./repair-cost-cases";
+import type { repairCostCases } from "./repair-cost-cases";
 
 const krw = new Intl.NumberFormat("ko-KR");
 
 export function RepairCostExamples({
-  input,
-  status,
+  examples,
 }: {
-  input: Intake;
-  status: Analysis["status"];
+  examples: ReturnType<typeof repairCostCases>;
 }) {
-  const examples = repairCostCases(input, status);
   if (examples === null) return null;
 
   return (
@@ -18,7 +14,9 @@ export function RepairCostExamples({
       className="result-card repair-cost-examples"
       aria-labelledby="repair-cost-title"
     >
-      <h2 id="repair-cost-title">비슷한 수리 비용 사례</h2>
+      <h2 id="repair-cost-title" tabIndex={-1}>
+        비슷한 수리 비용 사례
+      </h2>
       {examples.length ? (
         <>
           <ul className="repair-cost-list">
