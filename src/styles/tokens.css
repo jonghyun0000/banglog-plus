@@ -1151,8 +1151,20 @@ select,
   color: var(--muted);
   font-size: 1rem;
 }
-.history-card h2 {
+.history-grid {
+  display: grid;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.history-grid .history-card {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.history-card h3 {
   margin: 8px 0;
+  font-weight: 700;
 }
 .history-card details p {
   margin: 12px 0;
@@ -1160,6 +1172,24 @@ select,
 .history-card summary {
   min-height: 48px;
   padding: 12px 0;
+}
+@media (min-width: 360px) {
+  .history-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (360px <= width < 800px) {
+  .account-screen .history-card {
+    padding: 12px;
+  }
+  .history-card:has(> details[open]) {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 800px) {
+  .app-shell:has(.history-grid) {
+    max-width: 1040px;
+  }
 }
 .next-response {
   border: 1px solid var(--line);

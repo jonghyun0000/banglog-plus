@@ -76,7 +76,14 @@ test("saved history renders, deletion requires confirmation and logout clears re
     createdAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + 86400000).toISOString(),
   };
-  let rows = [entry];
+  const secondInput = { ...defaultIntake, issue: "leak" as const };
+  const second = {
+    ...entry,
+    id: randomUUID(),
+    input: secondInput,
+    result: makeAnalysis(secondInput, randomUUID(), "mock", "demo"),
+  };
+  let rows = [entry, second];
   await page.addInitScript(
     ({ userId }) =>
       localStorage.setItem(
@@ -119,7 +126,8 @@ test("saved history renders, deletion requires confirmation and logout clears re
   await page.route("**/api/account/history**", (r) => {
     expect(r.request().headers().authorization).toBe("Bearer test-token");
     if (r.request().method() === "DELETE") {
-      rows = [];
+      const id = new URL(r.request().url()).pathname.split("/").at(-1);
+      rows = rows.filter((row) => row.id !== id);
       return r.fulfill({ status: 204 });
     }
     return r.fulfill({ json: rows });
@@ -128,15 +136,40 @@ test("saved history renders, deletion requires confirmation and logout clears re
   await expect(
     page.getByText("로그인되어 있어요.", { exact: false }),
   ).toBeVisible();
-  await page.getByText("결과와 근거 펼쳐보기", { exact: true }).click();
+  const cards = page.locator(".history-card");
+  await expect(cards).toHaveCount(2);
+  for (const width of [360, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const firstBox = (await cards.nth(0).boundingBox())!;
+    const secondBox = (await cards.nth(1).boundingBox())!;
+    expect(secondBox.y).toBe(firstBox.y);
+    expect(secondBox.x).toBeGreaterThan(firstBox.x);
+  }
+  await page.setViewportSize({ width: 360, height: 844 });
+  const first = cards.filter({
+    has: page.getByRole("heading", { name: "곰팡이·결로", exact: true }),
+  });
+  await first.getByText("결과와 근거 펼쳐보기", { exact: true }).click();
   await expect(
-    page.locator(".saved-message").filter({ hasText: result.messageDraft }),
+    first.locator(".saved-message").filter({ hasText: result.messageDraft }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "기록 삭제", exact: true }).click();
-  await page.getByRole("button", { name: "취소", exact: true }).click();
-  expect(rows.length).toBe(1);
-  await page.getByRole("button", { name: "기록 삭제", exact: true }).click();
-  await page.getByRole("button", { name: "삭제 확인", exact: true }).click();
+  expect((await first.boundingBox())!.width).toBe(
+    (await page.locator(".history-grid").boundingBox())!.width,
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await first.getByRole("button", { name: "기록 삭제", exact: true }).click();
+  await first.getByRole("button", { name: "취소", exact: true }).click();
+  expect(rows.length).toBe(2);
+  await first.getByRole("button", { name: "기록 삭제", exact: true }).click();
+  await first.getByRole("button", { name: "삭제 확인", exact: true }).click();
+  await expect(first).toHaveCount(0);
+  await expect(cards).toHaveCount(1);
+  await cards.getByRole("button", { name: "기록 삭제", exact: true }).click();
+  await cards.getByRole("button", { name: "삭제 확인", exact: true }).click();
   await expect(
     page.getByText("아직 저장한 기록이 없어요.", { exact: false }),
   ).toBeVisible();
