@@ -1,4 +1,6 @@
-import { repairMessage } from "../../../shared/analysis";
+import { useLanguage } from "../../app/language";
+import { localizedRepairMessage } from "../../app/localized-message";
+import { englishRecipients } from "../analysis/EnglishGuide";
 import type { Analysis, Intake } from "../../../shared/schema";
 import { SectionTitle, Button } from "../../components/ui/Elements";
 import { api } from "../../app/api";
@@ -25,6 +27,7 @@ export function Message({
   onFeedback: () => void;
   onRepair: () => void;
 }) {
+  const { t, language } = useLanguage();
   const recipient =
     result.repairRequest.recipient === "manager"
       ? "관리 담당자에게"
@@ -36,21 +39,35 @@ export function Message({
       <SectionTitle
         eyebrow={
           result.fallback
-            ? "기본 안내 · 연락 문구"
+            ? t("기본 안내 · 연락 문구")
             : result.mode === "mock"
-              ? "데모: 가상 결과 · 연락 문구"
-              : "연락 문구"
+              ? t("데모: 가상 결과 · 연락 문구")
+              : t("연락 문구")
         }
-        title="수정하고, 복사해서 보내세요"
+        title={t("수정하고, 복사해서 보내세요")}
       >
-        <p>{recipient} 보낼 문구를 준비했어요.</p>
+        <p>
+          {language === "en"
+            ? `Send this to your ${englishRecipients[result.repairRequest.recipient]}.`
+            : `${recipient} 보낼 문구를 준비했어요.`}
+        </p>
       </SectionTitle>
-      <div className="message-kinds" role="group" aria-label="연락 문구 종류">
+      {language === "en" && (
+        <p className="small">
+          For a Korean message, switch to 한국어 at the top. Your edits are kept
+          separately in each language.
+        </p>
+      )}
+      <div
+        className="message-kinds"
+        role="group"
+        aria-label={t("연락 문구 종류")}
+      >
         {(
           [
-            ["initial", "첫 수선 요청"],
-            ["cost", "점검 후 비용 협의"],
-            ["followup", "답변 지연·거절 후 재요청"],
+            ["initial", t("첫 수선 요청")],
+            ["cost", t("점검 후 비용 협의")],
+            ["followup", t("답변 지연·거절 후 재요청")],
           ] as const
         ).map(([value, label]) => (
           <button
@@ -65,27 +82,32 @@ export function Message({
         ))}
       </div>
       <DraftEditor
-        key={kind}
+        key={`${language}:${kind}`}
         text={text}
-        original={repairMessage(input, result.repairRequest.recipient, kind)}
+        original={localizedRepairMessage(
+          input,
+          result.repairRequest.recipient,
+          kind,
+          language,
+        )}
         onChange={onChange}
-        label={`${recipient} 보낼 문구`}
+        label={language === "en" ? "Message to copy" : `${recipient} 보낼 문구`}
         onCopied={() => {
           void api.copied(result.analysisId).catch(() => {});
         }}
       />
       <Button secondary onClick={onSave}>
-        문구와 결과를 내 기록에 저장
+        {t("문구와 결과를 내 기록에 저장")}
       </Button>
       <p className="small save-help">
-        로그인 후 동의하면 수정한 문구도 함께 보관해요.
+        {t("로그인 후 동의하면 수정한 문구도 함께 보관해요.")}
       </p>
       <Button secondary onClick={onRepair}>
-        수선 기록에 이 문구 가져오기
+        {t("수선 기록에 이 문구 가져오기")}
       </Button>
-      <NextResponse result={result} />
+      {language === "ko" && <NextResponse result={result} />}
       <button className="text-button" onClick={onFeedback}>
-        도움이 됐는지 알려주기
+        {t("도움이 됐는지 알려주기")}
       </button>
     </div>
   );

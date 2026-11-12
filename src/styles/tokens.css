@@ -114,6 +114,22 @@ strong {
   font-weight: 760;
   letter-spacing: -0.04em;
 }
+.language-switch {
+  min-height: 44px;
+  margin-inline-start: 8px;
+  white-space: nowrap;
+}
+.english-shell .app-header {
+  gap: 8px;
+}
+.english-shell .app-header .brand,
+.english-shell .app-header .mode-label {
+  white-space: nowrap;
+}
+.english-shell .home h1,
+.english-shell .question-screen h1 {
+  overflow-wrap: anywhere;
+}
 .brand span {
   font-size: 0.875rem;
   letter-spacing: -0.02em;
