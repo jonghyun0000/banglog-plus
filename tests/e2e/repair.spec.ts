@@ -76,6 +76,48 @@ for (const [width, height] of [
     await page
       .getByLabel("임대인이 제시한 보증금 공제 사유")
       .fill("도배비 요구");
+    for (const [label, amount, reason] of [
+      ["도배", "120000", "벽지 얼룩"],
+      ["장판", "80000", "바닥 긁힘"],
+      ["청소비", "50000", "청소 견적"],
+    ]) {
+      const group = page.locator(".move-out-costs details").filter({
+        has: page.locator("summary").filter({ hasText: label }),
+      });
+      await group.locator("summary").click();
+      await group.getByLabel(`${label} 공제 요청액 (원)`).fill(amount);
+      await group.getByLabel(`${label} 공제 사유`).fill(reason);
+    }
+    await page
+      .getByLabel("공제 대상 작업 진행 상태 (선택)")
+      .selectOption("before");
+    await page
+      .getByLabel("관련 계약 특약 (없음·모름도 입력 가능)")
+      .fill("청소는 계약서에 정한 범위");
+    await page
+      .getByText("집주인에게 보낼 퇴실 비용 문구", { exact: true })
+      .click();
+    const draft = page.getByRole("textbox", { name: "보낼 퇴실 비용 문구" });
+    await expect(draft).toHaveValue(/항목별 견적을 먼저/);
+    await page
+      .getByLabel("공제 대상 작업 진행 상태 (선택)")
+      .selectOption("after");
+    await expect(draft).toHaveValue(/작업 전후 사진과 영수증/);
+    await expect(draft).toHaveValue(/청소는 계약서에 정한 범위/);
+    await page.evaluate(() => {
+      Object.defineProperty(navigator.clipboard, "writeText", {
+        value: (value: string) => {
+          sessionStorage.setItem("test-clipboard", value);
+          return Promise.resolve();
+        },
+      });
+    });
+    await page.getByRole("button", { name: "문구 복사하기" }).click();
+    await expect(page.getByText("복사됐어요.", { exact: false })).toBeVisible();
+    expect(
+      await page.evaluate(() => sessionStorage.getItem("test-clipboard")),
+    ).toContain("도배 · 공제 요청액 120,000원");
+    await audit("move-out-draft");
     await page.getByLabel("영수증 첨부").setInputFiles({
       name: "receipt.pdf",
       mimeType: "application/pdf",
@@ -84,7 +126,9 @@ for (const [width, height] of [
     await page
       .getByRole("button", { name: "이 기기에 기록 저장", exact: true })
       .click();
-    await expect(page.getByRole("status")).toContainText("이 기기에 저장");
+    await expect(
+      page.getByRole("status").filter({ hasText: "이 기기에 저장했어요." }),
+    ).toBeVisible();
     await page.reload();
     await page.getByRole("button", { name: "수선 요청·퇴실 기록장" }).click();
     await expect(
@@ -96,6 +140,13 @@ for (const [width, height] of [
     await expect(page.getByAltText("leak.png", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "3 퇴실·비용" }).click();
     await expect(page.getByLabel("입주 사진이 없어요")).toBeChecked();
+    for (const amount of ["120,000원", "80,000원", "50,000원"])
+      await expect(
+        page.locator(".move-out-costs summary").getByText(amount),
+      ).toBeVisible();
+    await expect(
+      page.getByLabel("공제 대상 작업 진행 상태 (선택)"),
+    ).toHaveValue("after");
     await expect(
       page.getByRole("link", { name: "파일 내려받기: receipt.pdf" }),
     ).toBeVisible();

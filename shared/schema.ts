@@ -49,6 +49,7 @@ export const drainGuideSchema = z.object({
   warning: z.string(),
   sources: z.array(z.object({ title: z.string(), url: z.string().url() })),
 });
+export const repairStageSchema = z.enum(["before", "after"]);
 export const intakeSchema = z
   .object({
     issue: issueSchema,
@@ -65,6 +66,8 @@ export const intakeSchema = z
       .optional(),
     drain: drainSchema.optional(),
     building: buildingSchema.optional(),
+    lighting: z.enum(["replaceable", "integrated", "unknown"]).optional(),
+    repairStage: repairStageSchema.optional(),
     inputVersion: z.number().int().min(1).max(1000),
     description: z.string().max(1000),
     observation: z
@@ -149,6 +152,12 @@ export const intakeSchema = z
         ...lightingObservations,
       ],
     };
+    if (i.lighting && !isLightingIssue(i))
+      ctx.addIssue({
+        code: "custom",
+        path: ["lighting"],
+        message: "전구·조명 문제에서만 조명 형태를 선택할 수 있어요.",
+      });
     if (!allowed[i.issue].includes(i.observation))
       ctx.addIssue({
         code: "custom",

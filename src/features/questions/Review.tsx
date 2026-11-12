@@ -6,6 +6,7 @@ import {
 } from "../../../shared/photo";
 import { PhotoUpload } from "../photos/PhotoUpload";
 import { drainFacts, drainQuestions } from "../../../shared/drain";
+import { lightingStep } from "../../../shared/lighting";
 import type { AppConfig, Intake } from "../../../shared/schema";
 import { intakeIssueName } from "../../../shared/schema";
 import {
@@ -62,7 +63,11 @@ export function Review({
         [
           title,
           value,
-          title.includes("기사") || title.includes("상대방") ? 4 : 6,
+          title === "조명 형태"
+            ? lightingStep
+            : title.includes("기사") || title.includes("상대방")
+              ? 4
+              : 6,
         ] as const,
     ),
     ["추가 설명", input.description || "별도 설명 없음", 6],

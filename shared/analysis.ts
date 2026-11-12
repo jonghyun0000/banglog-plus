@@ -1,4 +1,5 @@
 import { buildingFacts, buildingGuide } from "./building.js";
+import { isLightingIssue, lightingRoute } from "./lighting.js";
 import { drainGuide, drainFacts, drainMessage } from "./drain.js";
 import type { Analysis, Direction, Intake } from "./schema.js";
 import { analysisSchema, intakeIssueName } from "./schema.js";
@@ -286,20 +287,26 @@ export function repairMessage(
           "해당 부위의 교체·수리 이력은 아직 확인하지 못했습니다. 이전 점검이나 수리 기록을 확인할 수 있을까요?\n",
       }[i.building.repairHistory];
   const subject = intakeIssueName(i);
-  const opening = ownFixture
-    ? "안녕하세요. 제가 소유한 제품의 점검과 수리 가능 여부를 문의드립니다."
-    : managerMessage
-      ? `안녕하세요, 관리 담당자님. ${subject} 관련 점검을 문의드립니다.`
-      : messageKind === "followup" &&
-          ["waiting", "cost", "replied"].includes(i.contact)
-        ? `안녕하세요. 앞서 연락드린 ${subject} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
-        : `안녕하세요. ${subject} 때문에 점검이 필요해 연락드립니다.`;
+  const lightRoute = isLightingIssue(i) ? lightingRoute(i) : undefined;
+  const repaired = i.repairStage === "after";
+  const opening = repaired
+    ? `안녕하세요${managerMessage ? ", 관리 담당자님" : ""}. ${subject} 수리 후 작업 내역을 확인하고 싶어 연락드립니다.`
+    : ownFixture
+      ? "안녕하세요. 제가 소유한 제품의 점검과 수리 가능 여부를 문의드립니다."
+      : managerMessage
+        ? `안녕하세요, 관리 담당자님. ${subject} 관련 점검을 문의드립니다.`
+        : messageKind === "followup" &&
+            ["waiting", "cost", "replied"].includes(i.contact)
+          ? `안녕하세요. 앞서 연락드린 ${subject} 관련 점검 일정과 진행 상황을 확인하고 싶습니다.`
+          : lightRoute === "bulb"
+            ? "안녕하세요. 전구 교체 방법을 확인하고 싶어 연락드립니다."
+            : `안녕하세요. ${subject} 때문에 점검이 필요해 연락드립니다.`;
   const followup = messageKind === "followup";
   const hasContact = ["waiting", "cost", "replied"].includes(i.contact);
   const symptom =
     i.observation === "unknown" || i.observation === "light-unknown"
       ? ""
-      : `현재 ${observationLabel(i)}.\n`;
+      : `${repaired ? "확인한 증상: " : "현재 "}${observationLabel(i)}.\n`;
   const requestMessage =
     messageKind === "cost"
       ? i.contact === "cost"
@@ -322,11 +329,29 @@ export function repairMessage(
       ? "점검 결과와 필요한 수리 범위를 알려주시면 집주인과도 공유하고 비용 부담을 확인하겠습니다."
       : "원인과 수리 범위를 확인한 뒤 비용 부담을 협의하고 싶습니다.";
   const details = i.details;
+  const workRequest = repaired
+    ? `${i.contact === "cost" ? "안내받은 비용의 산정 기준과 " : ""}실제 작업 범위와 비용 내역을 함께 확인하고 싶습니다. 확인 가능한 영수증이나 점검 내역이 있다면 공유 부탁드립니다.`
+    : lightRoute === "bulb" && messageKind === "initial" && !ownFixture
+      ? "전구만 교체할 수 있는 형태로 확인했습니다. 사용 가능한 전구 규격과 교체 방법을 알려주실 수 있을까요? 교체 후에도 켜지지 않으면 점검을 부탁드립니다."
+      : requestMessage;
+  const scopeRequest =
+    !repaired && lightRoute === "inspection"
+      ? "등기구·스위치·배선 중 어느 부분을 점검해야 하는지 알려주세요. 등기구 전체 교체가 필요하다면 이유와 항목별 견적도 부탁드립니다."
+      : !repaired && i.repairStage === "before" && !lightRoute
+        ? "수리 전에 필요한 작업 범위와 항목별 견적을 먼저 확인하고 싶습니다."
+        : "";
+  const contractRequest =
+    i.contract.trim() && !ownFixture
+      ? "계약서에 적힌 수리 관련 특약이 이번 작업의 어느 항목과 범위에 해당하는지도 함께 확인 부탁드립니다."
+      : "";
   const actual = [
     details?.location && `문제가 보이는 곳은 ${details.location}입니다.`,
     details?.discoveredAt &&
       `제가 발견한 시각은 ${details.discoveredAt.replace("T", " ")}입니다.`,
     details?.impact && `사용 중 불편한 점: ${details.impact}`,
+    lightRoute &&
+      i.preexisting === "yes" &&
+      "같은 증상이 입주 당시부터 있었습니다.",
     messageKind !== "initial" &&
       details?.inspection === "yes" &&
       details.technicianNote &&
@@ -334,6 +359,21 @@ export function repairMessage(
   ]
     .filter(Boolean)
     .join("\n");
-  const message = `${opening}\n${symptom}${actual ? `${actual}\n` : ""}${i.issue === "drain" ? drainMessage(i) : ""}${repairHistoryMessage}${requestMessage}\n${third ? "공용부분이나 다른 세대와 관련이 있는지도 확인 부탁드립니다.\n" : ""}${closing}`;
-  return message.slice(0, 2000);
+  return [
+    opening,
+    symptom.trim(),
+    actual,
+    i.issue === "drain" ? drainMessage(i).trim() : "",
+    repairHistoryMessage.trim(),
+    workRequest,
+    scopeRequest,
+    contractRequest,
+    third ? "공용부분이나 다른 세대와 관련이 있는지도 확인 부탁드립니다." : "",
+    repaired
+      ? "확인된 내역을 바탕으로 비용을 어떻게 처리할지 회신 부탁드립니다."
+      : closing,
+  ]
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, 2000);
 }

@@ -2,6 +2,8 @@ import { it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { defaultIntake, intakeSchema, issueSchema } from "../shared/schema.js";
 import { observations } from "../shared/questions.js";
+import { lightingStep } from "../shared/lighting.js";
+import { questionSteps } from "../shared/drain.js";
 import { makeAnalysis, directionFor } from "../shared/analysis.js";
 import { makeFallback } from "../shared/fallback.js";
 import { missingPhotoViews } from "../shared/photo.js";
@@ -97,6 +99,46 @@ it("lighting symptoms keep inspection, photo evidence and fallback guidance spec
   expect(intakeSchema.safeParse({ ...input, issue: "boiler" }).success).toBe(
     false,
   );
+});
+it("branches lighting after safety and prioritizes inspection when replacing a bulb did not help", () => {
+  const input = intakeSchema.parse({
+    ...defaultIntake,
+    issue: "fixture",
+    observation: "light-out",
+    safety: "none",
+    lighting: "replaceable",
+    preexisting: "no",
+    installed: "original",
+  });
+  const run = (patch: Partial<typeof input>) =>
+    makeFallback({ ...input, ...patch }, randomUUID(), "PROVIDER_TIMEOUT");
+  expect(questionSteps(input).slice(0, 3)).toEqual([0, 5, lightingStep]);
+  expect(questionSteps({ ...input, observation: "fridge" })).not.toContain(
+    lightingStep,
+  );
+  const bulb = run({});
+  expect(bulb.nextActions[0]).toContain("전구만 교체");
+  expect(bulb.messageDraft).toContain("전구 규격과 교체 방법");
+  for (const result of [
+    run({ lighting: "integrated" }),
+    run({ observation: "light-replaced" }),
+    run({ observation: "light-multiple" }),
+  ]) {
+    expect(result.nextActions[0]).toContain("조명 설비 점검");
+    expect(result.messageDraft).toContain("항목별 견적");
+  }
+  expect(run({ preexisting: "yes" }).nextActions[0]).toContain("입주 당시");
+  expect(run({ safety: "unknown" }).nextActions[0]).not.toContain(
+    "교체해 보기",
+  );
+  const after = run({
+    repairStage: "after",
+    contract: "수리 범위는 별도 협의",
+  });
+  expect(after.nextActions[0]).toContain("수리 후");
+  expect(after.messageDraft).toContain("실제 작업 범위");
+  expect(after.messageDraft).toContain("특약");
+  expect(after.messageDraft).not.toContain("제가 지불");
 });
 it("shared drain cause routes to the manager and asks about common pipes", () => {
   const result = makeAnalysis(

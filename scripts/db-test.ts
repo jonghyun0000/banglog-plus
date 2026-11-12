@@ -339,7 +339,11 @@ try {
       ...defaultIntake,
       issue,
       ...(issue === "fixture"
-        ? { observation: "light-replaced" as const }
+        ? {
+            observation: "light-replaced" as const,
+            lighting: "replaceable" as const,
+            repairStage: "before" as const,
+          }
         : {}),
       ...(issue === "drain"
         ? {
@@ -383,6 +387,9 @@ try {
       await history.save(lightingMember, saved, saved.result!.messageDraft);
       const [entry] = await history.list(lightingMember);
       assert.equal(entry.input.observation, "light-replaced");
+      assert.equal(entry.input.lighting, "replaceable");
+      assert.equal(entry.input.repairStage, "before");
+      assert.match(entry.result.nextActions[0], /조명 설비 점검/);
       assert.match(entry.result.messageDraft, /전구를 바꿔도 켜지지 않아요/);
       await history.remove(lightingMember, entry.id);
     }

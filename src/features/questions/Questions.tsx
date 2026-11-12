@@ -10,7 +10,12 @@ import {
   intakeIssueName,
   type Intake,
 } from "../../../shared/schema";
-import { isLightingIssue } from "../../../shared/lighting";
+import {
+  isLightingIssue,
+  lightingQuestion,
+  lightingStep,
+  lightingTypes,
+} from "../../../shared/lighting";
 import {
   options,
   titles,
@@ -20,6 +25,7 @@ import {
   emptyDetails,
   hasReply,
   applyQuestionPatch,
+  repairStageLabels,
 } from "../../../shared/questions";
 import {
   hasDanger,
@@ -126,6 +132,7 @@ export function Questions({
   }
   const customLocation = step === 7 && input.drain?.location === "other";
   const emptyLocation = customLocation && !input.drain?.locationDetail?.trim();
+  const missingLightingType = step === lightingStep && !input.lighting;
   return (
     <div className="question-screen">
       <div className="question-context">
@@ -144,7 +151,9 @@ export function Questions({
         title={
           step === 2 && input.issue === "mold"
             ? "문제가 생긴 곳은 어떤 시설인가요?"
-            : (drainQuestion?.title ?? titles[step])
+            : step === lightingStep
+              ? lightingQuestion
+              : (drainQuestion?.title ?? titles[step])
         }
       >
         <p>
@@ -365,11 +374,41 @@ export function Questions({
         </>
       )}
       {step === 5 && choices("safety", "지금 확인되는 위험 신호", true)}
+      {step === lightingStep && (
+        <div className="choices" role="group" aria-label="조명 형태">
+          {lightingTypes.map(([value, label]) => (
+            <ChoiceButton
+              key={value}
+              label={label}
+              selected={input.lighting === value}
+              onClick={() => choose({ lighting: value }, true)}
+            />
+          ))}
+        </div>
+      )}
       {step === 6 && (
         <>
           {!danger && <BuildingLookup input={input} onChange={onChange} />}
           <details>
             <summary>발견 기록·계약 특약 (선택)</summary>
+            <label className="field-label">
+              수리 진행 상태 (선택)
+              <select
+                value={input.repairStage ?? ""}
+                onChange={(e) =>
+                  onChange({
+                    repairStage:
+                      e.target.value === "before" || e.target.value === "after"
+                        ? e.target.value
+                        : undefined,
+                  })
+                }
+              >
+                <option value="">선택 안 함</option>
+                <option value="before">{repairStageLabels.before}</option>
+                <option value="after">{repairStageLabels.after}</option>
+              </select>
+            </label>
             <label className="field-label">
               문제 위치 (선택)
               <input
@@ -434,7 +473,10 @@ export function Questions({
       )}
       {danger && <SafetyNotice />}
       <div className="actions sticky-actions question-actions">
-        <Button disabled={danger || emptyLocation} onClick={() => onNext()}>
+        <Button
+          disabled={danger || emptyLocation || missingLightingType}
+          onClick={() => onNext()}
+        >
           {danger
             ? "위험 신호가 있어 진행을 중단했어요"
             : step === 6

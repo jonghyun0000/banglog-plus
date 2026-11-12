@@ -1,4 +1,5 @@
 import { observationLabel } from "../../../shared/questions";
+import { isLightingIssue, lightingRoute } from "../../../shared/lighting";
 import type { MouseEvent } from "react";
 import {
   intakeIssueName,
@@ -80,7 +81,11 @@ export function ResultOverview({
       ? "간단한 확인으로 해결되지 않으면 연락해요."
       : drain?.route === "stop"
         ? "물 사용을 멈춘 뒤 연락해요."
-        : "증상을 알리고 점검을 요청해요.";
+        : intake.repairStage === "after"
+          ? "작업 내역을 확인하고 비용을 협의해요."
+          : isLightingIssue(intake) && lightingRoute(intake) === "bulb"
+            ? "전구 교체가 어렵거나 교체 후에도 안 켜지면 문의해요."
+            : "증상을 알리고 점검을 요청해요.";
   const links = [
     { id: "result-steps", title: "자세한 대응" },
     { id: "result-evidence", title: "판단 근거" },

@@ -12,6 +12,7 @@ import {
 } from "../../../shared/questions";
 import { drainFacts } from "../../../shared/drain";
 import { InspectionChecklist } from "./InspectionChecklist";
+import { MoveOutCosts, MoveOutDraft } from "./MoveOutCosts";
 import { PhotoCoaching, PhotoResult } from "../photos/PhotoResult";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -764,11 +765,13 @@ export function RepairWorkspace({
                   "임대인이 제시한 보증금 공제 사유",
                   "textarea",
                 )}
+                <MoveOutCosts record={record} onChange={patch} />
                 {field(
                   "specialTerms",
                   "관련 계약 특약 (없음·모름도 입력 가능)",
                   "textarea",
                 )}
+                <MoveOutDraft key={record.id} record={record} />
                 {field("quote", "견적 금액·항목", "textarea")}
                 {uploads("quote")}
                 {field("paidAmount", "실제 지출 금액·일자", "textarea")}

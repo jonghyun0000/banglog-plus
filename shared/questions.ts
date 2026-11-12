@@ -1,6 +1,12 @@
 import type { Intake, Issue } from "./schema.js";
-import { isLightingIssue, lightingOptions, lightingTitle } from "./lighting.js";
-export const questionVersion = "questions-1.6";
+import {
+  isLightingIssue,
+  lightingOptions,
+  lightingRoute,
+  lightingTitle,
+  lightingTypes,
+} from "./lighting.js";
+export const questionVersion = "questions-1.7";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
   "언제부터 있었던 문제인가요?",
@@ -255,19 +261,24 @@ const issueGuidance: Record<
 
 export function repairGuidance(input: Intake) {
   if (!isLightingIssue(input)) return issueGuidance[input.issue];
-  const needsInspection =
-    input.observation === "light-replaced" ||
-    input.observation === "light-multiple";
+  const route = lightingRoute(input);
+  const repaired = input.repairStage === "after";
   return {
-    note: "어느 조명이 안 켜지는지, 전구를 바꾼 뒤에도 같은 증상인지 확인해요.",
-    record: needsInspection
-      ? "문제가 있는 조명의 위치를 알리고 조명 설비 점검을 요청하기"
-      : "문제가 있는 조명의 위치·개수와 전구 교체 여부를 기록하기",
+    note: "전구를 바꿀 수 있는 조명인지, 교체 후에도 같은 증상인지 확인해요.",
+    record: repaired
+      ? "수리 후에도 증상이 남는지 확인하고 작업 내역 기록하기"
+      : route === "inspection"
+        ? "문제가 있는 조명의 위치를 알리고 조명 설비 점검을 요청하기"
+        : route === "bulb"
+          ? "기존 전구 규격을 확인하고 전구만 교체해 보기"
+          : "조명의 위치와 입주 당시 상태를 기록하고 교체 가능한 형태인지 문의하기",
     checks: [
-      input.observation === "light-out"
-        ? "교체형 전구인지 조명 기구 전체를 점검해야 하는지 확인하기"
-        : "조명 기구·스위치·배선 중 어디를 점검해야 하는지 문의하기",
-      "전구 교체와 조명 기구 수리 중 필요한 작업 범위와 견적 확인하기",
+      repaired
+        ? "교체한 부품과 작업 범위, 증상이 남아 있다면 재점검 가능 여부 확인하기"
+        : route === "bulb"
+          ? "전원을 끄고 안전하게 손이 닿는 경우에만 제품 안내에 따라 같은 규격의 전구로 교체하고, 그래도 안 켜지면 점검 요청하기"
+          : "등기구·스위치·배선을 분해하지 않고 점검 범위를 문의하기",
+      "등기구 전체 교체를 제안받으면 필요한 이유와 항목별 견적 확인하기",
     ],
   };
 }
@@ -285,29 +296,44 @@ export function hasReply(input: Intake) {
 }
 export function intakeDetails(input: Intake) {
   const d = input.details;
-  if (!d) return [];
   return [
-    ["문제 위치", d.location],
-    ["발견 시각", d.discoveredAt],
-    ["사용 지장", d.impact],
+    [
+      "조명 형태",
+      lightingTypes.find(([value]) => value === input.lighting)?.[1] ?? "",
+    ],
+    [
+      "수리 진행 상태",
+      input.repairStage ? repairStageLabels[input.repairStage] : "",
+    ],
+    ["문제 위치", d?.location ?? ""],
+    ["발견 시각", d?.discoveredAt ?? ""],
+    ["사용 지장", d?.impact ?? ""],
     [
       "기사 점검 여부",
-      d.inspection === "yes"
+      d?.inspection === "yes"
         ? "받았어요"
-        : d.inspection === "no"
+        : d?.inspection === "no"
           ? "받지 않았어요"
           : "",
     ],
-    ["사용자가 전한 기사 소견", d.inspection === "yes" ? d.technicianNote : ""],
-    ["사용자가 전한 상대방 답변", hasReply(input) ? d.reply : ""],
+    [
+      "사용자가 전한 기사 소견",
+      d?.inspection === "yes" ? d.technicianNote : "",
+    ],
+    ["사용자가 전한 상대방 답변", hasReply(input) ? (d?.reply ?? "") : ""],
   ].filter(([, value]) => value);
 }
+export const repairStageLabels = {
+  before: "수리 전",
+  after: "수리 후",
+} as const;
 // Only normalize new UI answers, so the stored v1.4 intake shape remains readable.
 export function applyQuestionPatch(
   input: Intake,
   patch: Partial<Intake>,
 ): Intake {
   const next = { ...input, ...patch };
+  if (!isLightingIssue(next)) delete next.lighting;
   if (!hasReply(next) && ("contact" in patch || next.details)) {
     next.otherClaim = "unknown";
     if (next.causeSource === "landlord") {
