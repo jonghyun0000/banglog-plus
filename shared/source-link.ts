@@ -21,7 +21,7 @@ export function sourceLink(value: string): string {
       Number(article) === 0
     )
       return value;
-    return `https://www.law.go.kr/법령/민법/(20260317,21454,20260317)/제${Number(article)}조${Number(branch) ? `의${Number(branch)}` : ""}`;
+    return `https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=284415#J${Number(article)}:${Number(branch)}`;
   } catch {
     return value;
   }
