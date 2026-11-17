@@ -5,11 +5,11 @@ const old =
 describe("official source display links", () => {
   it("opens the same Civil Act version using its full-text URL", () => {
     expect(sourceLink(old)).toBe(
-      "https://www.law.go.kr/법령/민법/(20260317,21454,20260317)/제623조",
+      "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=284415#J623:0",
     );
-    expect(sourceLink(old.replace("0623", "0634"))).toContain("/제634조");
+    expect(sourceLink(old.replace("0623", "0634"))).toContain("#J634:0");
     expect(sourceLink(old.replace("joBrNo=00", "joBrNo=02"))).toContain(
-      "/제623조의2",
+      "#J623:2",
     );
     expect(sourceLink(sourceLink(old))).toBe(sourceLink(old));
   });
