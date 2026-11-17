@@ -7,7 +7,7 @@ import {
   lightingTitle,
   lightingTypes,
 } from "./lighting.js";
-export const questionVersion = "questions-1.9";
+export const questionVersion = "questions-1.10";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
   "언제부터 있었던 문제인가요?",
@@ -298,6 +298,7 @@ export function hasReply(input: Intake) {
 export function intakeDetails(input: Intake) {
   const d = input.details;
   return [
+    ["직접 입력한 위험 신호", input.safetyDescription ?? ""],
     [
       "조명 형태",
       lightingTypes.find(([value]) => value === input.lighting)?.[1] ?? "",

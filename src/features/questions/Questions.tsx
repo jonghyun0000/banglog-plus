@@ -30,6 +30,7 @@ import {
   hasReply,
   applyQuestionPatch,
   repairStageLabels,
+  answerLabel,
 } from "../../../shared/questions";
 import {
   hasDanger,
@@ -132,7 +133,13 @@ export function Questions({
       </fieldset>
     );
   }
+  const safetyDescription =
+    input.safetyDescription ??
+    (["gas", "fire", "electric"].includes(input.safety)
+      ? answerLabel("safety", input.safety)
+      : "");
   const sensitive =
+    maskPersonalData(safetyDescription) !== safetyDescription ||
     maskPersonalData(input.description) !== input.description ||
     maskPersonalData(input.contract) !== input.contract;
   const drainQuestion =
@@ -420,7 +427,42 @@ export function Questions({
           {choices("contact", t("집주인·관리 담당자에게 연락한 상태"), true)}
         </>
       )}
-      {step === 5 && choices("safety", t("지금 확인되는 위험 신호"), true)}
+      {step === 5 && (
+        <fieldset className="safety-input">
+          <legend>{t("지금 확인되는 위험 신호")}</legend>
+          <div className="choices">
+            <ChoiceButton
+              label={t("지금 위험 신호는 없어요")}
+              selected={input.safety === "none" && !safetyDescription.trim()}
+              onClick={() =>
+                choose({ safety: "none", safetyDescription: "" }, true)
+              }
+            />
+          </div>
+          <label className="field-label" htmlFor="safety-description">
+            {t("위험 신호 직접 입력")}
+          </label>
+          <p id="safety-input-help" className="small">
+            {t(
+              "다른 위험 신호가 있거나 확실하지 않다면, 지금 보이는 상황을 적어주세요.",
+            )}
+          </p>
+          <textarea
+            id="safety-description"
+            rows={3}
+            maxLength={240}
+            aria-describedby="safety-input-help"
+            placeholder={t("예: 가스 냄새가 나요, 콘센트에서 불꽃이 보여요")}
+            value={safetyDescription}
+            onChange={(e) =>
+              choose({ safety: "unknown", safetyDescription: e.target.value })
+            }
+          />
+          <p className="small">
+            {t("주소·연락처·주민번호·계좌번호는 적지 마세요.")}
+          </p>
+        </fieldset>
+      )}
       {step === lightingStep && (
         <div className="choices" role="group" aria-label={t("조명 형태")}>
           {lightingTypes.map(([value, label]) => (

@@ -1,4 +1,11 @@
 export const english: Readonly<Record<string, string>> = {
+  "위험 신호 직접 입력": "Describe any other safety concern",
+  "직접 입력한 위험 신호": "Reported safety concern",
+  "다른 위험 신호가 있거나 확실하지 않다면, 지금 보이는 상황을 적어주세요.":
+    "If you notice another hazard or are unsure, describe what you see now.",
+  "예: 가스 냄새가 나요, 콘센트에서 불꽃이 보여요":
+    "For example: I smell gas, or sparks are coming from a socket",
+
   "최종 결과 보기": "View full result",
   "전체 사진": "Wide photo",
   "근접 사진": "Close-up",

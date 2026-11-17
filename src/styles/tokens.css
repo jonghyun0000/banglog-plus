@@ -657,7 +657,7 @@ details p {
   border: 3px solid #d8e4fa;
   border-top-color: var(--blue);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: banglog-loading-spin 1s linear infinite;
 }
 .loading-screen .button {
   margin-top: 32px;
@@ -672,7 +672,7 @@ details p {
 .skip-link:focus {
   top: 8px;
 }
-@keyframes spin {
+@keyframes banglog-loading-spin {
   to {
     transform: rotate(360deg);
   }
@@ -684,6 +684,12 @@ details p {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+/* Keep a small, slow busy indicator visible when other motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  .loading-ring {
+    animation: banglog-loading-spin 2.4s linear infinite !important;
   }
 }
 @media (max-height: 700px) {

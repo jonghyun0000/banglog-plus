@@ -67,7 +67,9 @@ for (const fallback of [true, false])
     );
     await click("A light isn’t working");
     await click("It still won’t turn on after replacing the bulb");
-    await click("I see smoke or sparks, or smell burning");
+    await page
+      .getByLabel("Describe any other safety concern")
+      .fill("Sparks are coming from a socket");
     await expect(page.getByRole("alert")).toContainText("Get to safety first");
     await expect(
       page.getByRole("link", { name: "Call 119 in Korea" }),
