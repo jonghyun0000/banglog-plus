@@ -7,14 +7,16 @@ export const safetyText =
   "비용 확인보다 안전이 먼저예요. 위험 장소에서 벗어나 안전한 곳에서 119에 도움을 요청하세요. 가스 냄새가 나면 불을 켜거나 전기 스위치를 조작하지 마세요. 젖은 전기기기나 배선을 만지거나 직접 수리하지 마세요.";
 export function hasDanger(
   input: Pick<Intake, "description" | "safety" | "contract"> &
-    Partial<Pick<Intake, "drain" | "details" | "contact">>,
+    Partial<
+      Pick<Intake, "drain" | "details" | "contact" | "safetyDescription">
+    >,
 ) {
   if (["gas", "fire", "electric"].includes(input.safety)) return true;
-  const context = `${input.description} ${input.contract} ${input.details?.technicianNote ?? ""} ${input.details?.reply ?? ""} ${input.details?.location ?? ""} ${input.details?.impact ?? ""} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`;
+  const context = `${input.safetyDescription ?? ""} ${input.description} ${input.contract} ${input.details?.technicianNote ?? ""} ${input.details?.reply ?? ""} ${input.details?.location ?? ""} ${input.details?.impact ?? ""} ${input.drain?.location === "other" ? (input.drain.locationDetail ?? "") : ""}`;
   return dangerPattern.test(context) || englishDangerPattern.test(context);
 }
 const englishDangerPattern =
-  /\b(?:smell(?:ing)?\s+(?:of\s+)?gas|gas\s+(?:is\s+)?leak(?:ing)?|burning\s+smell|smoke\s+(?:is\s+)?(?:coming|rising)|(?:outlet|socket|wiring|fixture|wire)\s+(?:is\s+)?(?:sparking|wet)|sparks?\s+(?:from|coming)|(?:got|was)\s+(?:an?\s+)?(?:electric\s+)?shock(?:ed)?|electric\s+shock|carbon\s+monoxide\s+alarm)\b/iu;
+  /\b(?:smell(?:ing)?\s+(?:of\s+)?gas|gas\s+(?:is\s+)?leak(?:ing)?|burning\s+smell|smoke\s+(?:is\s+)?(?:coming|rising)|(?:outlet|socket|wiring|fixture|wire)\s+(?:is\s+)?(?:sparking|wet)|sparks?\s+(?:are\s+)?(?:from|coming)|(?:got|was)\s+(?:an?\s+)?(?:electric\s+)?shock(?:ed)?|electric\s+shock|carbon\s+monoxide\s+alarm)\b/iu;
 // 단어만 겹치는 일상 표현(일정 연기, 화재보험, 연기 감지기)은 위험으로 보지 않는다.
 const dangerPattern = new RegExp(
   [
@@ -117,6 +119,9 @@ export function sanitizeIntake(input: Intake): Intake {
                 : undefined,
           },
         }
+      : {}),
+    ...(input.safetyDescription !== undefined
+      ? { safetyDescription: maskAnswer(input.safetyDescription, 240) }
       : {}),
     description: maskAnswer(input.description, 1000),
     contract: maskAnswer(input.contract, 300),

@@ -92,9 +92,7 @@ test("danger selection stops automatic navigation before situation questions", a
   await page
     .getByRole("button", { name: "잘 모르겠어요", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "가스 냄새가 나요", exact: true })
-    .click();
+  await page.getByLabel("위험 신호 직접 입력").fill("가스 냄새가 나요");
   await expect(
     page.getByRole("heading", { name: "지금 위험 신호가 있나요?" }),
   ).toBeVisible();
@@ -153,8 +151,8 @@ test("lighting can be selected from home or the issue list, and answers use plai
     });
     await page.getByRole("button", { name: "다음", exact: true }).click();
     await page
-      .getByRole("button", { name: "연기·불꽃·타는 냄새가 나요" })
-      .click();
+      .getByLabel("위험 신호 직접 입력")
+      .fill("연기·불꽃·타는 냄새가 나요");
     await expect(
       page.getByRole("link", { name: "119에 전화하기" }),
     ).toBeVisible();

@@ -115,6 +115,7 @@ export const intakeSchema = z
       ])
       .default("unknown"),
     safety: z.enum(["none", "gas", "fire", "electric", "unknown"]),
+    safetyDescription: z.string().max(240).optional(),
     discovered: z.enum(["today", "week", "long", "unknown"]),
     preexisting: z.enum(["yes", "no", "unknown", "na"]),
     installed: z.enum(["original", "own", "unknown", "na"]),

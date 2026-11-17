@@ -1,3 +1,4 @@
+import { AnalysisProgress } from "../components/ui/AnalysisProgress";
 import { useLanguage } from "./language";
 import type {
   PhotoDevice,
@@ -230,7 +231,15 @@ export default function App() {
     if (hasDanger(input)) {
       go(
         "questions",
-        ["gas", "fire", "electric"].includes(input.safety) ? 5 : 6,
+        ["gas", "fire", "electric"].includes(input.safety) ||
+          hasDanger({
+            safety: "unknown",
+            description: "",
+            contract: "",
+            safetyDescription: input.safetyDescription,
+          })
+          ? 5
+          : 6,
       );
       return;
     }
@@ -242,10 +251,10 @@ export default function App() {
     const controller = new AbortController();
     const request = { key, controller };
     pending.current = request;
+    go("loading");
     try {
       await api.session();
       if (pending.current !== request) return;
-      go("loading");
       const response = await api.analyze(
         sanitizeIntake(input),
         key,
@@ -728,7 +737,7 @@ export default function App() {
         )}
         {screen === "loading" && (
           <div className="loading-screen">
-            <span className="loading-ring" aria-hidden="true" />
+            <AnalysisProgress />
             <SectionTitle
               eyebrow={t("분석 요청 중")}
               title={

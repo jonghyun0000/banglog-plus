@@ -48,7 +48,13 @@ for (const lang of ["ko", "en"] as const) {
     await page.goto(`/?lang=${lang}`);
     await click("전구가 고장났어요");
     await click("전구 한 개가 켜지지 않아요");
-    await click("연기·불꽃·타는 냄새가 나요");
+    await page
+      .getByLabel(t("위험 신호 직접 입력"))
+      .fill(
+        lang === "en"
+          ? "Sparks are coming from a socket"
+          : "연기·불꽃·타는 냄새가 나요",
+      );
     await expect(page.getByRole("alert")).toBeVisible();
     await expect(
       page.getByRole("button", {

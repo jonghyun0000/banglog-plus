@@ -64,18 +64,20 @@ export function Review({
       )!;
       return [q.title, f.value, Number(id)] as const;
     }),
-    ...intakeDetails(input).map(
-      ([title, value]) =>
-        [
-          title,
-          value,
-          title === "조명 형태"
-            ? lightingStep
-            : title.includes("기사") || title.includes("상대방")
-              ? 4
-              : 6,
-        ] as const,
-    ),
+    ...intakeDetails(input)
+      .filter(([title]) => title !== "직접 입력한 위험 신호")
+      .map(
+        ([title, value]) =>
+          [
+            title,
+            value,
+            title === "조명 형태"
+              ? lightingStep
+              : title.includes("기사") || title.includes("상대방")
+                ? 4
+                : 6,
+          ] as const,
+      ),
     ["추가 설명", input.description || "별도 설명 없음", 6],
     ...(input.building
       ? [
@@ -128,7 +130,11 @@ export function Review({
           ],
         ] as const)
       : []),
-    ["위험 신호", answerLabel("safety", input.safety), 5],
+    [
+      "위험 신호",
+      input.safetyDescription?.trim() || answerLabel("safety", input.safety),
+      5,
+    ],
     ["연락 상태", answerLabel("contact", input.contact), 4],
   ] as const;
   return (

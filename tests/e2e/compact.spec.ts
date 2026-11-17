@@ -58,13 +58,10 @@ test("danger stays below choices, does not jump, and blocks the next step", asyn
   await page
     .getByRole("button", { name: "온수가 나오지 않아요", exact: true })
     .click();
-  const danger = page.getByRole("button", {
-    name: "가스 냄새가 나요",
-    exact: true,
-  });
+  const danger = page.getByLabel("위험 신호 직접 입력");
   await danger.scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => scrollY);
-  await danger.click();
+  await danger.fill("가스 냄새가 나요");
   await expect(page.getByRole("alert")).toContainText(
     "지금은 안전 확인이 먼저예요",
   );
