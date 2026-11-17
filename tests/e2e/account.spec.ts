@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { defaultIntake } from "../../shared/schema";
@@ -67,7 +68,7 @@ test("email login uses the shared membership endpoint and handles invalid creden
 });
 test("saved history renders, deletion requires confirmation and logout clears records (auth simulated)", async ({
   page,
-}) => {
+}, testInfo) => {
   const result = makeAnalysis(defaultIntake, randomUUID(), "mock", "demo");
   const entry = {
     id: randomUUID(),
@@ -154,11 +155,12 @@ test("saved history renders, deletion requires confirmation and logout clears re
     /^\d{4}-\d{2}-\d{2}$/,
     /^\d{4}-\d{2}-\d{2}$/,
   ]);
-  const resultSummary = first.getByText("결과·근거 보기", { exact: true });
+  const resultSummary = first.getByRole("button", {
+    name: "최종 결과 보기",
+    exact: true,
+  });
   const textRows = await first
-    .locator(
-      ".history-date, .history-retention, details:first-of-type > summary",
-    )
+    .locator(".history-date, .history-retention, .history-open-result")
     .evaluateAll((elements) =>
       elements.map((element) => {
         const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
@@ -174,18 +176,82 @@ test("saved history renders, deletion requires confirmation and logout clears re
       }),
     );
   expect(textRows).toEqual([1, 1, 1, 1]);
+  let analysisCalls = 0;
+  await page.route("**/api/analyses", (route) => {
+    analysisCalls++;
+    return route.abort();
+  });
   await resultSummary.click();
   await expect(
-    first.locator(".saved-message").filter({ hasText: result.messageDraft }),
+    page.getByRole("heading", { name: "저장한 최종 결과", exact: true }),
   ).toBeVisible();
-  expect((await first.boundingBox())!.width).toBe(
-    (await page.locator(".history-grid").boundingBox())!.width,
+  await expect(
+    page.getByRole("heading", { name: "곰팡이·결로 수리 가이드", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".result-overview")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "내 기록에 저장", exact: true }),
+  ).toHaveCount(0);
+  for (const viewport of [
+    { width: 360, height: 640 },
+    { width: 390, height: 844 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`saved-result-${viewport.width}.png`),
+      fullPage: true,
+    });
+  }
+  await page
+    .getByRole("button", { name: "집주인에게 보낼 문구 보기", exact: true })
+    .click();
+  await expect(page.getByLabel("저장한 문구 수정")).toHaveValue(
+    result.messageDraft,
   );
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await page
+    .getByLabel("저장한 문구 수정")
+    .fill("저장된 원본은 변경하지 않는 복사용 문구");
+  await page
+    .getByRole("button", { name: "내 기록 목록으로", exact: true })
+    .click();
+  await resultSummary.click();
+  await page
+    .getByRole("button", { name: "집주인에게 보낼 문구 보기", exact: true })
+    .click();
+  await expect(page.getByLabel("저장한 문구 수정")).toHaveValue(
+    result.messageDraft,
+  );
+  await page
+    .getByRole("button", { name: "내 기록 목록으로", exact: true })
+    .click();
+  await resultSummary.click();
+  await page
+    .getByRole("button", { name: "Switch to English", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Saved result", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "What to do now", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save to My records", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "한국어로 전환", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "내 기록 목록으로", exact: true })
+    .click();
+  expect(analysisCalls).toBe(0);
+  expect(rows[0].result).toEqual(result);
   await first.getByRole("button", { name: "기록 삭제", exact: true }).click();
   await first.getByRole("button", { name: "취소", exact: true }).click();
   expect(rows.length).toBe(2);

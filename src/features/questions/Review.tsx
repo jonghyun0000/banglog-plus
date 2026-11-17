@@ -7,7 +7,10 @@ import {
 } from "../../../shared/photo";
 import { PhotoUpload } from "../photos/PhotoUpload";
 import { drainFacts, drainQuestions } from "../../../shared/drain";
-import { lightingStep } from "../../../shared/lighting";
+import {
+  lightingStep,
+  usesSingleBulbQuestions,
+} from "../../../shared/lighting";
 import type { AppConfig, Intake } from "../../../shared/schema";
 import { intakeIssueName } from "../../../shared/schema";
 import {
@@ -52,6 +55,7 @@ export function Review({
 }) {
   const { t, language } = useLanguage();
   const [photoBusy, setPhotoBusy] = useState(false);
+  const timingStep = usesSingleBulbQuestions(input) ? 6 : 1;
   const rows = [
     ["보이는 증상", observationLabel(input), 0],
     ...drainFacts(input).map((f) => {
@@ -82,8 +86,8 @@ export function Review({
           ] as [string, string, number],
         ]
       : []),
-    ["발견 시점", answerLabel("discovered", input.discovered), 1],
-    ["입주 당시", answerLabel("preexisting", input.preexisting), 1],
+    ["발견 시점", answerLabel("discovered", input.discovered), timingStep],
+    ["입주 당시", answerLabel("preexisting", input.preexisting), timingStep],
     ...(input.issue !== "drain"
       ? [["시설", answerLabel("installed", input.installed), 2] as const]
       : []),
@@ -130,7 +134,7 @@ export function Review({
   return (
     <>
       <SectionTitle
-        eyebrow={t("3 / 3 · 자료·검토")}
+        eyebrow={t("자료·검토")}
         title={
           followup
             ? t("추가 안내에 보낼 내용을 확인해 주세요")

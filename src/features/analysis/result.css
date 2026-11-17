@@ -335,7 +335,8 @@
 }
 
 @media (min-width: 800px) {
-  .app-shell.result-shell {
+  .app-shell.result-shell,
+  .app-shell:has(.saved-result-view) {
     max-width: 1040px;
     padding-top: 12px;
   }

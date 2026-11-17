@@ -1,6 +1,6 @@
 import { useLanguage } from "../../app/language";
 import { localizedRepairMessage } from "../../app/localized-message";
-import { englishRecipients } from "../analysis/EnglishGuide";
+import { englishRecipients } from "../analysis/ResultOverview";
 import type { Analysis, Intake } from "../../../shared/schema";
 import { SectionTitle, Button } from "../../components/ui/Elements";
 import { api } from "../../app/api";

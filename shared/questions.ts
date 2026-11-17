@@ -7,7 +7,7 @@ import {
   lightingTitle,
   lightingTypes,
 } from "./lighting.js";
-export const questionVersion = "questions-1.8";
+export const questionVersion = "questions-1.9";
 export const titles = [
   "지금 보이는 증상은 무엇인가요?",
   "언제부터 있었던 문제인가요?",

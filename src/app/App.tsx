@@ -108,7 +108,7 @@ export default function App() {
   );
   const busy = useRef(false);
   const version = useRef(1);
-  const editingQuestion = useRef(false);
+  const [editingQuestion, setEditingQuestion] = useState(false);
   const go = useCallback((next: Screen, nextStep = 0, replace = false) => {
     const value = { screen: next, step: nextStep };
     window.history[replace ? "replaceState" : "pushState"](value, "");
@@ -116,6 +116,18 @@ export default function App() {
     setError("");
     setNotice("");
   }, []);
+  function goHome() {
+    const request = pending.current;
+    if (request) {
+      request.controller.abort();
+      pending.current = null;
+      void api.cancel(request.key).catch(() => {});
+    }
+    busy.current = false;
+    setPreparing(false);
+    setPhotoBusy(false);
+    go("home");
+  }
   useEffect(() => {
     let alive = true;
     api
@@ -192,7 +204,7 @@ export default function App() {
     setPhotoConsent(false);
     setCoveredPhotos([]);
     photoRequest.current = null;
-    editingQuestion.current = false;
+    setEditingQuestion(false);
     version.current++;
     setInput({
       ...defaultIntake,
@@ -226,11 +238,13 @@ export default function App() {
     busy.current = true;
     setPreparing(true);
     setError("");
+    const key = crypto.randomUUID();
+    const controller = new AbortController();
+    const request = { key, controller };
+    pending.current = request;
     try {
       await api.session();
-      const key = crypto.randomUUID();
-      const controller = new AbortController();
-      pending.current = { key, controller };
+      if (pending.current !== request) return;
       go("loading");
       const response = await api.analyze(
         sanitizeIntake(input),
@@ -240,21 +254,24 @@ export default function App() {
         undefined,
         language,
       );
-      if (pending.current?.key !== key) return;
+      if (pending.current !== request) return;
       setResult(response);
       setDraft(null);
       setInspectionQuestions([]);
       go("result", 0, true);
     } catch (e) {
+      if (pending.current !== request || controller.signal.aborted) return;
       if (e instanceof DOMException && e.name === "AbortError") return;
       go("review", 0, true);
       setError(e instanceof Error ? e.message : "분석 중 문제가 생겼어요.");
       version.current++;
       setInput((p) => ({ ...p, inputVersion: version.current }));
     } finally {
-      busy.current = false;
-      setPreparing(false);
-      pending.current = null;
+      if (pending.current === request) {
+        busy.current = false;
+        setPreparing(false);
+        pending.current = null;
+      }
     }
   }
   async function updatePhoto(device?: PhotoDevice) {
@@ -431,7 +448,7 @@ export default function App() {
     setAccepted(false);
     setResult(null);
     setDraft(null);
-    editingQuestion.current = false;
+    setEditingQuestion(false);
     version.current++;
     setInput({ ...next, inputVersion: version.current });
     go("review");
@@ -444,6 +461,7 @@ export default function App() {
       <Result
         result={result!}
         intake={input}
+        showOverview={language === "ko"}
         photoBusy={photoBusy}
         onPhotoConfirm={
           supportsPhotoDeviceDetails(input)
@@ -478,9 +496,18 @@ export default function App() {
         {t("본문으로 건너뛰기")}
       </a>
       <header className="app-header">
-        <span className="brand">
+        <button
+          type="button"
+          className="brand"
+          aria-label={
+            language === "en"
+              ? "Banglog Plus home"
+              : "방로그 Plus 처음 화면으로"
+          }
+          onClick={goHome}
+        >
           {language === "en" ? "Banglog" : "방로그"} <span>Plus</span>
-        </span>
+        </button>
         <button
           className="text-button account-entry"
           onClick={() => go("account")}
@@ -513,8 +540,8 @@ export default function App() {
               className="back-button"
               aria-label={t("뒤로가기")}
               onClick={() => {
-                if (screen === "questions" && editingQuestion.current) {
-                  editingQuestion.current = false;
+                if (screen === "questions" && editingQuestion) {
+                  setEditingQuestion(false);
                   go("review");
                 } else if (screen === "questions" && step > 0)
                   go("questions", adjacentQuestion(input, step, -1));
@@ -645,20 +672,21 @@ export default function App() {
             <Questions
               input={input}
               step={step}
+              editing={editingQuestion}
               onChange={change}
               onNext={(patch) => {
                 const next = applyQuestionPatch(input, patch ?? {});
                 if (hasDanger(next)) return;
                 if (
-                  editingQuestion.current &&
+                  editingQuestion &&
                   step === 4 &&
                   questionSteps(next).includes(3)
                 ) {
                   go("questions", 3);
                   return;
                 }
-                if (step === 6 || editingQuestion.current) {
-                  editingQuestion.current = false;
+                if (step === 6 || editingQuestion) {
+                  setEditingQuestion(false);
                   setInput((previous) => sanitizeIntake(previous));
                   go("review");
                 } else go("questions", adjacentQuestion(next, step, 1));
@@ -689,7 +717,7 @@ export default function App() {
             accepted={accepted}
             onAccept={setAccepted}
             onEdit={(s) => {
-              editingQuestion.current = true;
+              setEditingQuestion(true);
               setResult(null);
               go("questions", s);
             }}

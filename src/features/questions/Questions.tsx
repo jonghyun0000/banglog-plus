@@ -18,6 +18,7 @@ import {
   lightingQuestion,
   lightingStep,
   lightingTypes,
+  usesSingleBulbQuestions,
 } from "../../../shared/lighting";
 import {
   options,
@@ -71,11 +72,13 @@ export function Questions({
   step,
   onChange,
   onNext,
+  editing,
 }: {
   input: Intake;
   step: number;
   onChange: (patch: Partial<Intake>) => void;
   onNext: (patch?: Partial<Intake>) => void;
+  editing: boolean;
 }) {
   const { t, language } = useLanguage();
   const [autoAdvance, setAutoAdvance] = useState(true);
@@ -137,7 +140,22 @@ export function Questions({
       ? drainQuestions[step as keyof typeof drainQuestions]
       : undefined;
   const path = questionSteps(input);
-  const phase = step === 0 || step === 5 ? 1 : step === 6 ? 3 : 2;
+  const phase =
+    step === 6
+      ? "자료·검토"
+      : step === 0 ||
+          step === 5 ||
+          step === lightingStep ||
+          (drainQuestion && step <= 9)
+        ? "증상·안전"
+        : "상황 확인";
+  const fastBulb = usesSingleBulbQuestions(input);
+  const timing = (
+    <>
+      {choices("discovered", t("처음 발견한 시점"))}
+      {choices("preexisting", t("입주 당시에도 있었나요?"))}
+    </>
+  );
   const details = input.details ?? emptyDetails;
   function updateDetails(patch: Partial<typeof details>) {
     onChange({ details: { ...details, ...patch } });
@@ -149,17 +167,8 @@ export function Questions({
     <div className="question-screen">
       <div className="question-context">
         <span>{t(intakeIssueName(input))}</span>
-        <span>
-          {phase} / 3 ·{" "}
-          {[t("증상·안전"), t("상황 확인"), t("자료·검토")][phase - 1]}
-        </span>
+        <span>{t(phase)}</span>
       </div>
-      <progress
-        className="question-progress"
-        value={phase}
-        max={3}
-        aria-label={t("질문 진행 상황")}
-      />
       <SectionTitle
         title={
           step === 2 && input.issue === "mold"
@@ -301,12 +310,20 @@ export function Questions({
           )}
         </>
       )}
-      {step === 1 && (
-        <>
-          {choices("discovered", t("처음 발견한 시점"))}
-          {choices("preexisting", t("입주 당시에도 있었나요?"))}
-        </>
-      )}
+      {step === 1 && timing}
+      {fastBulb &&
+        !danger &&
+        (input.lightingWork?.count ?? 1) === 1 &&
+        (step === 2 || step === lightingStep) && (
+          <aside className="notice">
+            <strong>{t("지금 확인할 것")}</strong>
+            <p>
+              {t(
+                "제품 안내에서 기존 전구 규격을 확인하세요. 규격이 불분명하거나 안전하게 손이 닿지 않으면 점검을 요청하세요.",
+              )}
+            </p>
+          </aside>
+        )}
       {step === 2 && (
         <>
           {input.issue === "mold" && (
@@ -418,6 +435,12 @@ export function Questions({
       )}
       {step === 6 && (
         <>
+          {fastBulb && (
+            <details open={editing || undefined}>
+              <summary>{t("발견 시점·입주 당시 상태 (선택)")}</summary>
+              {timing}
+            </details>
+          )}
           {isLightingIssue(input) && (
             <fieldset className="lighting-work-fields">
               <legend>{t("고장 난 조명과 작업 범위 (선택)")}</legend>

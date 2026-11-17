@@ -1,3 +1,4 @@
+import { sourceLink } from "../../../shared/source-link";
 import type { Analysis } from "../../../shared/schema";
 export function DrainGuide({ result }: { result: Analysis }) {
   const guide = result.drainGuide;
@@ -26,7 +27,7 @@ export function DrainGuide({ result }: { result: Analysis }) {
         </p>
         {guide.sources.map((s) => (
           <p key={s.url}>
-            <a href={s.url} target="_blank" rel="noreferrer">
+            <a href={sourceLink(s.url)} target="_blank" rel="noreferrer">
               {s.title} ↗
             </a>
           </p>

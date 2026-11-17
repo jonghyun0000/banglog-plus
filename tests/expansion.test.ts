@@ -112,7 +112,17 @@ it("branches lighting after safety and prioritizes inspection when replacing a b
   });
   const run = (patch: Partial<typeof input>) =>
     makeFallback({ ...input, ...patch }, randomUUID(), "PROVIDER_TIMEOUT");
-  expect(questionSteps(input).slice(0, 3)).toEqual([0, 5, lightingStep]);
+  expect(questionSteps(input)).toEqual([0, 5, lightingStep, 2, 4, 6]);
+  expect(questionSteps({ ...input, contact: "cost" })).toContain(3);
+  for (const patch of [
+    { safety: "unknown" },
+    { lighting: "integrated" },
+    { observation: "light-flicker" },
+    { observation: "light-replaced" },
+    { observation: "light-multiple" },
+    { lightingWork: { count: 2 } },
+  ] as const)
+    expect(questionSteps({ ...input, ...patch })).toContain(1);
   expect(questionSteps({ ...input, observation: "fridge" })).not.toContain(
     lightingStep,
   );
@@ -128,6 +138,12 @@ it("branches lighting after safety and prioritizes inspection when replacing a b
     expect(result.messageDraft).toContain("항목별 견적");
   }
   expect(run({ preexisting: "yes" }).nextActions[0]).toContain("입주 당시");
+  expect(run({ preexisting: "unknown" }).nextActions.join()).not.toContain(
+    "교체해 보기",
+  );
+  expect(run({ lightingWork: { count: 2 } }).nextActions[0]).toContain(
+    "조명 설비 점검",
+  );
   expect(run({ safety: "unknown" }).nextActions[0]).not.toContain(
     "교체해 보기",
   );
