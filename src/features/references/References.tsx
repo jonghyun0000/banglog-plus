@@ -1,3 +1,4 @@
+import { sourceLink } from "../../../shared/source-link";
 import type { Issue } from "../../../shared/schema";
 import { referenceCases } from "../../../shared/references";
 import { Button, SectionTitle } from "../../components/ui/Elements";
@@ -20,7 +21,7 @@ export function ReferenceCards({ issue }: { issue?: Issue }) {
               <strong>적용 한계</strong> · {c.limit}
             </p>
             <p className="small">확인할 것 · {c.takeaway}</p>
-            <a href={c.url} target="_blank" rel="noreferrer">
+            <a href={sourceLink(c.url)} target="_blank" rel="noreferrer">
               국가법령정보센터 판결 원문 ↗
             </a>
           </article>

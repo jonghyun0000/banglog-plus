@@ -9,6 +9,7 @@ export default tseslint.config(
       "node_modules/**",
       "node_modules.offloaded-backup/**",
       ".claude/**",
+      ".local/**",
       "output/**",
       "test-results/**",
       "playwright-report/**",

@@ -134,7 +134,7 @@ for (const fallback of [false, true]) {
       const guide = page.locator(".tailored-response");
       await expect(guide.getByRole("link").first()).toHaveAttribute(
         "href",
-        result.sources[0].url,
+        "https://www.law.go.kr/법령/민법/(20260317,21454,20260317)/제623조",
       );
       await guide.getByText("출처 확인 정보", { exact: true }).first().click();
       await expect(

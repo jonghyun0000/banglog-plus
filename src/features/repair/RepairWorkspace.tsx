@@ -1,3 +1,4 @@
+import { sourceLink } from "../../../shared/source-link";
 import {
   guideFields,
   mergeRepairGuide,
@@ -875,7 +876,11 @@ export function RepairWorkspace({
                 </p>
                 {repairLegalReviews.map((r) => (
                   <p key={r.id}>
-                    <a href={r.url} target="_blank" rel="noreferrer">
+                    <a
+                      href={sourceLink(r.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       {r.title} ↗
                     </a>
                     <br />

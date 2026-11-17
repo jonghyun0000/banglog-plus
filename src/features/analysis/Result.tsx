@@ -1,3 +1,4 @@
+import { sourceLink } from "../../../shared/source-link";
 import {
   InspectionChecklist,
   type InspectionKey,
@@ -24,6 +25,8 @@ import "./result.css";
 export function Result({
   result,
   intake,
+  showOverview = true,
+  readOnly = false,
   onPhotoConfirm,
   onPhotoRetry,
   photoBusy,
@@ -38,6 +41,8 @@ export function Result({
 }: {
   result: Analysis;
   intake: Intake;
+  showOverview?: boolean;
+  readOnly?: boolean;
   onPhotoConfirm?: (device: PhotoDevice) => void;
   onPhotoRetry?: () => void;
   photoBusy: boolean;
@@ -71,13 +76,15 @@ export function Result({
   );
   return (
     <div className="result-screen">
-      <ResultOverview
-        result={result}
-        intake={intake}
-        costPreview={costPreview}
-        onMessage={onMessage}
-        onEdit={onEdit}
-      />
+      {showOverview && (
+        <ResultOverview
+          result={result}
+          intake={intake}
+          costPreview={costPreview}
+          onMessage={onMessage}
+          onEdit={readOnly ? undefined : onEdit}
+        />
+      )}
       {result.fallback && (
         <p className="notice" role="status">
           {result.fallback.notice}
@@ -208,7 +215,11 @@ export function Result({
                       <p>{c.claim}</p>
                       {s && (
                         <>
-                          <a href={s.url} target="_blank" rel="noreferrer">
+                          <a
+                            href={sourceLink(s.url)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
                             {s.title} ↗
                           </a>
                           <p className="small">
@@ -261,7 +272,7 @@ export function Result({
                   </span>
                 </p>
               ))}
-              {supported && (
+              {supported && !readOnly && (
                 <button className="text-button" onClick={onEdit}>
                   입력 수정하고 다시 확인하기
                 </button>
@@ -275,25 +286,27 @@ export function Result({
             </details>
           )}
         </div>
-        <div className="result-detail-column result-records">
-          <h2 className="result-group-heading">기록</h2>
-          <div className="result-record-actions">
-            {supported && (
-              <Button secondary onClick={onRepair}>
-                이 상황을 수선 기록으로 이어가기
+        {!readOnly && (
+          <div className="result-detail-column result-records">
+            <h2 className="result-group-heading">기록</h2>
+            <div className="result-record-actions">
+              {supported && (
+                <Button secondary onClick={onRepair}>
+                  이 상황을 수선 기록으로 이어가기
+                </Button>
+              )}
+              <Button secondary onClick={onSave}>
+                내 기록에 저장
               </Button>
-            )}
-            <Button secondary onClick={onSave}>
-              내 기록에 저장
-            </Button>
-            <button className="text-button" onClick={onOpenRepair}>
-              수선 요청·퇴실 기록장
-            </button>
+              <button className="text-button" onClick={onOpenRepair}>
+                수선 요청·퇴실 기록장
+              </button>
+            </div>
+            <p className="small">
+              로그인 후 저장하면 나중에도 다시 볼 수 있어요.
+            </p>
           </div>
-          <p className="small">
-            로그인 후 저장하면 나중에도 다시 볼 수 있어요.
-          </p>
-        </div>
+        )}
       </section>
       <div className="cautions">
         {result.cautions.map((c) => (
@@ -302,13 +315,17 @@ export function Result({
           </p>
         ))}
       </div>
-      <p className="small">
-        문제가 있으면 의견을 남겨주세요. 안내가 이상해도 실제 수리나 비용 지급을
-        시험할 필요는 없어요.
-      </p>
-      <button className="text-button" onClick={onFeedback}>
-        가이드에 대한 의견 남기기
-      </button>
+      {!readOnly && (
+        <>
+          <p className="small">
+            문제가 있으면 의견을 남겨주세요. 안내가 이상해도 실제 수리나 비용
+            지급을 시험할 필요는 없어요.
+          </p>
+          <button className="text-button" onClick={onFeedback}>
+            가이드에 대한 의견 남기기
+          </button>
+        </>
+      )}
     </div>
   );
 }

@@ -1,7 +1,11 @@
 import { hasReply } from "./questions.js";
 import { defaultDrain, type Intake, type Analysis } from "./schema.js";
 import { hasDanger, intakeContext } from "./safety.js";
-import { isLightingIssue, lightingStep } from "./lighting.js";
+import {
+  isLightingIssue,
+  lightingStep,
+  usesSingleBulbQuestions,
+} from "./lighting.js";
 
 export const drainOptions = {
   location: [
@@ -96,7 +100,7 @@ export function questionSteps(i: Intake): number[] {
           ...(!drainEscalation(i) && d.chemical === "no" ? [11] : []),
         ]
       : []),
-    1,
+    ...(usesSingleBulbQuestions(i) ? [] : [1]),
     ...(i.issue === "drain" ? [] : [2]),
     4,
     ...(hasReply(i) || i.details?.inspection === "yes" ? [3] : []),

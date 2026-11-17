@@ -1,4 +1,5 @@
 export const english: Readonly<Record<string, string>> = {
+  "최종 결과 보기": "View full result",
   "전체 사진": "Wide photo",
   "근접 사진": "Close-up",
   "오류 표시 사진": "Error display photo",
@@ -192,7 +193,6 @@ export const english: Readonly<Record<string, string>> = {
     "Stop if danger continues. This screen cannot assess the hazard for you.",
   "증상·안전": "Symptoms and safety",
   "자료·검토": "Details and review",
-  "질문 진행 상황": "Question progress",
   "문제가 생긴 곳은 어떤 시설인가요?": "What is affected?",
   "보이는 증상을 누르면 다음으로 넘어가요.": "Select a symptom to continue.",
   "답을 바꿔 선택할 수 있어요. 확인한 뒤 다음을 눌러주세요.":
@@ -278,7 +278,6 @@ export const english: Readonly<Record<string, string>> = {
   "아는 담당자가 없어요": "I don’t know who to contact",
   "위험 신호": "Safety hazards",
   "연락 상태": "Contact status",
-  "3 / 3 · 자료·검토": "3 / 3 · Review",
   "추가 안내에 보낼 내용을 확인해 주세요": "Review your follow-up details",
   "이 내용으로 확인할까요?": "Review your answers",
   "· 답변을 확인하고 필요한 부분을 수정하세요.":
@@ -472,4 +471,64 @@ export const english: Readonly<Record<string, string>> = {
     "Couldn’t prepare the photo. You can continue without it.",
   "사진 용량을 줄이지 못했어요. 더 작은 사진으로 다시 선택해 주세요.":
     "Couldn’t shrink the photo. Choose a smaller one.",
+  "지금 확인할 것": "What to check now",
+  "기존 전구 규격과 입주 당시 조명 상태를 확인하세요.":
+    "Check the bulb specification and the condition of the light at move-in.",
+  "제품 안내에서 기존 전구 규격을 확인하세요. 규격이 불분명하거나 안전하게 손이 닿지 않으면 점검을 요청하세요.":
+    "Check the manufacturer’s instructions for the existing bulb specification. If it’s unclear or out of safe reach, ask for an inspection.",
+  "발견 시점·입주 당시 상태 (선택)":
+    "When it started and move-in condition (optional)",
+  "기본 안내 · AI 분석 아님": "Basic guide · No AI analysis",
+  "데모: 가상 결과": "Demo · Simulated result",
+  "입력에 따른 기본 수리 안내": "Basic repair guidance based on your answers",
+  "AI 보조 안내 · 출처 확인 필요": "AI-assisted guidance · Check the sources",
+  "먼저 안전을 확인하세요": "Get to safety first",
+  "이 문제는 지원 범위 밖이에요": "This issue is outside the guide’s scope",
+  "수리 안내를 불러오지 못했어요": "We couldn’t load your repair guide",
+  "증상이 아직 분명하지 않아요.": "The symptoms are still unclear.",
+  "입력 수정하고 다시 확인하기": "Review my answers",
+  "핵심 요약": "Key takeaways",
+  "지금 할 일": "What to do now",
+  "연락할 곳": "Who to contact",
+  "집주인·관리 담당자": "Landlord or building manager",
+  "비용 부담": "Repair costs",
+  "추가 확인이 필요해요": "More information needed",
+  "집주인 부담 검토": "Check whether the landlord may pay",
+  "세입자 부담 검토": "Check whether the tenant may pay",
+  "원인별로 나눠 검토": "Review each contributing cause",
+  "습기가 어디서 생겼는지와 도배 전 점검 결과를 확인해요.":
+    "Check where the moisture is coming from and get the inspection findings before redecorating.",
+  "누수 시작 지점과 전용·공용부분 여부를 확인해요.":
+    "Check where the leak began and whether it involves a private or shared area.",
+  "고장 원인과 수리·교체 범위를 확인해요.":
+    "Check what failed and what needs repair or replacement.",
+  "입주 당시 상태와 부분 보수 가능 여부를 확인해요.":
+    "Check the move-in condition and whether a spot repair is possible.",
+  "막힌 위치와 배수 점검 결과를 확인해요.":
+    "Check where the blockage is and what the inspection found.",
+  "누가 제공한 제품인지와 고장 원인을 확인해요.":
+    "Check who supplied the item and what caused the fault.",
+  "원인 설명이 달라요. 각각의 근거와 점검 결과를 대조해요.":
+    "The accounts differ. Compare the evidence and inspection findings.",
+  "입력한 특약이 이번 수리 범위에 해당하는지 확인해요.":
+    "Check whether the lease clause covers this repair.",
+  "전구 자체 문제인지 등기구 점검이 필요한지 확인해요.":
+    "Check whether the bulb is the issue or the fixture needs an inspection.",
+  "직접 뚫지 말고 안전한 곳에서 점검을 요청하세요.":
+    "Leave the blockage alone and request an inspection from a safe place.",
+  "그대로라면 분해하지 말고 점검을 요청하세요.":
+    "If it persists, leave the drain intact and ask for an inspection.",
+  "분해 없이 거름망 표면만 확인하세요.":
+    "Check only the strainer surface and leave the drain intact.",
+  "다른 약품과 섞지 말고 점검 담당자에게 사용 여부를 알려주세요.":
+    "Avoid mixing chemicals and tell the technician whether any were used.",
+  "간단한 확인으로 해결되지 않으면 연락해요.":
+    "Contact them if a simple check doesn’t resolve it.",
+  "물 사용을 멈춘 뒤 연락해요.": "Stop using water before contacting them.",
+  "작업 내역을 확인하고 비용을 협의해요.":
+    "Review the completed work before discussing costs.",
+  "전구 교체가 어렵거나 교체 후에도 안 켜지면 문의해요.":
+    "Get in touch if replacement isn’t safe or the light still won’t turn on.",
+  "증상을 알리고 점검을 요청해요.":
+    "Report the symptoms and ask for an inspection.",
 };

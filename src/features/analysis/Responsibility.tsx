@@ -1,3 +1,4 @@
+import { sourceLink } from "../../../shared/source-link";
 import type { Analysis, Issue } from "../../../shared/schema";
 
 const evidence: Record<Issue, string> = {
@@ -92,7 +93,11 @@ export function Responsibility({
                 <ul>
                   {sources.map((source) => (
                     <li key={source.id}>
-                      <a href={source.url} target="_blank" rel="noreferrer">
+                      <a
+                        href={sourceLink(source.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         {source.title} ↗
                       </a>
                       <p className="small">{source.scope}</p>

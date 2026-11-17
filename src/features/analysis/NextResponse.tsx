@@ -1,3 +1,4 @@
+import { sourceLink } from "../../../shared/source-link";
 import { BuildingGuide } from "./BuildingGuide";
 import { DrainGuide } from "./DrainGuide";
 import type { Analysis } from "../../../shared/schema";
@@ -43,7 +44,7 @@ function CommonResponse({ result }: { result: Analysis }) {
             민법 제634조는 수리가 필요하면 임대인에게 지체 없이 알리도록 해요.
             이미 알고 있다면 예외예요.
           </p>
-          <a href={law("0634")} target="_blank" rel="noreferrer">
+          <a href={sourceLink(law("0634"))} target="_blank" rel="noreferrer">
             민법 제634조 · 통지의무 ↗
           </a>
         </li>
@@ -62,7 +63,7 @@ function CommonResponse({ result }: { result: Analysis }) {
             수선인지, 사용에 지장이 있는지 등에 따라 범위가 달라져요. 집주인이
             모든 비용을 부담한다는 뜻은 아니에요.
           </p>
-          <a href={law("0623")} target="_blank" rel="noreferrer">
+          <a href={sourceLink(law("0623"))} target="_blank" rel="noreferrer">
             민법 제623조 · 임대인의 의무 ↗
           </a>
         </li>
@@ -74,7 +75,7 @@ function CommonResponse({ result }: { result: Analysis }) {
             지출이 해당하는지는 별도 확인이 필요해요. 전액 환급을 보장하지
             않아요.
           </p>
-          <a href={law("0626")} target="_blank" rel="noreferrer">
+          <a href={sourceLink(law("0626"))} target="_blank" rel="noreferrer">
             민법 제626조 · 필요비 상환 ↗
           </a>
         </li>
@@ -185,7 +186,11 @@ function NextResponseBody({ result }: { result: Analysis }) {
                       className="source"
                       key={`${c.sourceId}:${c.sourceVersion}`}
                     >
-                      <a href={source.url} target="_blank" rel="noreferrer">
+                      <a
+                        href={sourceLink(source.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         {source.title} ↗
                       </a>
                       <p>{c.claim}</p>

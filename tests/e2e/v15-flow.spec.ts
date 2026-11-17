@@ -58,7 +58,8 @@ for (const [width, height] of [
       });
     };
     await begin(page);
-    await expect(page.locator("progress")).toHaveAttribute("max", "3");
+    await expect(page.locator(".question-context")).toContainText("상황 확인");
+    await expect(page.getByRole("progressbar")).toHaveCount(0);
     await audit("questions");
     await tap(page, "아직 연락하지 않았어요");
     await expect(page.getByLabel("추가로 설명할 내용")).toBeVisible();

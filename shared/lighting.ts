@@ -24,20 +24,26 @@ export function isLightingIssue(input: Pick<Intake, "issue" | "observation">) {
   );
 }
 
+export function usesSingleBulbQuestions(input: Intake) {
+  return (
+    input.issue === "fixture" &&
+    input.observation === "light-out" &&
+    input.lighting === "replaceable" &&
+    (input.lightingWork?.count ?? 1) === 1 &&
+    input.safety === "none"
+  );
+}
+
 export function lightingRoute(input: Intake) {
   if (
+    (input.lightingWork?.count ?? 1) > 1 ||
     input.lighting === "integrated" ||
     ["light-replaced", "light-multiple", "light-flicker"].includes(
       input.observation,
     )
   )
     return "inspection";
-  if (
-    input.lighting === "replaceable" &&
-    input.observation === "light-out" &&
-    input.safety === "none" &&
-    input.preexisting !== "yes"
-  )
+  if (usesSingleBulbQuestions(input) && input.preexisting === "no")
     return "bulb";
   return "check";
 }

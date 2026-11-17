@@ -1,4 +1,4 @@
-import { PhotoResult } from "../photos/PhotoResult";
+import { SavedResult } from "./SavedResult";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createClient,
@@ -96,6 +96,7 @@ export function Account({
   const client = useMemo(() => getClient(account), [account]);
   const [session, setSession] = useState<Session | null>(null);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(!!client);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -142,6 +143,7 @@ export function Account({
       setAccepted(false);
       setNotice("");
       setEntries([]);
+      setSelectedId(null);
       setConfirmDelete(null);
       setError("");
       setLoading(!!next);
@@ -330,6 +332,20 @@ export function Account({
       setBusy(false);
     }
   }
+  const selectedEntry =
+    session &&
+    !passwordFlow &&
+    entries.find((entry) => entry.id === selectedId);
+  if (selectedEntry)
+    return (
+      <SavedResult
+        key={selectedEntry.id}
+        entry={selectedEntry}
+        onBack={() => setSelectedId(null)}
+      >
+        <SavedDraft entry={selectedEntry} />
+      </SavedResult>
+    );
   return (
     <div className="account-screen">
       <SectionTitle
@@ -584,47 +600,13 @@ export function Account({
                   <p>
                     {directionNames[entry.result.costResponsibility.direction]}
                   </p>
-                  <details>
-                    <summary>결과·근거 보기</summary>
-                    {entry.result.fallback && (
-                      <p className="notice">{entry.result.fallback.notice}</p>
-                    )}
-                    {entry.result.aiExplanation && (
-                      <p>{entry.result.aiExplanation}</p>
-                    )}
-                    <PhotoResult photo={entry.result.photoAnalysis} />
-                    <p>{entry.result.repairRequest.reason}</p>
-                    {entry.result.costResponsibility.conditions.map((c, i) => (
-                      <p key={i}>{c}</p>
-                    ))}
-                    <p>{entry.result.costResponsibility.uncertainty}</p>
-                    <h4>지금 확인할 내용</h4>
-                    <ul>
-                      {entry.result.nextActions.map((c, i) => (
-                        <li key={i}>{c}</li>
-                      ))}
-                    </ul>
-                    <h4>저장한 연락 문구</h4>
-                    <p className="saved-message">
-                      {entry.result.savedMessage ?? entry.result.messageDraft}
-                    </p>
-                    <h4>참고 근거</h4>
-                    {entry.result.citedClaims.map((c, i) => (
-                      <p key={i}>{c.claim}</p>
-                    ))}
-                    {entry.result.sources.map((s) => (
-                      <p key={s.id}>
-                        <a href={s.url} target="_blank" rel="noreferrer">
-                          {s.title} ↗
-                        </a>
-                      </p>
-                    ))}
-                    {entry.result.cautions.map((c, i) => (
-                      <p className="small" key={i}>
-                        {c}
-                      </p>
-                    ))}
-                  </details>
+                  <Button
+                    secondary
+                    className="button secondary history-open-result"
+                    onClick={() => setSelectedId(entry.id)}
+                  >
+                    최종 결과 보기
+                  </Button>
                   <details className="saved-editor">
                     <summary>문구 수정·복사하기</summary>
                     <SavedDraft entry={entry} />
